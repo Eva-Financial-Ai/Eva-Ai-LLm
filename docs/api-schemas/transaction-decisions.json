@@ -1,0 +1,411 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Transaction Decision API Schemas",
+  "description": "JSON schemas for the Transaction Decision API endpoints and data structures",
+  "definitions": {
+    "Priority": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Priority level for a request"
+    },
+    "RequestStatus": {
+      "type": "string",
+      "enum": ["pending", "inProgress", "completed"],
+      "description": "Status of a request"
+    },
+    "RequestType": {
+      "type": "string",
+      "enum": ["humanInLoop", "hardDecline", "softDecline"],
+      "description": "Type of request"
+    },
+    "TransactionStatus": {
+      "type": "string",
+      "enum": ["pending", "in_progress", "approved", "declined", "soft_declined", "completed"],
+      "description": "Status of a transaction"
+    },
+    "HardDeclineReason": {
+      "type": "string",
+      "enum": [
+        "credit_score",
+        "identity_verification",
+        "compliance_issue", 
+        "fraud_risk",
+        "bankruptcy",
+        "other"
+      ],
+      "description": "Reason for a hard decline"
+    },
+    "SoftDeclineReason": {
+      "type": "string",
+      "enum": [
+        "missing_documents",
+        "insufficient_income",
+        "time_in_business",
+        "collateral_issue",
+        "debt_ratio",
+        "other"
+      ],
+      "description": "Reason for a soft decline"
+    },
+    "ReconsiderationTimeline": {
+      "type": "string",
+      "enum": [
+        "immediate",
+        "30days",
+        "60days",
+        "90days",
+        "custom"
+      ],
+      "description": "Timeline for reconsideration after a soft decline"
+    },
+    "HumanInLoopReason": {
+      "type": "string",
+      "enum": [
+        "additional_info",
+        "verify_identity",
+        "discuss_terms",
+        "explain_requirements",
+        "other"
+      ],
+      "description": "Reason for requesting human review"
+    }
+  },
+  "types": {
+    "ApprovalRequest": {
+      "type": "object",
+      "required": ["transactionId", "approvedBy"],
+      "properties": {
+        "transactionId": {
+          "type": "string",
+          "description": "ID of the transaction being approved"
+        },
+        "approvedBy": {
+          "type": "string",
+          "description": "ID of the user approving the transaction"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes about the approval"
+        }
+      }
+    },
+    "HardDeclineRequest": {
+      "type": "object",
+      "required": ["transactionId", "reason", "declinedBy"],
+      "properties": {
+        "transactionId": {
+          "type": "string",
+          "description": "ID of the transaction being declined"
+        },
+        "reason": {
+          "$ref": "#/definitions/HardDeclineReason",
+          "description": "Reason for the hard decline"
+        },
+        "comments": {
+          "type": "string",
+          "description": "Additional comments about the decline reason"
+        },
+        "declinedBy": {
+          "type": "string",
+          "description": "ID of the user declining the transaction"
+        }
+      }
+    },
+    "SoftDeclineRequest": {
+      "type": "object",
+      "required": ["transactionId", "reason", "stepsToOvercome", "reconsiderationTimeline", "declinedBy"],
+      "properties": {
+        "transactionId": {
+          "type": "string",
+          "description": "ID of the transaction being soft declined"
+        },
+        "reason": {
+          "$ref": "#/definitions/SoftDeclineReason",
+          "description": "Reason for the soft decline"
+        },
+        "stepsToOvercome": {
+          "type": "string",
+          "description": "Steps the applicant can take to overcome the issues"
+        },
+        "reconsiderationTimeline": {
+          "$ref": "#/definitions/ReconsiderationTimeline",
+          "description": "Timeline for reconsideration"
+        },
+        "declinedBy": {
+          "type": "string",
+          "description": "ID of the user declining the transaction"
+        }
+      }
+    },
+    "HumanInLoopRequest": {
+      "type": "object",
+      "required": ["transactionId", "reason", "priority", "requestedBy"],
+      "properties": {
+        "transactionId": {
+          "type": "string",
+          "description": "ID of the transaction for review"
+        },
+        "reason": {
+          "$ref": "#/definitions/HumanInLoopReason",
+          "description": "Reason for requesting human review"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes for the reviewer"
+        },
+        "priority": {
+          "$ref": "#/definitions/Priority",
+          "description": "Priority of the review request"
+        },
+        "requestedBy": {
+          "type": "string",
+          "description": "ID of the user requesting the review"
+        }
+      }
+    },
+    "PendingRequest": {
+      "type": "object",
+      "required": ["id", "transactionId", "type", "status", "createdAt", "updatedAt", "createdBy", "data"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the request"
+        },
+        "transactionId": {
+          "type": "string",
+          "description": "ID of the associated transaction"
+        },
+        "type": {
+          "$ref": "#/definitions/RequestType",
+          "description": "Type of request"
+        },
+        "status": {
+          "$ref": "#/definitions/RequestStatus",
+          "description": "Current status of the request"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the request was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the request was last updated"
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "ID of the user who created the request"
+        },
+        "assignedTo": {
+          "type": "string",
+          "description": "ID of the user assigned to handle the request"
+        },
+        "data": {
+          "oneOf": [
+            { "$ref": "#/types/HumanInLoopRequest" },
+            { "$ref": "#/types/HardDeclineRequest" },
+            { "$ref": "#/types/SoftDeclineRequest" }
+          ],
+          "description": "The request data, varies by type"
+        }
+      }
+    },
+    "Transaction": {
+      "type": "object",
+      "required": ["id", "applicantData", "type", "amount", "currentStage", "status", "createdAt"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the transaction"
+        },
+        "applicantData": {
+          "type": "object",
+          "required": ["name", "entityType"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the applicant"
+            },
+            "entityType": {
+              "type": "string",
+              "description": "Type of entity (individual, LLC, corporation, etc.)"
+            }
+          }
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of transaction (loan, lease, etc.)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Transaction amount"
+        },
+        "currentStage": {
+          "type": "string",
+          "description": "Current workflow stage"
+        },
+        "status": {
+          "$ref": "#/definitions/TransactionStatus",
+          "description": "Current transaction status"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the transaction was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the transaction was last updated"
+        },
+        "declineReason": {
+          "type": "string",
+          "description": "Reason for decline if applicable"
+        },
+        "declineComments": {
+          "type": "string",
+          "description": "Additional comments about the decline"
+        },
+        "stepsToOvercome": {
+          "type": "string",
+          "description": "Steps to overcome a soft decline"
+        },
+        "reconsiderationTimeline": {
+          "type": "string",
+          "description": "Timeline for reconsidering a soft decline"
+        }
+      }
+    },
+    "ApiResponse": {
+      "type": "object",
+      "required": ["success"],
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether the request was successful"
+        },
+        "data": {
+          "description": "Response data if successful"
+        },
+        "error": {
+          "type": "string",
+          "description": "Error message if unsuccessful"
+        },
+        "message": {
+          "type": "string",
+          "description": "Additional information message"
+        }
+      }
+    }
+  },
+  "endpoints": {
+    "/transactions/{id}/approve": {
+      "post": {
+        "request": {
+          "$ref": "#/types/ApprovalRequest"
+        },
+        "response": {
+          "$ref": "#/types/ApiResponse"
+        },
+        "description": "Approve a transaction"
+      }
+    },
+    "/transactions/{id}/hard-decline": {
+      "post": {
+        "request": {
+          "$ref": "#/types/HardDeclineRequest"
+        },
+        "response": {
+          "$ref": "#/types/ApiResponse"
+        },
+        "description": "Hard decline a transaction"
+      }
+    },
+    "/transactions/{id}/soft-decline": {
+      "post": {
+        "request": {
+          "$ref": "#/types/SoftDeclineRequest"
+        },
+        "response": {
+          "$ref": "#/types/ApiResponse"
+        },
+        "description": "Soft decline a transaction"
+      }
+    },
+    "/transactions/{id}/human-review": {
+      "post": {
+        "request": {
+          "$ref": "#/types/HumanInLoopRequest"
+        },
+        "response": {
+          "type": "object",
+          "allOf": [
+            { "$ref": "#/types/ApiResponse" },
+            {
+              "properties": {
+                "data": {
+                  "$ref": "#/types/PendingRequest"
+                }
+              }
+            }
+          ]
+        },
+        "description": "Request human review for a transaction"
+      }
+    },
+    "/transactions/{id}/pending-requests": {
+      "get": {
+        "response": {
+          "type": "object",
+          "allOf": [
+            { "$ref": "#/types/ApiResponse" },
+            {
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/types/PendingRequest"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "description": "Get all pending requests for a transaction"
+      }
+    },
+    "/requests/{id}/status": {
+      "patch": {
+        "request": {
+          "type": "object",
+          "required": ["status"],
+          "properties": {
+            "status": {
+              "$ref": "#/definitions/RequestStatus",
+              "description": "New status for the request"
+            },
+            "notes": {
+              "type": "string",
+              "description": "Optional notes about the status update"
+            }
+          }
+        },
+        "response": {
+          "type": "object",
+          "allOf": [
+            { "$ref": "#/types/ApiResponse" },
+            {
+              "properties": {
+                "data": {
+                  "$ref": "#/types/PendingRequest"
+                }
+              }
+            }
+          ]
+        },
+        "description": "Update the status of a pending request"
+      }
+    }
+  }
+} 
