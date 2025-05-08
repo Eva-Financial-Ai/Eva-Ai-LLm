@@ -3,6 +3,18 @@ import { v4 as uuidv4 } from 'uuid';
 import AssetClassification, { AssetClassType, ASSET_CLASSES } from '../components/blockchain/AssetClassification';
 import BlockchainVerification, { BlockchainVerificationStatus } from '../components/blockchain/BlockchainVerification';
 import TopNavigation from '../components/layout/TopNavigation';
+import PressNewAssetModal from '../components/blockchain/PressNewAssetModal';
+import { AssetClass } from '../types/AssetClassTypes';
+import AssetTrackingDashboard, { TrackedAsset } from '../components/blockchain/AssetTrackingDashboard';
+
+// Extend BlockchainVerificationStatus to include missing properties
+interface ExtendedBlockchainVerificationStatus extends BlockchainVerificationStatus {
+  verificationProgress?: {
+    currentStep?: number;
+    totalSteps?: number;
+    estimatedCompletionTime?: string;
+  };
+}
 
 // Define asset interface
 interface Asset {
@@ -13,7 +25,7 @@ interface Asset {
   value: number;
   createdAt: string;
   blockchainStatus?: 'unverified' | 'pending' | 'verified';
-  blockchainVerification?: BlockchainVerificationStatus;
+  blockchainVerification?: ExtendedBlockchainVerificationStatus;
   documents: string[];
   metadata: Record<string, any>;
   
@@ -92,11 +104,13 @@ interface Asset {
 
 const EnhancedAssetPress: React.FC = () => {
   // State management
-  const [activeTab, setActiveTab] = useState<'tokenize' | 'manage' | 'verify'>('tokenize');
+  const [activeTab, setActiveTab] = useState<'press' | 'manage' | 'verify'>('press');
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [trackedAssets, setTrackedAssets] = useState<TrackedAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isTokenizing, setIsTokenizing] = useState(false);
+  const [showPressModal, setShowPressModal] = useState(false);
   const [showTokenizeModal, setShowTokenizeModal] = useState(false);
   const [newAsset, setNewAsset] = useState<Partial<Asset>>({
     name: '',
@@ -194,6 +208,11 @@ const EnhancedAssetPress: React.FC = () => {
             ],
             lienStatus: {
               hasLien: false
+            },
+            verificationProgress: {
+              currentStep: 6,
+              totalSteps: 6,
+              estimatedCompletionTime: 'Completed'
             }
           }
         },
@@ -259,11 +278,45 @@ const EnhancedAssetPress: React.FC = () => {
     }, 1500);
   }, []);
   
+  // Fetch initial assets when component mounts
+  useEffect(() => {
+    // Simulate API call to fetch assets
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    // Convert assets to tracked assets for the tracking dashboard
+    const convertedAssets: TrackedAsset[] = assets.map(asset => ({
+      id: asset.id,
+      name: asset.name,
+      type: asset.type,
+      value: asset.value,
+      datePressed: asset.createdAt,
+      verificationStatus: mapBlockchainStatus(asset.blockchainStatus),
+      blockchainNetwork: asset.blockchainVerification?.network || 'polygon',
+      verificationStep: asset.blockchainVerification?.verificationProgress?.currentStep,
+      estimatedCompletionTime: asset.blockchainVerification?.verificationProgress?.estimatedCompletionTime,
+      ownerName: asset.ownership[0]?.owner
+    }));
+    
+    setTrackedAssets(convertedAssets);
+  }, [assets]);
+  
   // Filter assets based on search term
   const filteredAssets = assets.filter(asset => 
     asset.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     asset.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  // Helper function to map blockchainStatus to TrackedAsset verificationStatus
+  const mapBlockchainStatus = (status?: 'unverified' | 'pending' | 'verified'): 'pending' | 'in_progress' | 'verified' | 'rejected' => {
+    switch (status) {
+      case 'verified': return 'verified';
+      case 'pending': return 'in_progress';
+      case 'unverified': return 'pending';
+      default: return 'pending';
+    }
+  };
   
   // Handle asset class selection
   const handleAssetClassSelect = (assetClass: AssetClassType) => {
@@ -276,11 +329,11 @@ const EnhancedAssetPress: React.FC = () => {
   };
   
   // Handle blockchain verification
-  const handleVerifyAsset = async (asset: Asset): Promise<BlockchainVerificationStatus> => {
+  const handleVerifyAsset = async (asset: Asset): Promise<ExtendedBlockchainVerificationStatus> => {
     // Simulate blockchain verification
     return new Promise((resolve) => {
       setTimeout(() => {
-        const verification: BlockchainVerificationStatus = {
+        const verification: ExtendedBlockchainVerificationStatus = {
           isVerified: true,
           transactionHash: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
           blockNumber: Math.floor(Math.random() * 10000000) + 10000000,
@@ -308,6 +361,11 @@ const EnhancedAssetPress: React.FC = () => {
             uccFilingNumber: asset.lienStatus.uccFilingNumber
           } : {
             hasLien: false
+          },
+          verificationProgress: {
+            currentStep: 6,
+            totalSteps: 6,
+            estimatedCompletionTime: 'Completed'
           }
         };
         
@@ -327,6 +385,60 @@ const EnhancedAssetPress: React.FC = () => {
         resolve(verification);
       }, 3000);
     });
+  };
+  
+  // Handle starting verification for an asset
+  const handleStartVerification = (assetId: string) => {
+    const asset = assets.find(a => a.id === assetId);
+    if (!asset) return;
+
+    // Update asset status to 'pending'
+    const updatedAssets = [...assets]; // Create a new array
+    const assetIndex = updatedAssets.findIndex(a => a.id === assetId);
+    
+    if (assetIndex !== -1) {
+      updatedAssets[assetIndex] = {
+        ...updatedAssets[assetIndex],
+        blockchainStatus: 'pending'
+      };
+      setAssets(updatedAssets);
+
+      // Start verification process (simulate with timeout)
+      setTimeout(() => {
+        handleVerifyAsset(asset)
+          .then(verification => {
+            // Update asset with verification results
+            const verifiedAssets = [...assets]; // Create a new array
+            const assetIndex = verifiedAssets.findIndex(a => a.id === assetId);
+            
+            if (assetIndex !== -1) {
+              verifiedAssets[assetIndex] = {
+                ...verifiedAssets[assetIndex],
+                blockchainStatus: 'verified',
+                blockchainVerification: verification,
+                advancedFeatures: { 
+                  ...verifiedAssets[assetIndex].advancedFeatures, 
+                  blockchainVerified: true 
+                }
+              };
+              setAssets(verifiedAssets);
+            }
+          })
+          .catch(error => {
+            console.error('Verification failed:', error);
+            const failedAssets = [...assets]; // Create a new array
+            const assetIndex = failedAssets.findIndex(a => a.id === assetId);
+            
+            if (assetIndex !== -1) {
+              failedAssets[assetIndex] = {
+                ...failedAssets[assetIndex],
+                blockchainStatus: 'unverified' // Use valid enum value
+              };
+              setAssets(failedAssets);
+            }
+          });
+      }, 1000);
+    }
   };
   
   // Handle asset creation
@@ -467,174 +579,148 @@ const EnhancedAssetPress: React.FC = () => {
     }
   };
   
+  // Handler for pressing assets with the new modal
+  const handlePressAsset = async (assetData: any) => {
+    try {
+      // Convert from the new format to the existing format
+      const newPressedAsset: Asset = {
+        id: 'asset-' + uuidv4().slice(0, 8),
+        name: assetData.name,
+        type: assetData.assetClass as AssetClassType,
+        class: assetData.assetClass as AssetClassType,
+        description: assetData.description || '',
+        value: assetData.marketValue || 0,
+        createdAt: new Date().toISOString(),
+        blockchainStatus: 'pending',
+        documents: assetData.documents || [],
+        metadata: { ...assetData },
+        ownership: [{
+          owner: 'Your Company LLC',
+          percentage: 100,
+          since: new Date().toISOString().split('T')[0]
+        }],
+        // Map other fields from assetData to the Asset structure
+        financialData: {
+          marketValue: assetData.marketValue || 0,
+          originalPrice: assetData.originalPurchasePrice || assetData.marketValue || 0,
+          depreciationRate: assetData.depreciationRate || getDefaultDepreciationRate(assetData.assetClass as AssetClassType),
+          depreciationMethod: getDefaultDepreciationMethod(assetData.assetClass as AssetClassType),
+          yield: 0,
+          forecastingScore: 50
+        },
+        regulatory: {
+          taxTreatment: 'standard',
+          complianceStatus: 'pending-review',
+          complianceChecks: []
+        },
+        lienStatus: {
+          hasLien: false
+        },
+        tracking: {
+          liquidityRating: 5,
+          riskAssessment: 'medium',
+          utilizationRate: 0
+        },
+        advancedFeatures: {
+          blockchainVerified: false,
+          smartContractAddress: assetData.blockchainNetwork ? `0x${Math.random().toString(16).substring(2, 42)}` : undefined,
+          aiPredictions: []
+        }
+      };
+
+      // Simulate blockchain pressing (tokenization) process
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      
+      // Add to the assets array
+      setAssets(prev => [newPressedAsset, ...prev]);
+      
+      // Simulate verification completion after 5 seconds
+      setTimeout(() => {
+        setAssets(prev => prev.map(a => 
+          a.id === newPressedAsset.id 
+            ? { 
+                ...a, 
+                blockchainStatus: 'verified',
+                advancedFeatures: { 
+                  ...a.advancedFeatures, 
+                  blockchainVerified: true 
+                }
+              } 
+            : a
+        ));
+      }, 5000);
+      
+      return newPressedAsset;
+    } catch (error) {
+      console.error("Error pressing asset:", error);
+      throw error;
+    }
+  };
+  
+  // Handle viewing asset details
+  const handleViewAssetDetails = (assetId: string) => {
+    const asset = assets.find(a => a.id === assetId);
+    if (asset) {
+      setSelectedAsset(asset);
+      // Additional logic for displaying asset details
+    }
+  };
+  
   // Render tabs
-  const renderTokenizeTab = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900">Asset Tokenization</h2>
-        <button
-          onClick={() => setShowTokenizeModal(true)}
-          className="px-4 py-2 bg-primary-600 text-white rounded-md shadow hover:bg-primary-700 transition-colors"
+  const renderPressTab = () => (
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Asset Press</h2>
+        
+        <button 
+          onClick={() => setShowPressModal(true)}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
-          Tokenize New Asset
+          Press New Asset
         </button>
       </div>
       
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-6">
-          <div className="text-center">
-            <div className="mx-auto bg-primary-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold mb-4">Comprehensive Asset Management Platform</h2>
-            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-              Digitize, verify, and manage your assets with blockchain-based security.
-            </p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center mb-2">
-                  <div className="p-2 rounded-full bg-blue-100 text-blue-600 mr-3">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <h3 className="font-medium">18 Asset Classes</h3>
-                </div>
-                <p className="text-sm text-gray-500">
-                  Structured data for every asset type from real estate to digital assets
-                </p>
-              </div>
-              
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center mb-2">
-                  <div className="p-2 rounded-full bg-green-100 text-green-600 mr-3">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <h3 className="font-medium">Blockchain Verification</h3>
-                </div>
-                <p className="text-sm text-gray-500">
-                  Proof of work consensus for immutable ownership records
-                </p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left mb-8">
-              <div>
-                <h3 className="text-lg font-medium mb-3">Why Tokenize Your Assets?</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-start">
-                    <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Real-time asset visibility and tracking across your organization</span>
-                  </li>
-                  <li className="flex items-start">
-                    <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Tamper-proof verification of ownership history and lien status</span>
-                  </li>
-                  <li className="flex items-start">
-                    <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Simplified regulatory compliance with standardized data structures</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium mb-3">Streamlined Asset Management</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-start">
-                    <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Comprehensive 18-category asset classification system</span>
-                  </li>
-                  <li className="flex items-start">
-                    <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>AI-driven document analysis and data extraction</span>
-                  </li>
-                  <li className="flex items-start">
-                    <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Real-time UCC lien status tracking and monitoring</span>
-                  </li>
-                  <li className="flex items-start">
-                    <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Secure, private blockchain verification with Proof of Work</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            
-            <button
-              onClick={() => setShowTokenizeModal(true)}
-              className="px-6 py-3 bg-primary-600 text-white rounded-md shadow hover:bg-primary-700 transition-colors"
-            >
-              Start Tokenizing Your Assets
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-  
-  const renderManageTab = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900">Manage Tokenized Assets</h2>
-        <div className="relative">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-            placeholder="Search assets..."
-          />
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+      <div className="bg-amber-50 p-4 rounded-md mb-6">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-amber-800">Important Information</h3>
+            <div className="mt-2 text-sm text-amber-700">
+              <p>Assets must complete verification before they can be used in the platform. After pressing, you can track verification progress in the "Manage & Track" tab.</p>
+            </div>
           </div>
         </div>
       </div>
       
       {loading ? (
-        <div className="bg-white rounded-lg shadow p-8 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-500"></div>
-          <span className="ml-3 text-gray-500">Loading assets...</span>
+        <div className="text-center py-8">
+          <svg className="animate-spin mx-auto h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="mt-2 text-sm text-gray-500">Loading assets...</p>
         </div>
       ) : filteredAssets.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
+        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
-          <h3 className="mt-2 text-lg font-medium text-gray-900">No assets found</h3>
-          {searchTerm ? (
-            <p className="mt-1 text-gray-500">No assets match your search criteria. Try different keywords.</p>
-          ) : (
-            <p className="mt-1 text-gray-500">You haven't tokenized any assets yet. Get started by creating your first asset.</p>
-          )}
-          {!searchTerm && (
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No assets found</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Get started by pressing your first asset.
+          </p>
+          <div className="mt-6">
             <button
-              onClick={() => setShowTokenizeModal(true)}
-              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
+              onClick={() => setShowPressModal(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              Tokenize Your First Asset
+              Press New Asset
             </button>
-          )}
+          </div>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -714,654 +800,88 @@ const EnhancedAssetPress: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
-  );
-  
-  const renderVerifyTab = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900">Asset Verification & Records</h2>
-        <button
-          onClick={() => setActiveTab('manage')}
-          className="text-primary-600 hover:text-primary-900 flex items-center"
-        >
-          <svg className="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to Assets
-        </button>
-      </div>
       
-      {selectedAsset ? (
-        <BlockchainVerification 
-          asset={selectedAsset}
-          verificationStatus={selectedAsset.blockchainVerification}
-          onVerify={() => handleVerifyAsset(selectedAsset)}
+      {/* Press New Asset Modal */}
+      {showPressModal && (
+        <PressNewAssetModal
+          isOpen={showPressModal}
+          onClose={() => setShowPressModal(false)}
+          onPress={handlePressAsset}
         />
-      ) : (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <h3 className="mt-2 text-lg font-medium text-gray-900">No Asset Selected</h3>
-          <p className="mt-1 text-gray-500">Select an asset from the Manage tab to view or verify it on the blockchain.</p>
-          <button
-            onClick={() => setActiveTab('manage')}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-          >
-            View Assets
-          </button>
-        </div>
       )}
     </div>
   );
-  
-  // New asset modal
-  const renderTokenizeModal = () => {
-    if (!showTokenizeModal) return null;
-    
-    return (
-      <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
-          <div className="flex justify-between items-start mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Tokenize New Asset</h2>
-            <button
-              onClick={() => setShowTokenizeModal(false)}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          
-          <AssetClassification
-            selectedClass={selectedAssetClass}
-            onSelectClass={handleAssetClassSelect}
-          />
-          
-          <div className="mt-6 bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Asset Details</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Asset Name
-                </label>
-                <input
-                  type="text"
-                  value={newAsset.name || ''}
-                  onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Enter asset name"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Value (USD)
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-500 sm:text-sm">$</span>
-                  </div>
-                  <input
-                    type="number"
-                    value={newAsset.value || ''}
-                    onChange={(e) => setNewAsset({ ...newAsset, value: parseFloat(e.target.value) })}
-                    className="block w-full pl-7 pr-12 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    placeholder="0.00"
-                  />
-                </div>
-              </div>
-              
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Description
-                </label>
-                <textarea
-                  value={newAsset.description || ''}
-                  onChange={(e) => setNewAsset({ ...newAsset, description: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Enter asset description"
-                  rows={3}
-                />
-              </div>
-            </div>
-            
-            {/* Class-Specific Information - Enhanced to show real fields */}
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">
-                Class-Specific Information
-              </h4>
-              
-              {/* Financial Data */}
-              <div className="bg-gray-50 p-4 rounded-md mb-4">
-                <h5 className="text-sm font-medium text-gray-700 mb-3">Financial Data</h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Original Purchase Price
-                    </label>
-                    <input
-                      type="number"
-                      value={newAsset.financialData?.originalPrice || ''}
-                      onChange={(e) => setNewAsset({
-                        ...newAsset,
-                        financialData: {
-                          ...newAsset.financialData,
-                          marketValue: newAsset.financialData?.marketValue || 0,
-                          originalPrice: parseFloat(e.target.value) || 0
-                        }
-                      })}
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                      placeholder="Enter original price"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Yield (%)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={newAsset.financialData?.yield || ''}
-                      onChange={(e) => setNewAsset({
-                        ...newAsset,
-                        financialData: {
-                          ...newAsset.financialData,
-                          marketValue: newAsset.financialData?.marketValue || 0,
-                          yield: parseFloat(e.target.value) || 0
-                        }
-                      })}
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                      placeholder="Enter yield percentage"
-                    />
-                  </div>
-                </div>
-                
-                {/* Show depreciation fields only for depreciable assets */}
-                {(['real_estate', 'equipment', 'vehicles', 'intellectual_property', 'digital_assets'].includes(selectedAssetClass)) && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Depreciation Rate (%)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={newAsset.financialData?.depreciationRate || getDefaultDepreciationRate(selectedAssetClass)}
-                        onChange={(e) => setNewAsset({
-                          ...newAsset,
-                          financialData: {
-                            ...newAsset.financialData,
-                            marketValue: newAsset.financialData?.marketValue || 0,
-                            depreciationRate: parseFloat(e.target.value) || 0
-                          }
-                        })}
-                        className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                        placeholder="Enter depreciation rate"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Depreciation Method
-                      </label>
-                      <select
-                        value={newAsset.financialData?.depreciationMethod || getDefaultDepreciationMethod(selectedAssetClass)}
-                        onChange={(e) => setNewAsset({
-                          ...newAsset,
-                          financialData: {
-                            ...newAsset.financialData,
-                            marketValue: newAsset.financialData?.marketValue || 0,
-                            depreciationMethod: e.target.value as 'straight-line' | 'declining-balance' | 'MACRS' | 'none'
-                          }
-                        })}
-                        className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                      >
-                        <option value="straight-line">Straight Line</option>
-                        <option value="declining-balance">Declining Balance</option>
-                        <option value="MACRS">MACRS</option>
-                        <option value="none">None</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Ownership Information */}
-              <div className="bg-gray-50 p-4 rounded-md mb-4">
-                <h5 className="text-sm font-medium text-gray-700 mb-3">Ownership Information</h5>
-                
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Owner Name
-                  </label>
-                  <input
-                    type="text"
-                    value={newAsset.ownership?.[0]?.owner || ''}
-                    onChange={(e) => {
-                      const updatedOwnership = [...(newAsset.ownership || [])];
-                      if (updatedOwnership.length === 0) {
-                        updatedOwnership.push({
-                          owner: e.target.value,
-                          percentage: 100,
-                          since: new Date().toISOString().split('T')[0]
-                        });
-                      } else {
-                        updatedOwnership[0] = {
-                          ...updatedOwnership[0],
-                          owner: e.target.value
-                        };
-                      }
-                      setNewAsset({
-                        ...newAsset,
-                        ownership: updatedOwnership
-                      });
-                    }}
-                    className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                    placeholder="Enter owner name"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Ownership Percentage (%)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={newAsset.ownership?.[0]?.percentage || 100}
-                      onChange={(e) => {
-                        const updatedOwnership = [...(newAsset.ownership || [])];
-                        if (updatedOwnership.length === 0) {
-                          updatedOwnership.push({
-                            owner: 'Your Company LLC',
-                            percentage: parseFloat(e.target.value) || 100,
-                            since: new Date().toISOString().split('T')[0]
-                          });
-                        } else {
-                          updatedOwnership[0] = {
-                            ...updatedOwnership[0],
-                            percentage: parseFloat(e.target.value) || 100
-                          };
-                        }
-                        setNewAsset({
-                          ...newAsset,
-                          ownership: updatedOwnership
-                        });
-                      }}
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                      placeholder="Enter ownership percentage"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Ownership Since
-                    </label>
-                    <input
-                      type="date"
-                      value={newAsset.ownership?.[0]?.since || new Date().toISOString().split('T')[0]}
-                      onChange={(e) => {
-                        const updatedOwnership = [...(newAsset.ownership || [])];
-                        if (updatedOwnership.length === 0) {
-                          updatedOwnership.push({
-                            owner: 'Your Company LLC',
-                            percentage: 100,
-                            since: e.target.value
-                          });
-                        } else {
-                          updatedOwnership[0] = {
-                            ...updatedOwnership[0],
-                            since: e.target.value
-                          };
-                        }
-                        setNewAsset({
-                          ...newAsset,
-                          ownership: updatedOwnership
-                        });
-                      }}
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Lien Status */}
-              <div className="bg-gray-50 p-4 rounded-md mb-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h5 className="text-sm font-medium text-gray-700">Lien Information</h5>
-                  <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                    <input
-                      type="checkbox"
-                      id="hasLien"
-                      checked={newAsset.lienStatus?.hasLien || false}
-                      onChange={(e) => setNewAsset({
-                        ...newAsset,
-                        lienStatus: {
-                          ...newAsset.lienStatus,
-                          hasLien: e.target.checked
-                        }
-                      })}
-                      className="sr-only"
-                    />
-                    <label
-                      htmlFor="hasLien"
-                      className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${
-                        newAsset.lienStatus?.hasLien ? 'bg-primary-600' : ''
-                      }`}
-                    >
-                      <span
-                        className={`block h-6 w-6 rounded-full bg-white shadow transform transition-transform ${
-                          newAsset.lienStatus?.hasLien ? 'translate-x-4' : 'translate-x-0'
-                        }`}
-                      ></span>
-                    </label>
-                  </div>
-                </div>
-                
-                {newAsset.lienStatus?.hasLien && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Lien Holder
-                        </label>
-                        <input
-                          type="text"
-                          value={newAsset.lienStatus?.lienHolder || ''}
-                          onChange={(e) => setNewAsset({
-                            ...newAsset,
-                            lienStatus: {
-                              ...newAsset.lienStatus,
-                              hasLien: newAsset.lienStatus?.hasLien || false,
-                              lienHolder: e.target.value
-                            }
-                          })}
-                          className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                          placeholder="Enter lien holder name"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Lien Amount
-                        </label>
-                        <input
-                          type="number"
-                          value={newAsset.lienStatus?.lienAmount || ''}
-                          onChange={(e) => setNewAsset({
-                            ...newAsset,
-                            lienStatus: {
-                              ...newAsset.lienStatus,
-                              hasLien: newAsset.lienStatus?.hasLien || false,
-                              lienAmount: parseFloat(e.target.value) || 0
-                            }
-                          })}
-                          className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                          placeholder="Enter lien amount"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Lien Date
-                        </label>
-                        <input
-                          type="date"
-                          value={newAsset.lienStatus?.lienDate || ''}
-                          onChange={(e) => setNewAsset({
-                            ...newAsset,
-                            lienStatus: {
-                              ...newAsset.lienStatus,
-                              hasLien: newAsset.lienStatus?.hasLien || false,
-                              lienDate: e.target.value
-                            }
-                          })}
-                          className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                          UCC Filing Number
-                        </label>
-                        <input
-                          type="text"
-                          value={newAsset.lienStatus?.uccFilingNumber || ''}
-                          onChange={(e) => setNewAsset({
-                            ...newAsset,
-                            lienStatus: {
-                              ...newAsset.lienStatus,
-                              hasLien: newAsset.lienStatus?.hasLien || false,
-                              uccFilingNumber: e.target.value
-                            }
-                          })}
-                          className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                          placeholder="Enter UCC filing number"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Regulatory Information */}
-              <div className="bg-gray-50 p-4 rounded-md">
-                <h5 className="text-sm font-medium text-gray-700 mb-3">Regulatory Information</h5>
-                
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Tax Treatment
-                  </label>
-                  <select
-                    value={newAsset.regulatory?.taxTreatment || 'standard'}
-                    onChange={(e) => setNewAsset({
-                      ...newAsset,
-                      regulatory: {
-                        ...newAsset.regulatory,
-                        taxTreatment: e.target.value
-                      }
-                    })}
-                    className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                  >
-                    <option value="standard">Standard</option>
-                    <option value="tax-exempt">Tax Exempt</option>
-                    <option value="tax-deferred">Tax Deferred</option>
-                    <option value="accelerated-depreciation">Accelerated Depreciation</option>
-                    <option value="capital-gains">Capital Gains</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            
-            {/* This would normally include class-specific fields */}
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">
-                Tracking & Location Information
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Asset Location
-                  </label>
-                  <input
-                    type="text"
-                    value={newAsset.tracking?.location || ''}
-                    onChange={(e) => setNewAsset({
-                      ...newAsset,
-                      tracking: {
-                        ...newAsset.tracking,
-                        location: e.target.value
-                      }
-                    })}
-                    className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                    placeholder="Enter asset location"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Liquidity Rating (1-10)
-                  </label>
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    step="1"
-                    value={newAsset.tracking?.liquidityRating || 5}
-                    onChange={(e) => setNewAsset({
-                      ...newAsset,
-                      tracking: {
-                        ...newAsset.tracking,
-                        liquidityRating: parseInt(e.target.value)
-                      }
-                    })}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>Low Liquidity</span>
-                    <span>High Liquidity</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-3">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Risk Assessment
-                </label>
-                <div className="flex space-x-4 mt-1">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      checked={newAsset.tracking?.riskAssessment === 'low'}
-                      onChange={() => setNewAsset({
-                        ...newAsset,
-                        tracking: {
-                          ...newAsset.tracking,
-                          riskAssessment: 'low'
-                        }
-                      })}
-                      className="form-radio h-4 w-4 text-primary-600"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Low</span>
-                  </label>
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      checked={newAsset.tracking?.riskAssessment === 'medium'}
-                      onChange={() => setNewAsset({
-                        ...newAsset,
-                        tracking: {
-                          ...newAsset.tracking,
-                          riskAssessment: 'medium'
-                        }
-                      })}
-                      className="form-radio h-4 w-4 text-primary-600"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Medium</span>
-                  </label>
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      checked={newAsset.tracking?.riskAssessment === 'high'}
-                      onChange={() => setNewAsset({
-                        ...newAsset,
-                        tracking: {
-                          ...newAsset.tracking,
-                          riskAssessment: 'high'
-                        }
-                      })}
-                      className="form-radio h-4 w-4 text-primary-600"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">High</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowTokenizeModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateAsset}
-                className="px-4 py-2 bg-primary-600 text-white rounded-md shadow-sm text-sm font-medium hover:bg-primary-700"
-                disabled={!newAsset.name || (newAsset.value === undefined || newAsset.value <= 0)}
-              >
-                Create Asset
-              </button>
-            </div>
-          </div>
-        </div>
+
+  const renderManageTrackTab = () => (
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <AssetTrackingDashboard 
+        assets={trackedAssets}
+        onVerifyAsset={handleStartVerification}
+        onViewAssetDetails={handleViewAssetDetails}
+      />
+    </div>
+  );
+
+  const renderVerifyTab = () => (
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="text-center py-8">
+        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <h3 className="mt-2 text-sm font-medium text-gray-900">Verification Records</h3>
+        <p className="mt-1 text-sm text-gray-500">
+          View blockchain verification records for your assets.
+        </p>
       </div>
-    );
-  };
-  
+    </div>
+  );
+
   return (
     <div className="container mx-auto px-4 py-6">
-      <TopNavigation title="Asset Press" />
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Asset Press</h1>
       
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Asset Press</h1>
-        <p className="text-gray-600">Tokenize your assets on the blockchain</p>
-      </div>
-
-      {/* Tab navigation */}
+      {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
-        <nav className="flex space-x-8">
+        <nav className="-mb-px flex" aria-label="Tabs">
           <button
-            className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'tokenize'
-                ? 'border-primary-500 text-primary-600'
+            onClick={() => setActiveTab('press')}
+            className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+              activeTab === 'press'
+                ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
-            onClick={() => setActiveTab('tokenize')}
           >
-            Tokenize Assets
+            Press Assets
           </button>
           <button
-            className={`pb-4 px-1 border-b-2 font-medium text-sm ${
+            onClick={() => setActiveTab('manage')}
+            className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${
               activeTab === 'manage'
-                ? 'border-primary-500 text-primary-600'
+                ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
-            onClick={() => setActiveTab('manage')}
           >
             Manage & Track
           </button>
           <button
-            className={`pb-4 px-1 border-b-2 font-medium text-sm ${
+            onClick={() => setActiveTab('verify')}
+            className={`w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm ${
               activeTab === 'verify'
-                ? 'border-primary-500 text-primary-600'
+                ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
-            onClick={() => setActiveTab('verify')}
           >
             Verification & Records
           </button>
         </nav>
       </div>
-
-      {/* Tab content */}
-      {activeTab === 'tokenize' && renderTokenizeTab()}
-      {activeTab === 'manage' && renderManageTab()}
-      {activeTab === 'verify' && renderVerifyTab()}
       
-      {/* Modals */}
-      {renderTokenizeModal()}
+      {/* Tab content */}
+      {activeTab === 'press' && renderPressTab()}
+      {activeTab === 'manage' && renderManageTrackTab()}
+      {activeTab === 'verify' && renderVerifyTab()}
     </div>
   );
 };
 
-export default EnhancedAssetPress; 
+export default EnhancedAssetPress;

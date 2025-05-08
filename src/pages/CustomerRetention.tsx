@@ -20,7 +20,8 @@ const mockCommitments: CommitmentData[] = [
       dealCount: 3,
       dealVolume: 175000,
       lastUpdated: new Date('2023-01-20')
-    }
+    },
+    userId: 'user-1'
   },
   {
     id: 'commitment-2',
@@ -36,38 +37,54 @@ const mockCommitments: CommitmentData[] = [
       dealVolume: 1200000,
       lastUpdated: new Date('2023-02-15')
     },
-    notes: 'Focus on equipment financing deals'
+    notes: 'Focus on equipment financing deals',
+    userId: 'user-2'
+  },
+  {
+    id: 'commitment-3',
+    partnerName: 'EastCoast Equipment',
+    partnerType: 'vendor',
+    commitmentPeriod: 'yearly',
+    minDealCount: 20,
+    minDealVolume: 3000000,
+    startDate: new Date('2023-01-01'),
+    endDate: new Date('2023-12-31'),
+    currentProgress: {
+      dealCount: 14,
+      dealVolume: 2400000,
+      lastUpdated: new Date('2023-03-10')
+    },
+    notes: 'Strategic vendor partnership with quarterly review meetings',
+    userId: 'user-3'
   }
 ];
 
 const CustomerRetention: React.FC = () => {
-  const { userRole } = useContext(UserContext) || { userRole: 'borrower' };
+  const { userRole } = useContext(UserContext);
   const { userType } = useUserType();
   const [activeTab, setActiveTab] = useState('overview');
-  const [effectiveRole, setEffectiveRole] = useState(userRole);
-
-  // Sync the role with the userType when it changes
-  useEffect(() => {
+  
+  // Map userType or userRole to the effective role needed by child components
+  const getEffectiveRole = (): string => {
     if (userType) {
-      // Map UserType to corresponding role string
-      switch (userType) {
+      switch(userType) {
         case UserType.BUSINESS:
-          setEffectiveRole('borrower');
-          break;
+          return 'borrower';
         case UserType.VENDOR:
-          setEffectiveRole('vendor');
-          break;
+          return 'vendor';
         case UserType.BROKERAGE:
-          setEffectiveRole('broker');
-          break;
+          return 'broker';
         case UserType.LENDER:
-          setEffectiveRole('lender');
-          break;
+          return 'lender';
         default:
-          setEffectiveRole(userRole); // Fall back to UserContext's role
+          return 'borrower';
       }
     }
-  }, [userType, userRole]);
+    
+    return userRole || 'borrower';
+  };
+  
+  const effectiveRole = getEffectiveRole();
 
   // Render content based on user role
   const renderRoleBasedContent = () => {

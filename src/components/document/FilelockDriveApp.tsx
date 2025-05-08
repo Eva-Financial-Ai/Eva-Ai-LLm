@@ -807,6 +807,21 @@ const FilelockDriveApp: React.FC = () => {
     );
   };
 
+  // Add a state to manage the share dialog
+  const [fileIdToShare, setShowShareDialog] = useState<string | null>(null);
+
+  // Then modify the handleShare function usage to be called when the share dialog is confirmed
+  // Add a useEffect to watch for fileIdToShare changes if needed
+  useEffect(() => {
+    if (fileIdToShare && selectedFile) {
+      // Show a share dialog or modal here
+      // When the dialog is confirmed with recipients, call handleShare(fileIdToShare, recipients)
+      
+      // Reset after handling
+      // setShowShareDialog(null);
+    }
+  }, [fileIdToShare, selectedFile]);
+
   return (
     <div className="flex flex-col h-full">
       {renderNavigation()}
@@ -820,7 +835,7 @@ const FilelockDriveApp: React.FC = () => {
           onUpload={handleFileUpload}
           onCreateFolder={handleCreateFolder}
           onDelete={handleDelete}
-          onShare={handleShare}
+          onShare={() => setShowShareDialog(selectedFile?.id || null)}
           isGridView={isGridView}
           sortBy={sortBy}
           setSortBy={setSortBy}
@@ -857,11 +872,12 @@ const FilelockDriveApp: React.FC = () => {
               onBack={() => setCurrentView('explorer')}
               onEdit={() => setCurrentView('editor')}
               onSign={() => setCurrentView('signature')}
-              onShare={(recipients) => handleShare(selectedFile.id, recipients)}
+              onShare={() => setShowShareDialog(selectedFile.id || null)}
               onDelete={() => {
                 handleDelete([selectedFile.id]);
                 setCurrentView('explorer');
               }}
+              onDownload={() => console.log('Downloading file:', selectedFile?.name)}
             />
           </div>
           

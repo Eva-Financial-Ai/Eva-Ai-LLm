@@ -81,6 +81,7 @@ const LazyRouter: React.FC = () => {
     { path: "/risk-assessment", importFunc: () => import('../../pages/RiskAssessment'), displayName: "Risk Assessment" },
     { path: "/credit-application", importFunc: () => import('../../pages/CreditApplication'), displayName: "Credit Application" },
     { path: "/deal-structuring", importFunc: () => import('../../pages/DealStructuring'), displayName: "Deal Structuring" },
+    { path: "/deal-structuring/smart-match", importFunc: () => import('../../pages/SmartMatchPage'), displayName: "Smart Match" },
     { path: "/profile", importFunc: () => import('../../pages/ProfileSettings'), displayName: "Profile Settings" },
     { path: "/examples", importFunc: () => import('../../pages/ExampleTransactions'), displayName: "Example Transactions" },
     { path: "/asset-press", importFunc: () => import('../../pages/EnhancedAssetPress'), displayName: "Asset Press" },

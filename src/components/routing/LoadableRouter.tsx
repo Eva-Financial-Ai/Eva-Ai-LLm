@@ -51,6 +51,11 @@ const DealStructuring = loadable(() => import('../../pages/DealStructuring'), {
   resolveComponent: (components) => components.default
 });
 
+const SmartMatchPage = loadable(() => import('../../pages/SmartMatchPage'), {
+  fallback: <LoadingSpinner pageName="Smart Match" />,
+  resolveComponent: (components) => components.default
+});
+
 const Transactions = loadable(() => import('../../pages/Transactions'), {
   fallback: <LoadingSpinner pageName="Transactions" />,
   resolveComponent: (components) => components.default
@@ -99,6 +104,7 @@ const LoadableRouter: React.FC = () => {
       <Route path="/risk-assessment" element={<RiskAssessment />} />
       <Route path="/credit-application" element={<CreditApplication />} />
       <Route path="/deal-structuring" element={<DealStructuring />} />
+      <Route path="/deal-structuring/smart-match" element={<SmartMatchPage />} />
       <Route path="/profile" element={<ProfileSettings />} />
       <Route path="/examples" element={<ExampleTransactions />} />
       <Route path="/asset-press" element={<EnhancedAssetPress />} />

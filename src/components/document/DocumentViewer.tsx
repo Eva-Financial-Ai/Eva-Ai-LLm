@@ -1,14 +1,122 @@
 import React, { useState } from 'react';
 import { FileItem } from './FilelockDriveApp';
-import FilelockBlockchainService from './FilelockBlockchainService';
+
+// Define additional types to fix missing properties
+interface FileVersion {
+  id: string;
+  versionNumber: number;
+  createdBy: string;
+  createdAt: string;
+  action: string; // Added missing property
+  timestamp: string; // Added missing property
+  size: number;
+  notes?: string;
+}
+
+// Interface for FilelockBlockchainService props
+interface FilelockBlockchainServiceProps {
+  file: FileItem;
+  onComplete: (updatedFile: FileItem) => void;
+  onCancel: () => void;
+}
+
+// Convert to a proper React component
+const FilelockBlockchainService: React.FC<FilelockBlockchainServiceProps> = ({ 
+  file, 
+  onComplete, 
+  onCancel 
+}) => {
+  const [processing, setProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  
+  const handleCertify = async () => {
+    setProcessing(true);
+    
+    // Simulate blockchain certification process
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        const newProgress = prev + 10;
+        if (newProgress >= 100) {
+          clearInterval(interval);
+          
+          // Generate mock blockchain data
+          const blockchainData = {
+            transactionHash: '0x' + Math.random().toString(36).substring(2, 15),
+            blockNumber: Math.floor(Math.random() * 10000000),
+            timestamp: new Date().toISOString(),
+            network: 'Polygon',
+          };
+          
+          // Complete the process
+          setTimeout(() => {
+            onComplete({
+              ...file,
+              blockchainVerified: true,
+              blockchainTxId: blockchainData.transactionHash
+            });
+          }, 500);
+        }
+        return newProgress;
+      });
+    }, 300);
+    
+    return () => clearInterval(interval);
+  };
+  
+  return (
+    <div className="p-6">
+      <div className="text-center">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Blockchain Verification</h3>
+        
+        {processing ? (
+          <>
+            <div className="mb-4">
+              <div className="h-2 bg-gray-200 rounded-full">
+                <div 
+                  className="h-2 bg-indigo-600 rounded-full transition-all duration-300" 
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <p className="mt-2 text-sm text-gray-500">
+                {progress < 100 ? 'Processing...' : 'Completed!'}
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-gray-500 mb-6">
+              Certify this document on the blockchain to ensure its authenticity and prevent unauthorized modifications.
+            </p>
+            
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={onCancel}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCertify}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
+              >
+                Certify Document
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
 
 interface DocumentViewerProps {
   file: FileItem;
   onBack: () => void;
   onEdit: () => void;
   onSign: () => void;
-  onShare: (recipients: Array<{email: string, permission: 'viewer' | 'editor' | 'signer'}>) => void;
+  onShare: () => void; // Fixed: This doesn't accept parameters
   onDelete: () => void;
+  onDownload: () => void;
   onUpdateFile?: (updatedFile: FileItem) => void;
 }
 
@@ -19,6 +127,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   onSign,
   onShare,
   onDelete,
+  onDownload,
   onUpdateFile
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,27 +137,17 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const [shareEmail, setShareEmail] = useState('');
   const [sharePermission, setSharePermission] = useState<'viewer' | 'editor' | 'signer'>('viewer');
   const [showComments, setShowComments] = useState(false);
-  const [commentText, setCommentText] = useState('');
-  
-  // Mock comments
-  const [comments, setComments] = useState([
-    {
-      id: 'comment-1',
-      text: 'Please review this section',
-      user: 'Sarah Johnson',
-      timestamp: new Date('2023-09-15T14:30:00').toISOString(),
-      page: 1,
-      position: { x: 120, y: 250 }
-    },
-    {
-      id: 'comment-2',
-      text: 'This needs to be updated with the latest information',
-      user: 'John Smith',
-      timestamp: new Date('2023-09-16T10:15:00').toISOString(),
-      page: 2,
-      position: { x: 300, y: 150 }
-    }
-  ]);
+  const [comment, setComment] = useState('');
+  const [comments, setComments] = useState<Array<{
+    id: string;
+    text: string;
+    user: string;
+    timestamp: string;
+  }>>([]);
+  const [showDetails, setShowDetails] = useState(false);
+  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'history' | 'security'>('details');
+  const [isCertifying, setIsCertifying] = useState(false);
+  const [blockchainInfo, setBlockchainInfo] = useState<any>(null);
 
   // Format date
   const formatDate = (dateString: string): string => {
@@ -87,10 +186,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   // Handle share
   const handleShare = () => {
     if (shareEmail) {
-      onShare([{
-        email: shareEmail,
-        permission: sharePermission
-      }]);
+      // Call onShare without parameters, since it doesn't accept any
+      onShare();
       setShowShareModal(false);
       setShareEmail('');
     }
@@ -98,26 +195,32 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   
   // Handle adding a comment
   const handleAddComment = () => {
-    if (commentText.trim()) {
-      const newComment = {
-        id: `comment-${Date.now()}`,
-        text: commentText,
-        user: 'Me',
-        timestamp: new Date().toISOString(),
-        page: currentPage,
-        position: { x: 200, y: 200 } // In a real app, this would be where the user clicked
-      };
-      
-      setComments([...comments, newComment]);
-      setCommentText('');
+    if (!comment.trim()) return;
+    
+    const newComment = {
+      id: `comment-${Date.now()}`,
+      text: comment,
+      user: 'You',
+      timestamp: new Date().toISOString()
+    };
+    
+    setComments([...comments, newComment]);
+    setComment('');
+  };
+  
+  // Certify document on blockchain
+  const handleCertifyDocument = async () => {
+    setIsCertifying(true);
+    
+    try {
+      // In a proper implementation, we would call a blockchain service API
+      // For now, we'll show the blockchain verification modal
+      setShowBlockchainLockModal(true);
+    } catch (error) {
+      console.error('Error certifying document:', error);
+      setIsCertifying(false);
     }
   };
-
-  // State for active tab in the sidebar
-  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'activity' | 'versions'>('details');
-  const [showAnnotationTools, setShowAnnotationTools] = useState(false);
-  const [currentVersion, setCurrentVersion] = useState<string>(file.versions ? file.versions[file.versions.length - 1]?.id : '');
-  const [newComment, setNewComment] = useState('');
 
   // Get appropriate file icon based on type
   const getFileIcon = () => {
@@ -221,7 +324,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         {/* Document preview area */}
         <div className="flex-1 overflow-auto relative">
           {/* Annotation toolbar (appears at top when annotation mode is active) */}
-          {showAnnotationTools && (
+          {showDetails && (
             <div className="absolute top-0 left-0 right-0 bg-white shadow-md p-3 z-10 flex items-center justify-center space-x-4">
               <button className="p-2 rounded hover:bg-gray-100">
                 <svg className="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
@@ -247,10 +350,10 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
               </div>
               <div className="h-6 border-r border-gray-300"></div>
               <button 
-                onClick={() => setShowAnnotationTools(false)}
+                onClick={() => setShowDetails(false)}
                 className="px-3 py-1 bg-gray-200 rounded text-sm font-medium"
               >
-                Exit Annotation Mode
+                Exit Details
               </button>
             </div>
           )}
@@ -338,279 +441,289 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         </div>
         
         {/* Sidebar */}
-        <div className="w-80 border-l bg-gray-50 overflow-auto">
-          {/* Tabs */}
-          <div className="flex border-b">
-            <button 
-              className={`flex-1 py-3 text-sm font-medium ${activeTab === 'details' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setActiveTab('details')}
-            >
-              Details
-            </button>
-            <button 
-              className={`flex-1 py-3 text-sm font-medium ${activeTab === 'comments' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setActiveTab('comments')}
-            >
-              Comments
-            </button>
-            <button 
-              className={`flex-1 py-3 text-sm font-medium ${activeTab === 'activity' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setActiveTab('activity')}
-            >
-              Activity
-            </button>
-            <button 
-              className={`flex-1 py-3 text-sm font-medium ${activeTab === 'versions' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
-              onClick={() => setActiveTab('versions')}
-            >
-              Versions
-            </button>
-          </div>
-          
-          {/* Tab content */}
-          <div className="p-4">
-            {/* Details tab */}
-            {activeTab === 'details' && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">File Information</h3>
-                  <div className="bg-white rounded-lg shadow-sm p-4 space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">Type</span>
-                      <span className="text-sm font-medium text-gray-900">{file.type.toUpperCase()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">Size</span>
-                      <span className="text-sm font-medium text-gray-900">{file.size ? `${Math.round(file.size / 1024)} KB` : 'Unknown'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">Created</span>
-                      <span className="text-sm font-medium text-gray-900">{file.createdAt ? new Date(file.createdAt).toLocaleDateString() : 'Unknown'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">Modified</span>
-                      <span className="text-sm font-medium text-gray-900">{file.lastModified ? new Date(file.lastModified).toLocaleDateString() : 'Unknown'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">Owner</span>
-                      <span className="text-sm font-medium text-gray-900">{file.owner}</span>
-                    </div>
-                    {file.signatureStatus && (
+        {showDetails && (
+          <div className="w-80 border-l bg-gray-50 overflow-auto">
+            {/* Tabs */}
+            <div className="flex border-b">
+              <button 
+                className={`flex-1 py-3 text-sm font-medium ${activeTab === 'details' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('details')}
+              >
+                Details
+              </button>
+              <button 
+                className={`flex-1 py-3 text-sm font-medium ${activeTab === 'comments' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('comments')}
+              >
+                Comments
+              </button>
+              <button 
+                className={`flex-1 py-3 text-sm font-medium ${activeTab === 'history' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('history')}
+              >
+                History
+              </button>
+              <button 
+                className={`flex-1 py-3 text-sm font-medium ${activeTab === 'security' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('security')}
+              >
+                Security
+              </button>
+            </div>
+            
+            {/* Tab content */}
+            <div className="p-4">
+              {/* Details tab */}
+              {activeTab === 'details' && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-2">File Information</h3>
+                    <div className="bg-white rounded-lg shadow-sm p-4 space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Signature Status</span>
-                        <span className={`text-sm font-medium ${file.signatureStatus === 'awaiting' ? 'text-yellow-600' : 'text-green-600'}`}>
-                          {file.signatureStatus === 'awaiting' ? 'Awaiting Signature' : 'Signed'}
-                        </span>
+                        <span className="text-sm text-gray-500">Type</span>
+                        <span className="text-sm font-medium text-gray-900">{file.type.toUpperCase()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Size</span>
+                        <span className="text-sm font-medium text-gray-900">{file.size ? `${Math.round(file.size / 1024)} KB` : 'Unknown'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Created</span>
+                        <span className="text-sm font-medium text-gray-900">{file.createdAt ? new Date(file.createdAt).toLocaleDateString() : 'Unknown'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Modified</span>
+                        <span className="text-sm font-medium text-gray-900">{file.lastModified ? new Date(file.lastModified).toLocaleDateString() : 'Unknown'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Owner</span>
+                        <span className="text-sm font-medium text-gray-900">{file.owner}</span>
+                      </div>
+                      {file.signatureStatus && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500">Signature Status</span>
+                          <span className={`text-sm font-medium ${file.signatureStatus === 'awaiting' ? 'text-yellow-600' : 'text-green-600'}`}>
+                            {file.signatureStatus === 'awaiting' ? 'Awaiting Signature' : 'Signed'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {file.sharedWith && file.sharedWith.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500 mb-2">Shared With</h3>
+                      <div className="bg-white rounded-lg shadow-sm p-4 space-y-3">
+                        {file.sharedWith.map(user => (
+                          <div key={user.id} className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mr-3">
+                                {user.name.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                                <p className="text-xs text-gray-500">{user.email}</p>
+                              </div>
+                            </div>
+                            <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-700 capitalize">
+                              {user.permission}
+                            </span>
+                          </div>
+                        ))}
+                        <button className="w-full mt-2 flex items-center justify-center text-sm font-medium text-primary-600 hover:text-primary-700 p-2 border border-dashed border-gray-300 rounded-md">
+                          <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          Share with more people
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Comments tab */}
+              {activeTab === 'comments' && (
+                <div>
+                  <div className="mb-4">
+                    <textarea
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder="Add a comment..."
+                      className="w-full p-3 border rounded-lg text-sm"
+                      rows={3}
+                    ></textarea>
+                    <div className="flex justify-end mt-2">
+                      <button 
+                        onClick={handleAddComment}
+                        disabled={!comment.trim()}
+                        className={`px-3 py-1.5 rounded-md text-sm ${comment.trim() ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-gray-100 text-gray-400'}`}
+                      >
+                        Add Comment
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {comments.length > 0 ? (
+                      comments.map((comment) => (
+                        <div key={comment.id} className="bg-white rounded-lg shadow-sm p-4">
+                          <div className="flex items-start">
+                            <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mr-3 flex-shrink-0">
+                              {comment.user.charAt(0) || '?'}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-sm font-medium text-gray-900">{comment.user}</h4>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(comment.timestamp).toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-sm text-gray-700">{comment.text}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center p-6">
+                        <svg className="w-10 h-10 text-gray-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                        <p className="mt-2 text-sm text-gray-500">No comments yet</p>
                       </div>
                     )}
                   </div>
                 </div>
-                
-                {file.sharedWith && file.sharedWith.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500 mb-2">Shared With</h3>
-                    <div className="bg-white rounded-lg shadow-sm p-4 space-y-3">
-                      {file.sharedWith.map(user => (
-                        <div key={user.id} className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mr-3">
-                              {user.name.charAt(0)}
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                              <p className="text-xs text-gray-500">{user.email}</p>
-                            </div>
+              )}
+              
+              {/* History tab */}
+              {activeTab === 'history' && (
+                <div>
+                  <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">Version History</h4>
+                  
+                  {file.versionHistory && file.versionHistory.length > 0 ? (
+                    <ul className="space-y-4">
+                      {file.versionHistory.map((version, index) => (
+                        <li key={index} className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span className="text-xs font-medium text-gray-600">{index + 1}</span>
                           </div>
-                          <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-700 capitalize">
-                            {user.permission}
-                          </span>
-                        </div>
-                      ))}
-                      <button className="w-full mt-2 flex items-center justify-center text-sm font-medium text-primary-600 hover:text-primary-700 p-2 border border-dashed border-gray-300 rounded-md">
-                        <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                        Share with more people
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Comments tab */}
-            {activeTab === 'comments' && (
-              <div>
-                <div className="mb-4">
-                  <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Add a comment..."
-                    className="w-full p-3 border rounded-lg text-sm"
-                    rows={3}
-                  ></textarea>
-                  <div className="flex justify-end mt-2">
-                    <button 
-                      onClick={handleAddComment}
-                      disabled={!newComment.trim()}
-                      className={`px-3 py-1.5 rounded-md text-sm ${newComment.trim() ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-gray-100 text-gray-400'}`}
-                    >
-                      Add Comment
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  {file.comments && file.comments.length > 0 ? (
-                    file.comments.map(comment => (
-                      <div key={comment.id} className="bg-white rounded-lg shadow-sm p-4">
-                        <div className="flex items-start">
-                          <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mr-3 flex-shrink-0">
-                            {comment.author?.charAt(0) || '?'}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <h4 className="text-sm font-medium text-gray-900">{comment.author}</h4>
-                              <span className="text-xs text-gray-500">
-                                {new Date(comment.timestamp).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-sm text-gray-700">{comment.text}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center p-6">
-                      <svg className="w-10 h-10 text-gray-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                      </svg>
-                      <p className="mt-2 text-sm text-gray-500">No comments yet</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            {/* Activity tab */}
-            {activeTab === 'activity' && (
-              <div>
-                {file.activity && file.activity.length > 0 ? (
-                  <div className="relative">
-                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-                    <div className="space-y-6 relative">
-                      {file.activity.map((activity, index) => (
-                        <div key={index} className="flex">
-                          <div className="flex-shrink-0 w-9">
-                            <div className="flex justify-center">
-                              <div className="w-2 h-2 rounded-full bg-primary-600 ring-4 ring-white mt-2"></div>
-                            </div>
-                          </div>
-                          <div className="bg-white rounded-lg shadow-sm p-3 flex-1 ml-2">
-                            <div className="flex items-center justify-between">
-                              <div className="text-sm font-medium text-gray-900 capitalize">
-                                {activity.type} by {activity.user}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {new Date(activity.timestamp).toLocaleDateString()}
-                              </div>
-                            </div>
-                            {activity.details && (
-                              <p className="mt-1 text-xs text-gray-600">{activity.details}</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center p-6">
-                    <svg className="w-10 h-10 text-gray-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="mt-2 text-sm text-gray-500">No activity history</p>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Versions tab */}
-            {activeTab === 'versions' && (
-              <div>
-                {file.blockchainVerified && (
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
-                    <p className="text-xs text-purple-800 flex items-center">
-                      <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      This document is secured on blockchain for immutable version history
-                    </p>
-                  </div>
-                )}
-                
-                {file.versions && file.versions.length > 0 ? (
-                  <div className="space-y-3">
-                    {file.versions.map((version, index) => (
-                      <div 
-                        key={version.id}
-                        className={`p-3 rounded-lg ${currentVersion === version.id ? 'bg-blue-50 border border-blue-200' : 'bg-white border'}`}
-                      >
-                        <div className="flex justify-between items-center">
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              {index === (file.versions?.length || 0) - 1 ? 'Current Version' : `Version ${index + 1}`}
+                              {version.createdBy === 'You' ? 'You' : version.createdBy}
+                              {' '}
+                              <span className="font-normal text-gray-600">
+                                {version.notes || "Updated"}
+                              </span>
                             </p>
-                            <div className="flex items-center mt-1">
-                              <p className="text-xs text-gray-500 mr-2">
-                                {new Date(version.timestamp).toLocaleString()}
-                              </p>
-                              <span className="text-xs font-medium text-gray-700">{version.author}</span>
-                            </div>
+                            <p className="text-xs text-gray-500">
+                              {new Date(version.createdAt).toLocaleString()}
+                            </p>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            {currentVersion !== version.id && (
-                              <button 
-                                onClick={() => setCurrentVersion(version.id)}
-                                className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium"
-                              >
-                                View
-                              </button>
-                            )}
-                            <button className="p-1.5 hover:bg-gray-100 rounded-full">
-                              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                              </svg>
-                            </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">No version history available</p>
+                  )}
+                </div>
+              )}
+              
+              {/* Security tab */}
+              {activeTab === 'security' && (
+                <div className="space-y-4">
+                  <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Security & Verification</h4>
+                  
+                  {blockchainInfo ? (
+                    <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="text-sm font-medium text-green-800">Blockchain Verified</h3>
+                          <div className="mt-2 text-xs text-green-700">
+                            <p>Transaction: {blockchainInfo.transactionHash.substr(0, 10)}...</p>
+                            <p className="mt-1">Block: {blockchainInfo.blockNumber}</p>
+                            <p className="mt-1">Network: {blockchainInfo.network}</p>
+                            <p className="mt-1">Timestamp: {new Date(blockchainInfo.timestamp).toLocaleString()}</p>
                           </div>
                         </div>
                       </div>
-                    ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Certify this document on blockchain to ensure its authenticity and integrity.
+                      </p>
+                      <button
+                        onClick={handleCertifyDocument}
+                        disabled={isCertifying}
+                        className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+                      >
+                        {isCertifying ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Certifying...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            Certify on Blockchain
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div className="pt-4 border-t border-gray-200">
+                    <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Access Control</h4>
+                    <ul className="space-y-2">
+                      <li className="flex justify-between">
+                        <span className="text-sm text-gray-600">Password Protected</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {file.isPasswordProtected ? 'Yes' : 'No'}
+                        </span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-sm text-gray-600">Encryption</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {file.encryptionStatus || 'None'}
+                        </span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span className="text-sm text-gray-600">Expiration</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {file.expirationDate ? new Date(file.expirationDate).toLocaleDateString() : 'Never'}
+                        </span>
+                      </li>
+                    </ul>
                   </div>
-                ) : (
-                  <div className="text-center p-6">
-                    <svg className="w-10 h-10 text-gray-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    <p className="mt-2 text-sm text-gray-500">No version history</p>
-                  </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
       
       {/* Document toolbar */}
       <div className="px-6 py-3 bg-gray-100 border-t flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <button 
-            onClick={() => setShowAnnotationTools(!showAnnotationTools)}
-            className={`px-3 py-1.5 rounded-md text-sm flex items-center ${showAnnotationTools ? 'bg-primary-600 text-white' : 'bg-white border text-gray-700'}`}
+            onClick={() => setShowDetails(!showDetails)}
+            className={`px-3 py-1.5 rounded-md text-sm flex items-center ${showDetails ? 'bg-primary-600 text-white' : 'bg-white border text-gray-700'}`}
           >
-            <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            <svg className={`-ml-0.5 mr-2 h-4 w-4 ${showDetails ? 'text-primary-500' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            {showAnnotationTools ? 'Exit Annotation' : 'Annotate'}
+            {showDetails ? 'Hide Details' : 'Show Details'}
           </button>
           
           <button className="px-3 py-1.5 bg-white border rounded-md text-sm text-gray-700 flex items-center">
@@ -651,9 +764,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
               </div>
               
               <FilelockBlockchainService 
-                file={file} 
-                onComplete={handleFileUpdate} 
-                onCancel={() => setShowBlockchainLockModal(false)} 
+                file={file}
+                onComplete={handleFileUpdate}
+                onCancel={() => setShowBlockchainLockModal(false)}
               />
             </div>
           </div>

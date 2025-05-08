@@ -26,7 +26,9 @@ import {
   ClipboardDocumentListIcon,
   BuildingLibraryIcon,
   LockClosedIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  ChevronDownIcon,
+  ChevronUpIcon
 } from '@heroicons/react/24/outline';
 import {
 } from './SidebarIcons';
@@ -42,6 +44,8 @@ interface NavItem {
   stage?: string;
   badge?: string;
   hidden?: boolean;
+  children?: NavItem[];
+  onClick?: () => void;
 }
 
 interface NavSection {
@@ -175,6 +179,9 @@ interface SidebarItemProps {
   isActive: boolean;
   isCollapsed: boolean;
   onClick?: () => void;
+  hasChildren?: boolean;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
 const SidebarItem = ({ 
@@ -185,7 +192,10 @@ const SidebarItem = ({
   badge, 
   isActive, 
   isCollapsed,
-  onClick 
+  onClick,
+  hasChildren,
+  isOpen,
+  onToggle
 }: { 
   to: string; 
   icon: React.ReactNode; 
@@ -195,17 +205,22 @@ const SidebarItem = ({
   isActive: boolean; 
   isCollapsed: boolean;
   onClick?: () => void;
+  hasChildren?: boolean;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }) => {
-  const isLink = !to.startsWith('#');
+  const isLink = !to.startsWith('#') && !hasChildren;
   const activeClasses = "bg-primary-50 text-risk-red-DEFAULT border-l-4 border-risk-red-DEFAULT font-bold";
   const normalClasses = "text-gray-700 hover:bg-silver-100 hover:text-risk-red-DEFAULT";
   
   const itemClasses = `
     flex items-center px-${isCollapsed ? '2.5' : '4'} py-3 text-base 
     hover:bg-silver-100 ${isActive ? activeClasses : normalClasses}
-    ${isCollapsed ? 'justify-center' : ''} ${isCollapsed ? 'group' : ''} relative
+    ${isCollapsed ? 'justify-center' : ''} ${isCollapsed ? 'group' : ''} relative w-full text-left
   `;
   
+  const effectiveOnClick = hasChildren ? onToggle : onClick;
+
   const renderContent = () => (
     <>
       <div className={`flex-shrink-0 ${isCollapsed ? '' : 'mr-3.5'}`}>
@@ -216,15 +231,19 @@ const SidebarItem = ({
           <div>
             <span className={`block ${isActive ? 'font-bold' : 'font-medium'}`}>{label}</span>
           </div>
-          {badge && (
-            <span className="ml-1.5 inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-silver-100 text-risk-red-DEFAULT">
-              {badge}
-            </span>
-          )}
+          <div className="flex items-center">
+            {badge && (
+              <span className="ml-1.5 inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-silver-100 text-risk-red-DEFAULT">
+                {badge}
+              </span>
+            )}
+            {hasChildren && (
+              isOpen ? <ChevronUpIcon className="h-4 w-4 ml-2 text-gray-500" /> : <ChevronDownIcon className="h-4 w-4 ml-2 text-gray-500" />
+            )}
+          </div>
         </div>
       )}
       
-      {/* Only show tooltip when collapsed */}
       {isCollapsed && description && (
         <div className="absolute left-full ml-2 p-2.5 bg-risk-red-DEFAULT text-white text-xs rounded shadow-lg z-30 origin-left transform scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 w-48">
           <div className="font-bold mb-1">{label}</div>
@@ -244,8 +263,9 @@ const SidebarItem = ({
     </NavLink>
   ) : (
     <button
-      onClick={onClick}
+      onClick={effectiveOnClick}
       className={itemClasses}
+      aria-expanded={hasChildren ? isOpen : undefined}
     >
       {renderContent()}
     </button>
@@ -267,7 +287,8 @@ const Sidebar: React.FC = () => {
     setSidebarCollapsed
   } = useContext(UserContext);
   const [isOpen, setIsOpen] = useState(false);
-  const [safeFormsOpen, setSafeFormsOpen] = useState(false); // Safe Forms is collapsed by default
+  const [safeFormsOpen, setSafeFormsOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   
   // Get the user type and permissions
   const { hasPermission, userType } = useUserType();
@@ -285,9 +306,10 @@ const Sidebar: React.FC = () => {
     if (savedCollapsedState) {
       setSidebarCollapsed(savedCollapsedState === 'true');
     }
+    // Initialize open sections based on active route or previously saved state if desired
+    // For now, default to closed
   }, []);
 
-  // Navigation data - modify to use the imported icon components
   const mainNavigation: NavItem[] = [
     {
       name: 'Dashboard',
@@ -304,7 +326,7 @@ const Sidebar: React.FC = () => {
     {
       name: 'Customer Retention',
       path: '/customer-retention',
-      icon: <CustomerRetentionIcon />,
+      icon: <UserGroupIcon className="w-5 h-5" />,
       description: 'Manage customer relationships'
     },
     {
@@ -314,12 +336,12 @@ const Sidebar: React.FC = () => {
       icon: <LockClosedIcon className="w-5 h-5" />,
       description: 'Secure deal document storage'
     },
-    // Safe Forms moved here to appear directly under Filelock Drive
     {
       name: 'Safe Forms',
       path: '#safe-forms',
-      icon: <SafeFormsIcon />,
-      description: 'Smart contract form templates'
+      icon: <DocumentDuplicateIcon className="w-5 h-5" />,
+      description: 'Smart contract form templates',
+      onClick: () => setSafeFormsOpen(!safeFormsOpen)
     },
     {
       name: 'Risk Map Navigator',
@@ -330,10 +352,24 @@ const Sidebar: React.FC = () => {
     },
     {
       name: 'Deal Structuring',
-      path: '/deal-structuring',
-      stage: 'deal_structuring',
+      path: '#deal-structuring',
       icon: <ScaleIcon className="w-5 h-5" />,
-      description: 'Configure terms, covenants'
+      description: 'Configure terms, covenants',
+      children: [
+        {
+          name: 'Structure Editor',
+          path: '/deal-structuring',
+          icon: <Cog6ToothIcon className="w-5 h-5 text-gray-400" />,
+          description: 'Edit and manage deal structures'
+        },
+        {
+          name: 'Smart Match',
+          path: '/deal-structuring/smart-match',
+          icon: <LightBulbIcon className="w-5 h-5 text-gray-400" />,
+          description: 'AI-powered investor matching',
+          badge: 'New'
+        }
+      ]
     },
     {
       name: 'Transaction Execution',
@@ -344,27 +380,26 @@ const Sidebar: React.FC = () => {
     },
     {
       name: 'Asset Press',
-      path: '#asset-press',
+      path: '/asset-press',
       badge: 'Beta',
       icon: <BuildingLibraryIcon className="w-5 h-5" />,
       description: 'Tokenize assets for liquidity'
     },
     {
       name: 'Portfolio Navigator',
-      path: '#asset-portfolio',
+      path: '/portfolio-wallet',
       badge: 'Beta',
       icon: <WalletIcon className="w-5 h-5" />,
       description: 'Advanced asset portfolio analytics'
     },
     {
-      name: 'Commercial Paper Market',
+      name: 'Commercial Truck & Equipment Market',
       path: '#commercial-paper',
       icon: <BuildingStorefrontIcon className="w-5 h-5" />,
-      description: 'Buy and sell commercial paper'
+      description: 'Buy and sell commercial paper/equipment',
     }
   ];
-
-  // Safe Forms templates
+  
   const safeFormsTemplates: FormTemplate[] = [
     {
       id: 'credit-application',
@@ -445,9 +480,26 @@ const Sidebar: React.FC = () => {
       path: '/forms/state-disclosure'
     }
   ];
+  
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    
+    // For nested routes, only highlight the most specific match
+    if (path.includes('smart-match') && location.pathname.includes('smart-match')) {
+      return true;
+    }
+    
+    // For parent items with children, don't highlight parent when on child pages
+    if (path === '/deal-structuring' && location.pathname.includes('/deal-structuring/')) {
+      return false;
+    }
+    
+    return location.pathname.startsWith(path) && path !== '/';
+  };
 
-  // Other functions remain the same
-  const isActive = (path: string) => location.pathname === path;
+  const handleToggleSection = (itemName: string) => {
+    setOpenSections(prev => ({ ...prev, [itemName]: !prev[itemName] }));
+  };
 
   const handleOpenTool = (item: NavItem) => {
     if (item.path === '#smart-matching') {
@@ -460,156 +512,101 @@ const Sidebar: React.FC = () => {
       setShowCreditAnalysis(true);
     } else if (item.path === '#lifecycle-assistant') {
       setShowAILifecycleAssistant(true);
-    } else if (item.path === '#asset-press') {
-      console.log("Clicked Asset Press, navigating to /asset-press");
-      // Navigate directly to Asset Press page
-      navigate('/asset-press');
-      console.log("Navigation complete to Asset Press");
-    } else if (item.path === '#asset-portfolio') {
-      console.log("Clicked Portfolio Navigator, navigating to /portfolio-wallet");
-      // Navigate directly to Portfolio Navigator page
-      navigate('/portfolio-wallet');
-      console.log("Navigation complete to Portfolio Navigator");
     } else if (item.path === '#commercial-paper') {
-      // For commercial paper, continue using toggleTool to ensure consistent behavior
       toggleTool('commercialPaper');
-    } else if (item.path === '#filelock-direct') {
-      // Direct navigation to Filelock Drive
-      navigate('/documents');
     }
   };
 
-  // Modified toggleSidebar function to ensure proper state update and classes
   const toggleSidebar = () => {
     const newState = !sidebarCollapsed;
     setSidebarCollapsed(newState);
-    
-    // If on mobile and collapsing fully
+    if (newState) {
+      setOpenSections({});
+      setSafeFormsOpen(false);
+    }
     if (window.innerWidth < 768) {
       setIsOpen(!isOpen);
     }
-    
-    // Save preference to localStorage
     localStorage.setItem('sidebarCollapsed', newState.toString());
-    
-    // Force a small delay to ensure DOM is updated
-    setTimeout(() => {
-      // Trigger window resize event to help any responsive components adjust
-      window.dispatchEvent(new Event('resize'));
-    }, 300);
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
   };
-
-  // Toggle Safe Forms section
-  const toggleSafeForms = () => {
-    setSafeFormsOpen(!safeFormsOpen);
-  };
-
-  // Add custom handler for Safe Forms click
-  const handleSafeFormsClick = () => {
-    setSafeFormsOpen(!safeFormsOpen);
-  };
-
-  // Updated renderNavItems function to handle dynamic display based on user type
-  const renderNavItems = (items: NavItem[], sectionTitle: string) => {
-    // Get current user type
+  
+  const renderNavItems = (items: NavItem[], sectionTitle?: string, isSubmenu = false) => {
     const userTypeValue = userType || UserType.BUSINESS;
-    console.log("Current user type:", userTypeValue);
-    
-    // Adjust items based on user type
     const adjustedItems = items.map(item => {
-      // Show Commercial Truck & Equipment Market Place for vendors
       if (item.path === '#commercial-paper' && userTypeValue === UserType.VENDOR) {
-        return {
-          ...item,
-          name: 'Commercial Truck & Equipment Market',
-          badge: 'Coming Soon',
-          description: 'Browse and list commercial equipment'
-        };
+        return { ...item, name: 'Commercial Truck & Equipment Market', badge: 'Coming Soon', description: 'Browse and list commercial equipment' };
       }
-      
-      // Show Commercial Truck & Equipment Market Place for borrowers (Business) too, but as Coming Soon
       if (item.path === '#commercial-paper' && userTypeValue === UserType.BUSINESS) {
-        return {
-          ...item,
-          name: 'Commercial Truck & Equipment Market',
-          badge: 'Coming Soon',
-          description: 'Browse available equipment financing options'
-        };
+        return { ...item, name: 'Commercial Truck & Equipment Market', badge: 'Coming Soon', description: 'Browse available equipment financing options' };
       }
-      
-      // For vendors, hide Portfolio Navigator
-      if (item.path === '#asset-portfolio' && userTypeValue === UserType.VENDOR) {
-        return {
-          ...item,
-          hidden: true
-        };
+      if (item.path === '#asset-portfolio' && (userTypeValue === UserType.VENDOR || userTypeValue === UserType.BUSINESS)) {
+        return { ...item, hidden: true };
       }
-      
-      // For borrowers (business), hide Portfolio Navigator
-      if (item.path === '#asset-portfolio' && userTypeValue === UserType.BUSINESS) {
-        return {
-          ...item,
-          hidden: true
-        };
+      if ((item.path === '/asset-press' || item.path === '/portfolio-wallet') && (userTypeValue === UserType.BROKERAGE || userTypeValue === UserType.LENDER)) {
+        return { ...item, hidden: false };
       }
-
-      // Make sure Asset Press is visible for Broker and Lender
-      if (item.path === '#asset-press' && (userTypeValue === UserType.BROKERAGE || userTypeValue === UserType.LENDER)) {
-        console.log("Ensuring Asset Press is visible for Broker/Lender");
-        return {
-          ...item,
-          hidden: false
-        };
-      }
-
-      // Make sure Portfolio Navigator is visible for Broker and Lender
-      if (item.path === '#asset-portfolio' && (userTypeValue === UserType.BROKERAGE || userTypeValue === UserType.LENDER)) {
-        console.log("Ensuring Portfolio Navigator is visible for Broker/Lender");
-        return {
-          ...item,
-          hidden: false
-        };
-      }
-      
       return item;
-    })
-    .filter(item => !item.hidden);
+    }).filter(item => !item.hidden);
+
+    if (adjustedItems.length === 0) return null;
 
     return (
-      <div className="mb-8">
-        {!sidebarCollapsed && adjustedItems.length > 0 && (
-          <h3 className="px-4 py-2 text-xs font-bold text-risk-red-DEFAULT uppercase tracking-wider letter-spacing-wide">
+      <div className={`mb-${isSubmenu ? 2 : 8}`}>
+        {sectionTitle && !sidebarCollapsed && (
+          <h3 className={`px-4 py-2 text-xs font-bold text-risk-red-DEFAULT uppercase tracking-wider ${isSubmenu ? 'mt-2' : ''}`}>
             {sectionTitle}
           </h3>
         )}
-        <ul className="space-y-2">
-          {adjustedItems.map((item) => (
-            <li key={item.name}>
-              {item.name === 'Safe Forms' ? (
+        <ul className={`space-y-${isSubmenu ? 1 : 2} ${isSubmenu && !sidebarCollapsed ? 'pl-4 border-l border-silver-200 ml-2' : ''}`}>
+          {adjustedItems.map((item) => {
+            const itemIsActive = isActive(item.path) || (item.children && item.children.some(child => isActive(child.path))) || false;
+            const isSectionOpen = openSections[item.name] || false;
+            
+            let itemOnClick: (() => void) | undefined = undefined;
+            if (item.children) {
+              itemOnClick = () => handleToggleSection(item.name);
+            } else if (item.path.startsWith('#') && item.path !== '#safe-forms') {
+                itemOnClick = () => handleOpenTool(item);
+            } else if (item.onClick) {
+                itemOnClick = item.onClick;
+            }
+
+            return (
+              <li key={item.name}>
                 <SidebarItem
-                  to={item.path}
+                  to={item.children ? '#' : item.path}
                   icon={item.icon}
                   label={item.name}
                   description={item.description}
                   badge={item.badge}
-                  isActive={false}
+                  isActive={itemIsActive}
                   isCollapsed={sidebarCollapsed}
-                  onClick={handleSafeFormsClick}
+                  onClick={itemOnClick}
+                  hasChildren={!!item.children}
+                  isOpen={isSectionOpen}
+                  onToggle={() => handleToggleSection(item.name)}
                 />
-              ) : (
-                <SidebarItem
-                  to={item.path}
-                  icon={item.icon}
-                  label={item.name}
-                  description={item.description}
-                  badge={item.badge}
-                  isActive={isActive(item.path)}
-                  isCollapsed={sidebarCollapsed}
-                  onClick={() => item.path.startsWith('#') && item.path !== '#safe-forms' ? handleOpenTool(item) : undefined}
-                />
-              )}
-            </li>
-          ))}
+                {!sidebarCollapsed && item.children && isSectionOpen && (
+                  <ul className="pl-5 mt-1 space-y-1">
+                    {item.children.map(child => (
+                      <li key={child.name}>
+                        <SidebarItem
+                          to={child.path}
+                          icon={child.icon}
+                          label={child.name}
+                          description={child.description}
+                          badge={child.badge}
+                          isActive={isActive(child.path)}
+                          isCollapsed={sidebarCollapsed}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </div>
     );
@@ -617,7 +614,6 @@ const Sidebar: React.FC = () => {
 
   return (
     <>
-      {/* Mobile hamburger button */}
       <button 
         className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-risk-red-DEFAULT text-white shadow-lg"
         onClick={toggleSidebar}
@@ -628,14 +624,12 @@ const Sidebar: React.FC = () => {
         </svg>
       </button>
       
-      {/* Sidebar - fixed width for collapsed state to properly show icons */}
       <aside 
         className={`fixed inset-y-0 left-0 z-40 bg-white border-r border-silver-200 transform transition-all duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         } md:relative ${sidebarCollapsed ? 'w-20' : 'w-72'}`}
       >
         <div className="flex flex-col h-full overflow-y-auto">
-          {/* Logo and collapse button */}
           <div className="flex items-center justify-between h-20 px-5 border-b border-silver-300">
             <div className="flex items-center">
               <img src="/logo.svg" alt="EVA" className="h-9 w-9" />
@@ -647,7 +641,6 @@ const Sidebar: React.FC = () => {
               )}
             </div>
 
-            {/* Desktop collapse toggle button */}
             <button 
               className="hidden md:block rounded-md p-1.5 text-gray-500 hover:bg-silver-100 transition-colors"
               onClick={toggleSidebar}
@@ -656,7 +649,6 @@ const Sidebar: React.FC = () => {
               {sidebarCollapsed ? <ChevronDoubleRightIcon className="h-5 w-5" /> : <ChevronDoubleLeftIcon className="h-5 w-5" />}
             </button>
 
-            {/* Mobile close button */}
             <button 
               className="md:hidden rounded-md p-1.5 text-gray-500 hover:bg-silver-100"
               onClick={toggleSidebar}
@@ -667,45 +659,28 @@ const Sidebar: React.FC = () => {
             </button>
           </div>
           
-          {/* Subtitle */}
           {!sidebarCollapsed && (
             <div className="px-5 py-3 border-b border-silver-300">
               <p className="text-base text-gray-600 font-medium">AI-Powered Credit Origination</p>
             </div>
           )}
           
-          {/* Enhanced scrollbar */}
           <nav className={`flex-1 overflow-y-auto px-3 py-5 max-h-[calc(100vh-10rem)] ${sidebarCollapsed ? 'scrollbar-none' : 'scrollbar-thin scrollbar-thumb-silver-400 scrollbar-track-transparent hover:scrollbar-thumb-risk-red-light'}`}>
-            {/* Render navigation */}
             {renderNavItems(mainNavigation, "MAIN NAVIGATION")}
             
-            {/* Safe Forms templates section */}
             {safeFormsOpen && (
               <div className={`${sidebarCollapsed ? 'ml-0' : 'ml-5 pl-3 border-l border-silver-200'}`}>
-                <ul className="space-y-2">
+                <ul className="space-y-1 mt-1">
                   {safeFormsTemplates.map((template) => (
                     <li key={template.id}>
-                      <Link 
-                        to={template.path} 
-                        className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'px-4'} py-${sidebarCollapsed ? '3' : '3'} text-base hover:bg-silver-100 ${
-                          isActive(template.path) ? 'bg-primary-50 text-risk-red-DEFAULT border-l-4 border-risk-red-DEFAULT font-bold' : 'text-gray-700'
-                        } ${sidebarCollapsed ? 'group' : ''} relative`}
-                      >
-                        {sidebarCollapsed ? (
-                          <>
-                            <DocumentDuplicateIcon className="w-5 h-5" />
-                            <div className="fixed left-[4.5rem] rounded-md bg-risk-red-DEFAULT text-white text-sm py-3 px-4 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[9999] shadow-xl pointer-events-none w-64">
-                              <div className="font-bold">{template.name}</div>
-                              <div className="text-silver-100 text-sm mt-1">{template.description}</div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <DocumentDuplicateIcon className="w-5 h-5 flex-shrink-0" />
-                            <span className="ml-3.5 truncate font-medium">{template.name}</span>
-                          </>
-                        )}
-                      </Link>
+                      <SidebarItem
+                        to={template.path}
+                        icon={<DocumentDuplicateIcon className="w-5 h-5 text-gray-400" />}
+                        label={template.name}
+                        description={template.description}
+                        isActive={isActive(template.path)}
+                        isCollapsed={sidebarCollapsed}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -713,7 +688,6 @@ const Sidebar: React.FC = () => {
             )}
           </nav>
           
-          {/* Need help footer */}
           {!sidebarCollapsed && (
             <div className="px-5 py-4 border-t border-silver-200 mt-auto">
               <p className="text-base text-gray-600 mb-1 font-medium">Need help?</p>
@@ -723,7 +697,6 @@ const Sidebar: React.FC = () => {
         </div>
       </aside>
       
-      {/* Backdrop for mobile */}
       {isOpen && (
         <div 
           className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"

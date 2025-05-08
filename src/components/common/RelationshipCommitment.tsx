@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Define interface for commitment data
 export interface CommitmentData {
@@ -16,6 +16,15 @@ export interface CommitmentData {
     lastUpdated: Date;
   };
   notes?: string;
+  userId?: string; // Add userId to associate commitments with users
+}
+
+// Define User interface
+interface User {
+  id: string;
+  name: string;
+  type: 'broker' | 'lender' | 'vendor';
+  email?: string;
 }
 
 interface RelationshipCommitmentProps {
@@ -23,13 +32,25 @@ interface RelationshipCommitmentProps {
   initialCommitments?: CommitmentData[];
 }
 
+// Mock users for the demo
+const mockUsers: User[] = [
+  { id: 'user-1', name: 'John Smith', type: 'broker', email: 'john@example.com' },
+  { id: 'user-2', name: 'Sara Johnson', type: 'lender', email: 'sara@example.com' },
+  { id: 'user-3', name: 'Michael Chen', type: 'vendor', email: 'michael@example.com' },
+  { id: 'user-4', name: 'All Users', type: 'broker' },
+];
+
 const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
   userRole,
   initialCommitments = []
 }) => {
   const [commitments, setCommitments] = useState<CommitmentData[]>(initialCommitments);
+  const [filteredCommitments, setFilteredCommitments] = useState<CommitmentData[]>(initialCommitments);
   const [showAddCommitment, setShowAddCommitment] = useState(false);
   const [editingCommitmentId, setEditingCommitmentId] = useState<string | null>(null);
+  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [selectedUser, setSelectedUser] = useState<User | null>(mockUsers.find(u => u.id === 'user-4') || null);
+  const [searchTerm, setSearchTerm] = useState('');
   
   // New commitment form state
   const [newCommitment, setNewCommitment] = useState<Omit<CommitmentData, 'id' | 'currentProgress'>>({
@@ -40,6 +61,27 @@ const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
     minDealVolume: 0,
     startDate: new Date(),
   });
+  
+  // Filter commitments based on selected user
+  useEffect(() => {
+    if (!selectedUser || selectedUser.id === 'user-4') {
+      // "All Users" is selected or no user selected
+      setFilteredCommitments(commitments);
+    } else {
+      // Filter by selected user
+      setFilteredCommitments(commitments.filter(commitment => 
+        commitment.userId === selectedUser.id || 
+        commitment.partnerName.toLowerCase().includes(selectedUser.name.toLowerCase())
+      ));
+    }
+  }, [selectedUser, commitments]);
+  
+  // Filter users based on search term
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    user.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   
   // Calculate progress percentage
   const calculateProgress = (commitment: CommitmentData): number => {
@@ -62,6 +104,7 @@ const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
     const newCommitmentItem: CommitmentData = {
       id: `commitment-${Date.now()}`,
       ...newCommitment,
+      userId: selectedUser?.id !== 'user-4' ? selectedUser?.id : undefined,
       currentProgress: {
         dealCount: 0,
         dealVolume: 0,
@@ -96,6 +139,11 @@ const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
         : commitment
     ));
   };
+
+  // Handle selecting a user
+  const handleUserSelect = (user: User) => {
+    setSelectedUser(user);
+  };
   
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -108,6 +156,77 @@ const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
           >
             Add Commitment
           </button>
+        </div>
+
+        {/* User Management Section */}
+        <div className="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
+          <h3 className="text-md font-medium text-gray-800 mb-3">User Management</h3>
+          <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-3 md:space-y-0">
+            <div className="flex-1">
+              <div className="relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                />
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Selected User</label>
+              <div className="flex items-center space-x-2">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                  selectedUser?.type === 'broker' ? 'bg-blue-100 text-blue-800' :
+                  selectedUser?.type === 'lender' ? 'bg-green-100 text-green-800' :
+                  selectedUser?.type === 'vendor' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {selectedUser?.name || 'All Users'}
+                </span>
+                <button 
+                  onClick={() => setSelectedUser(mockUsers.find(u => u.id === 'user-4') || null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* User list */}
+          {searchTerm && (
+            <div className="mt-3 max-h-40 overflow-y-auto border border-gray-200 rounded-md bg-white">
+              <ul className="divide-y divide-gray-200">
+                {filteredUsers.map(user => (
+                  <li key={user.id}>
+                    <button
+                      onClick={() => handleUserSelect(user)}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-50 flex justify-between items-center"
+                    >
+                      <div>
+                        <span className="font-medium">{user.name}</span>
+                        {user.email && <p className="text-xs text-gray-500">{user.email}</p>}
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        user.type === 'broker' ? 'bg-blue-100 text-blue-800' :
+                        user.type === 'lender' ? 'bg-green-100 text-green-800' :
+                        user.type === 'vendor' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {user.type}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
         
         <div className="bg-amber-50 p-3 rounded-md mb-4">
@@ -125,12 +244,16 @@ const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
           </div>
         </div>
         
-        {commitments.length === 0 ? (
+        {filteredCommitments.length === 0 ? (
           <div className="text-center py-8">
             <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No commitments set up</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">
+              {selectedUser && selectedUser.id !== 'user-4' 
+                ? `No commitments found for ${selectedUser.name}` 
+                : 'No commitments set up'}
+            </h3>
             <p className="mt-1 text-sm text-gray-500">
               Add your first relationship commitment to track deal flow targets.
             </p>
@@ -146,9 +269,9 @@ const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
               </button>
             </div>
           </div>
-        ) : (
+        ) :
           <div className="space-y-6">
-            {commitments.map((commitment) => {
+            {filteredCommitments.map((commitment) => {
               const progress = calculateProgress(commitment);
               const statusColor = getStatusColor(progress);
               
@@ -170,12 +293,14 @@ const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
                     </div>
                   </div>
                   
-                  <div className="px-4 py-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="px-4 py-5 sm:p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <p className="text-xs text-gray-500">Minimum Deal Count</p>
                         <div className="flex justify-between items-center">
-                          <p className="text-sm font-medium">{commitment.currentProgress.dealCount} of {commitment.minDealCount}</p>
+                          <p className="text-sm font-medium">
+                            {commitment.currentProgress.dealCount} of {commitment.minDealCount} deals
+                          </p>
                           <span className={`text-xs font-medium ${statusColor}`}>
                             {Math.round((commitment.currentProgress.dealCount / commitment.minDealCount) * 100)}%
                           </span>
@@ -221,18 +346,23 @@ const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
                       </div>
                     </div>
                     
-                    <div className="flex justify-end mt-4 pt-2 border-t border-gray-100">
+                    {commitment.notes && (
+                      <div className="mt-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+                        <p className="text-xs font-medium text-gray-700">Notes</p>
+                        <p className="mt-1 text-sm text-gray-600">{commitment.notes}</p>
+                      </div>
+                    )}
+                    
+                    <div className="mt-4 flex justify-end space-x-3">
                       <button
                         onClick={() => {
-                          // Open a prompt or modal to update progress
-                          const newCount = Number(prompt('Enter new deal count:', String(commitment.currentProgress.dealCount)));
-                          const newVolume = Number(prompt('Enter new deal volume ($):', String(commitment.currentProgress.dealVolume)));
-                          
+                          const newCount = Number(prompt('Enter new deal count:', commitment.currentProgress.dealCount.toString()));
+                          const newVolume = Number(prompt('Enter new deal volume ($):', commitment.currentProgress.dealVolume.toString()));
                           if (!isNaN(newCount) && !isNaN(newVolume)) {
                             handleUpdateProgress(commitment.id, newCount, newVolume);
                           }
                         }}
-                        className="text-xs text-primary-600 font-medium hover:text-primary-700"
+                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                       >
                         Update Progress
                       </button>
@@ -242,22 +372,24 @@ const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
               );
             })}
           </div>
-        )}
+        }
       </div>
       
-      {/* Add Commitment Modal */}
       {showAddCommitment && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div className="fixed inset-0 overflow-y-auto z-50">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 transition-opacity" aria-hidden="true">
               <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
             </div>
-            
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg className="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                     <h3 className="text-lg leading-6 font-medium text-gray-900">
                       New Relationship Commitment
@@ -334,7 +466,7 @@ const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
                           type="number"
                           name="min-deal-volume"
                           id="min-deal-volume"
-                          min="0"
+                          min="1000"
                           step="1000"
                           value={newCommitment.minDealVolume}
                           onChange={(e) => setNewCommitment({...newCommitment, minDealVolume: Number(e.target.value)})}
@@ -394,12 +526,9 @@ const RelationshipCommitment: React.FC<RelationshipCommitmentProps> = ({
                 <button
                   type="button"
                   onClick={handleAddCommitment}
-                  disabled={!newCommitment.partnerName || newCommitment.minDealCount <= 0}
-                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm ${
-                    !newCommitment.partnerName || newCommitment.minDealCount <= 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-700'
-                  }`}
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm"
                 >
-                  Create Commitment
+                  Add Commitment
                 </button>
                 <button
                   type="button"

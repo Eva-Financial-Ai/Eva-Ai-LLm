@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useWorkflow } from '../../contexts/WorkflowContext';
+import { useNavigate } from 'react-router-dom';
 
 interface MatchingParameter {
   id: string;
@@ -16,6 +17,11 @@ interface FinancialProfile {
   yearlyRevenue: number;
   cashOnHand: number;
   collateralValue: number;
+  debtToIncomeRatio?: number;
+  operatingHistory?: number; // in years
+  existingLoanBalance?: number;
+  industryType?: string;
+  businessStructure?: string;
 }
 
 export interface DealStructureMatch {
@@ -54,6 +60,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
   className = ''
 }) => {
   const { currentTransaction } = useWorkflow();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isDoneMatching, setIsDoneMatching] = useState(false);
   const [matches, setMatches] = useState<DealStructureMatch[]>([]);
@@ -305,7 +312,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
       
       // Set the matches
       setMatches(matchOptions);
-      setSelectedMatchId(matchOptions[0].id);
+      setSelectedMatchId(matchOptions.length > 0 ? matchOptions[0].id : null); // Handle empty matchOptions
       setIsLoading(false);
       setIsDoneMatching(true);
       
@@ -326,10 +333,10 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
   };
   
   // Update financial profile
-  const handleFinancialProfileChange = (field: keyof FinancialProfile, value: number) => {
+  const handleFinancialProfileChange = (field: keyof FinancialProfile, value: string | number) => {
     setFinancialProfile(prev => ({
       ...prev,
-      [field]: value
+      [field]: typeof value === 'string' ? parseFloat(value) || 0 : value
     }));
   };
   
@@ -352,6 +359,45 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
     }
   };
   
+  // Navigate to transaction execution page with selected match
+  const handleSelectStructure = (match: DealStructureMatch) => {
+    navigate(`/transactions/new/execute`, {
+      state: { 
+        selectedMatch: match,
+        amount: loanAmount || currentTransaction?.amount || 0,
+        structureType: match.financingType,
+        rate: match.rate
+      }
+    });
+  };
+  
+  // Navigate to the custom dashboard
+  const handleNavigateToCustomDashboard = () => {
+    // Instead of navigating, we'll now trigger a custom modal in the parent
+    if (window.dispatchEvent) {
+      // Create a custom event that the parent component can listen to
+      const event = new CustomEvent('openCustomFinancialProfileModal');
+      window.dispatchEvent(event);
+    }
+  };
+  
+  // Navigate to credit application with pre-filled data
+  const handleSendCreditApplication = () => {
+    navigate('/credit-application', {
+      state: {
+        prefilledData: {
+          requestedAmount: loanAmount || currentTransaction?.amount || 0,
+          preferredTerm: financialProfile.preferredTerm,
+          creditScore: financialProfile.creditScore,
+          businessRevenue: financialProfile.yearlyRevenue,
+          debtToIncomeRatio: financialProfile.debtToIncomeRatio,
+          operatingHistory: financialProfile.operatingHistory,
+          collateralValue: financialProfile.collateralValue
+        }
+      }
+    });
+  };
+  
   // Trigger match generation when component mounts or when key inputs change
   useEffect(() => {
     if (loanAmount > 0) {
@@ -364,18 +410,6 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
   
   return (
     <div className={`bg-white shadow rounded-lg overflow-hidden ${className}`}>
-      <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-gray-50">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">EVA AI Smart Match</h3>
-          <div className="text-sm text-gray-500">
-            {isDoneMatching ? `${matches.length} matches found` : 'Finding optimal matches...'}
-          </div>
-        </div>
-        <p className="text-sm text-gray-600 mt-1">
-          Intelligent matching of deal structures based on borrower needs and preferences
-        </p>
-      </div>
-      
       {/* Financial profile input */}
       <div className="p-6 border-b border-gray-200 bg-gray-50">
         <h4 className="text-sm font-medium text-gray-900 mb-3">Financial Profile</h4>
@@ -392,7 +426,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
                 type="number"
                 id="maxDownPayment"
                 value={financialProfile.maxDownPayment || ''}
-                onChange={(e) => handleFinancialProfileChange('maxDownPayment', parseFloat(e.target.value))}
+                onChange={(e) => handleFinancialProfileChange('maxDownPayment', e.target.value)}
                 className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="0"
               />
@@ -411,7 +445,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
                 type="number"
                 id="monthlyBudget"
                 value={financialProfile.monthlyBudget || ''}
-                onChange={(e) => handleFinancialProfileChange('monthlyBudget', parseFloat(e.target.value))}
+                onChange={(e) => handleFinancialProfileChange('monthlyBudget', e.target.value)}
                 className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="0"
               />
@@ -493,7 +527,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
                     type="number"
                     id="yearlyRevenue"
                     value={financialProfile.yearlyRevenue || ''}
-                    onChange={(e) => handleFinancialProfileChange('yearlyRevenue', parseFloat(e.target.value))}
+                    onChange={(e) => handleFinancialProfileChange('yearlyRevenue', e.target.value)}
                     className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                     placeholder="0"
                   />
@@ -512,7 +546,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
                     type="number"
                     id="cashOnHand"
                     value={financialProfile.cashOnHand || ''}
-                    onChange={(e) => handleFinancialProfileChange('cashOnHand', parseFloat(e.target.value))}
+                    onChange={(e) => handleFinancialProfileChange('cashOnHand', e.target.value)}
                     className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                     placeholder="0"
                   />
@@ -531,7 +565,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
                     type="number"
                     id="collateralValue"
                     value={financialProfile.collateralValue || ''}
-                    onChange={(e) => handleFinancialProfileChange('collateralValue', parseFloat(e.target.value))}
+                    onChange={(e) => handleFinancialProfileChange('collateralValue', e.target.value)}
                     className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                     placeholder="0"
                   />
@@ -601,26 +635,15 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
         <div className="mt-4 flex justify-end">
           <button
             type="button"
-            onClick={generateMatches}
+            onClick={handleNavigateToCustomDashboard}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none"
             disabled={isLoading}
           >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Matching...
-              </>
-            ) : (
-              <>
-                <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                Find Optimal Matches
-              </>
-            )}
+            <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"> 
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /> 
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /> 
+            </svg>
+            Enter Custom Parameters
           </button>
         </div>
       </div>
@@ -705,12 +728,18 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
                       </div>
                     </div>
                     
-                    <div className="mt-4 flex justify-end">
+                    <div className="mt-4 flex justify-end space-x-3">
+                      <button
+                        type="button"
+                        className="inline-flex items-center px-4 py-2 border border-primary-300 text-sm font-medium rounded-md shadow-sm text-primary-700 bg-white hover:bg-primary-50 focus:outline-none"
+                        onClick={handleSendCreditApplication}
+                      >
+                        Send Credit Application
+                      </button>
                       <button
                         type="button"
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none"
                         onClick={() => {
-                          // In a real app, this would select the structure and move to next step
                           if (onSelectMatch) {
                             onSelectMatch(match);
                           }

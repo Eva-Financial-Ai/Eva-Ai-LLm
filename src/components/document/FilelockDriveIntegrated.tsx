@@ -1,28 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import FileExplorer from './FileExplorer';
 import DocumentViewer from './DocumentViewer';
 import { FileItem } from './FilelockDriveApp';
+import ShareDocumentModal from './ShareDocumentModal';
+
+// Mock implementation of toast from react-toastify
+const toast = {
+  success: (message: string) => {
+    console.log('Toast success:', message);
+    // In a real app, this would show a toast notification
+  },
+  error: (message: string) => {
+    console.error('Toast error:', message);
+    // In a real app, this would show an error toast
+  },
+  info: (message: string) => {
+    console.info('Toast info:', message);
+    // In a real app, this would show an info toast
+  },
+  warning: (message: string) => {
+    console.warn('Toast warning:', message);
+    // In a real app, this would show a warning toast
+  }
+};
 
 const FilelockDriveIntegrated: React.FC = () => {
-  const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [currentView, setCurrentView] = useState<'explorer' | 'viewer'>('explorer');
+  const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<FileItem[]>([]);
   const [isGridView, setIsGridView] = useState(true);
-  const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Mock files for demonstration
+  // Sample files data
   const [files, setFiles] = useState<FileItem[]>([
     {
       id: 'file-1',
-      name: 'Sample Document.pdf',
+      name: 'Loan Application.pdf',
       type: 'pdf',
-      size: 1200000,
+      size: 1542000, // 1.5MB
       lastModified: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      path: '/Sample Document.pdf',
+      path: '/Loan Application.pdf',
+      parentId: 'root',
+      owner: 'me',
+      thumbnailUrl: 'https://via.placeholder.com/100x120?text=PDF',
+      downloadUrl: '/sample-documents/loan-application.pdf',
+      permissions: {
+        canView: true,
+        canEdit: true,
+        canDelete: true,
+        canShare: true,
+        canDownload: true,
+        canComment: true
+      }
+    },
+    {
+      id: 'folder-1',
+      name: 'Personal Documents',
+      type: 'folder',
+      lastModified: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      path: '/Personal Documents',
       parentId: 'root',
       owner: 'me',
       permissions: {
@@ -38,32 +81,83 @@ const FilelockDriveIntegrated: React.FC = () => {
 
   // Handle file selection
   const handleFileSelect = (file: FileItem) => {
-    setSelectedFile(file);
-    setCurrentView('viewer');
+    if (file.type === 'folder') {
+      // Navigate into folder (in a real app)
+      console.log("Navigating into folder:", file.name);
+    } else {
+      setSelectedFile(file);
+      setCurrentView('viewer');
+    }
   };
 
-  // Handle back navigation from viewer to explorer
+  // Handle back to explorer
   const handleBackToExplorer = () => {
     setCurrentView('explorer');
     setSelectedFile(null);
   };
 
-  // Handle edit document
-  const handleEditDocument = () => {
-    console.log("Edit document:", selectedFile?.name);
-    // Edit document logic would go here
-  };
-
-  // Handle sign document
-  const handleSignDocument = () => {
-    console.log("Sign document:", selectedFile?.name);
-    // Sign document logic would go here
-  };
-
   // Handle share document
-  const handleShareDocument = (fileId: string, recipients: Array<{email: string, permission: 'viewer' | 'editor' | 'signer'}>) => {
-    console.log("Share document with ID:", fileId, "with recipients:", recipients);
-    // Share document logic would go here
+  const handleShareDocument = (fileId: string, recipients: Array<{email: string, phoneNumber?: string, permission: string, needsPassword: boolean, notificationMethods: string[]}>) => {
+    console.log("Sharing document with ID:", fileId);
+    console.log("With recipients:", recipients);
+    
+    // In a real implementation, this would make an API call to share the document
+    
+    // Update file to show it's shared
+    const updatedFiles = files.map(file => {
+      if (file.id === fileId) {
+        return {
+          ...file,
+          isShared: true,
+          sharedWith: recipients.map(r => ({
+            id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            name: r.email.split('@')[0],
+            email: r.email,
+            permission: r.permission as 'viewer' | 'editor' | 'signer' | 'commenter',
+            needsPassword: r.needsPassword
+          }))
+        };
+      }
+      return file;
+    });
+    
+    setFiles(updatedFiles);
+    
+    // Send notifications based on methods selected
+    recipients.forEach(recipient => {
+      recipient.notificationMethods.forEach(method => {
+        switch(method) {
+          case 'email':
+            console.log(`Sending email notification to ${recipient.email}`);
+            // In a real app, this would call an API endpoint to send an email
+            break;
+          case 'sms':
+            if (recipient.phoneNumber) {
+              console.log(`Sending SMS notification to ${recipient.phoneNumber}`);
+              // In a real app, this would call an API endpoint to send an SMS
+            }
+            break;
+          case 'app':
+            console.log(`Sending in-app notification to user associated with ${recipient.email}`);
+            // In a real app, this would store a notification in the database
+            break;
+        }
+      });
+    });
+    
+    // Display success message
+    toast.success(`Document shared with ${recipients.length} recipient${recipients.length !== 1 ? 's' : ''}`);
+  };
+
+  // Handle document actions from document viewer
+  const handleEditDocument = () => {
+    console.log("Edit document", selectedFile?.name);
+    // Would open document editor in a real implementation
+  };
+
+  const handleSignDocument = () => {
+    console.log("Sign document", selectedFile?.name);
+    // Would open signature workflow in a real implementation
   };
 
   // Handle delete document
@@ -72,6 +166,9 @@ const FilelockDriveIntegrated: React.FC = () => {
       setFiles(prevFiles => prevFiles.filter(file => file.id !== selectedFile.id));
       setCurrentView('explorer');
       setSelectedFile(null);
+      
+      // Show success notification
+      toast.success(`${selectedFile.name} deleted successfully`);
     }
   };
 
@@ -89,6 +186,9 @@ const FilelockDriveIntegrated: React.FC = () => {
         clearInterval(interval);
         setIsUploading(false);
         setUploadProgress(0);
+        
+        // Show success notification
+        toast.success(`${files.length} file${files.length !== 1 ? 's' : ''} uploaded successfully`);
       }
     }, 300);
   };
@@ -114,12 +214,41 @@ const FilelockDriveIntegrated: React.FC = () => {
       }
     };
     setFiles(prevFiles => [...prevFiles, newFolder]);
+    
+    // Show success notification
+    toast.success(`Folder "${name}" created successfully`);
   };
 
   // Handle delete files
   const handleDeleteFiles = (fileIds: string[]) => {
     setFiles(prevFiles => prevFiles.filter(file => !fileIds.includes(file.id)));
     setSelectedFiles([]);
+    
+    // Show success notification
+    toast.success(`${fileIds.length} item${fileIds.length !== 1 ? 's' : ''} deleted successfully`);
+  };
+
+  // Handle file download
+  const handleDownloadFile = (file: FileItem) => {
+    console.log("Downloading file:", file.name);
+    
+    // Create a download link
+    const link = document.createElement('a');
+    link.href = file.downloadUrl || '#';
+    link.download = file.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Show success notification
+    toast.success(`Downloading ${file.name}`);
+  };
+
+  // Handle share button from document viewer
+  const handleShareButton = () => {
+    if (selectedFile) {
+      setShowShareModal(true);
+    }
   };
 
   return (
@@ -133,7 +262,13 @@ const FilelockDriveIntegrated: React.FC = () => {
           onUpload={handleFileUpload}
           onCreateFolder={handleCreateFolder}
           onDelete={handleDeleteFiles}
-          onShare={handleShareDocument}
+          onShare={(fileId, recipients) => {
+            const file = files.find(f => f.id === fileId);
+            if (file) {
+              setSelectedFile(file);
+              setShowShareModal(true);
+            }
+          }}
           isGridView={isGridView}
           sortBy={sortBy}
           setSortBy={setSortBy}
@@ -148,8 +283,9 @@ const FilelockDriveIntegrated: React.FC = () => {
           onBack={handleBackToExplorer}
           onEdit={handleEditDocument}
           onSign={handleSignDocument}
-          onShare={(recipients) => selectedFile && handleShareDocument(selectedFile.id, recipients)}
+          onShare={handleShareButton}
           onDelete={handleDeleteDocument}
+          onDownload={() => handleDownloadFile(selectedFile)}
           onUpdateFile={(updatedFile) => {
             // Update the file in our state
             setSelectedFile(updatedFile);
@@ -161,6 +297,28 @@ const FilelockDriveIntegrated: React.FC = () => {
           }}
         />
       )}
+      
+      {/* ShareDocumentModal */}
+      {showShareModal && selectedFile && (
+        <ShareDocumentModal
+          file={selectedFile}
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          onShare={(recipients) => {
+            handleShareDocument(selectedFile.id, recipients);
+            setShowShareModal(false);
+          }}
+        />
+      )}
+      
+      {/* Hidden file input for uploads */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+        multiple
+      />
     </div>
   );
 };

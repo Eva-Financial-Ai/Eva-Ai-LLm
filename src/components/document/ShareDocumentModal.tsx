@@ -5,29 +5,46 @@ interface ShareDocumentModalProps {
   file: FileItem;
   isOpen: boolean;
   onClose: () => void;
-  onShare: (recipients: Array<{email: string, permission: string, needsPassword: boolean}>) => void;
+  onShare: (recipients: Array<{email: string, phoneNumber?: string, permission: string, needsPassword: boolean, notificationMethods: string[]}>) => void;
 }
 
 const ShareDocumentModal: React.FC<ShareDocumentModalProps> = ({ file, isOpen, onClose, onShare }) => {
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [permission, setPermission] = useState<'viewer' | 'editor' | 'signer' | 'commenter'>('viewer');
-  const [recipients, setRecipients] = useState<Array<{email: string, permission: string, needsPassword: boolean}>>([]);
+  const [recipients, setRecipients] = useState<Array<{email: string, phoneNumber?: string, permission: string, needsPassword: boolean, notificationMethods: string[]}>>([]);
   const [passwordProtect, setPasswordProtect] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [requireForAll, setRequireForAll] = useState(false);
-  const [sendTextNotification, setSendTextNotification] = useState(false);
+  const [notificationMethods, setNotificationMethods] = useState<string[]>(['email']);
+  const [error, setError] = useState<string | null>(null);
   
   // Add recipient to the list
   const handleAddRecipient = () => {
+    // Validate email
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    
+    // Validate phone if notification method is selected
+    if (notificationMethods.includes('sms') && !phoneNumber) {
+      setError('Please enter a phone number for SMS notifications');
+      return;
+    }
+    
     if (email && !recipients.some(r => r.email === email)) {
       setRecipients([...recipients, { 
-        email, 
+        email,
+        phoneNumber: phoneNumber || undefined,
         permission,
-        needsPassword: passwordProtect && requireForAll
+        needsPassword: passwordProtect && requireForAll,
+        notificationMethods
       }]);
       setEmail('');
+      setPhoneNumber('');
+      setError(null);
     }
   };
   
@@ -36,13 +53,22 @@ const ShareDocumentModal: React.FC<ShareDocumentModalProps> = ({ file, isOpen, o
     setRecipients(recipients.filter(r => r.email !== email));
   };
   
+  // Toggle notification method
+  const toggleNotificationMethod = (method: string) => {
+    if (notificationMethods.includes(method)) {
+      setNotificationMethods(notificationMethods.filter(m => m !== method));
+    } else {
+      setNotificationMethods([...notificationMethods, method]);
+    }
+  };
+  
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate password if enabled
     if (passwordProtect && (!password || password !== passwordConfirm)) {
-      alert('Please ensure your password and confirmation match.');
+      setError('Please ensure your password and confirmation match.');
       return;
     }
     
@@ -57,37 +83,9 @@ const ShareDocumentModal: React.FC<ShareDocumentModalProps> = ({ file, isOpen, o
       
       onShare(recipients);
       onClose();
+    } else {
+      setError('Please add at least one recipient');
     }
-  };
-  
-  // Get permission label
-  const getPermissionLabel = (permission: string) => {
-    switch (permission) {
-      case 'viewer': return 'Can view';
-      case 'editor': return 'Can edit';
-      case 'signer': return 'Can sign';
-      case 'commenter': return 'Can comment';
-      default: return 'Unknown';
-    }
-  };
-
-  const handleShare = () => {
-    // In a real implementation, this would call an API to share the document
-    console.log('Sharing document:', file.id);
-    console.log('With email:', email);
-    console.log('With phone:', phoneNumber);
-    console.log('With permission:', permission);
-    console.log('Send text notification:', sendTextNotification);
-    
-    // Mock successful share
-    alert(`Document shared with ${email} successfully!`);
-    
-    // Reset form and close modal
-    setEmail('');
-    setPhoneNumber('');
-    setPermission('viewer');
-    setSendTextNotification(false);
-    onClose();
   };
   
   if (!isOpen) return null;
@@ -117,155 +115,191 @@ const ShareDocumentModal: React.FC<ShareDocumentModalProps> = ({ file, isOpen, o
             </div>
           </div>
           
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Add people</label>
-            <div className="flex">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md border border-red-200">
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="share-email" className="block text-sm font-medium text-gray-700">Email Address</label>
               <input
                 type="email"
+                id="share-email"
+                placeholder="Enter email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address"
-                className="flex-1 shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               />
+            </div>
+            
+            <div>
+              <label htmlFor="share-phone" className="block text-sm font-medium text-gray-700">Phone Number (for SMS notifications)</label>
+              <input
+                type="tel"
+                id="share-phone"
+                placeholder="Enter phone number"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="share-permission" className="block text-sm font-medium text-gray-700">Permission</label>
               <select
+                id="share-permission"
                 value={permission}
                 onChange={(e) => setPermission(e.target.value as any)}
-                className="ml-2 shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-32 sm:text-sm border-gray-300 rounded-md"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               >
-                <option value="viewer">Viewer</option>
-                <option value="commenter">Commenter</option>
-                <option value="editor">Editor</option>
-                <option value="signer">Signer</option>
+                <option value="viewer">Viewer (can view only)</option>
+                <option value="editor">Editor (can make changes)</option>
+                <option value="commenter">Commenter (can add comments)</option>
+                <option value="signer">Signer (can sign document)</option>
               </select>
-              <button
+            </div>
+            
+            <div>
+              <p className="block text-sm font-medium text-gray-700 mb-2">Notification Methods</p>
+              <div className="flex items-center space-x-4">
+                <label className="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={notificationMethods.includes('email')}
+                    onChange={() => toggleNotificationMethod('email')}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Email</span>
+                </label>
+                <label className="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={notificationMethods.includes('sms')}
+                    onChange={() => toggleNotificationMethod('sms')}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">SMS</span>
+                </label>
+                <label className="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={notificationMethods.includes('app')}
+                    onChange={() => toggleNotificationMethod('app')}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">In-App</span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex items-center">
+              <button 
                 type="button"
                 onClick={handleAddRecipient}
-                disabled={!email}
-                className="ml-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
-                Add
+                <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Recipient
               </button>
             </div>
-          </div>
-          
-          <div>
-            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
-              Mobile Phone Number (for notifications)
-            </label>
-            <input
-              type="tel"
-              id="phoneNumber"
-              placeholder="Enter mobile number"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
-          
-          {/* Password Protection Section */}
-          <div className="mb-6 bg-gray-50 p-4 rounded-lg border">
-            <div className="flex items-center justify-between mb-3">
-              <label className="flex items-center">
+            
+            {recipients.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Recipients</h4>
+                <div className="border border-gray-200 rounded-md overflow-hidden max-h-40 overflow-y-auto">
+                  <ul className="divide-y divide-gray-200">
+                    {recipients.map((recipient, index) => (
+                      <li key={index} className="p-2 flex justify-between items-center">
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">{recipient.email}</p>
+                          <div className="flex space-x-2">
+                            <span className="text-xs text-gray-500">{recipient.permission}</span>
+                            {recipient.phoneNumber && <span className="text-xs text-gray-500">{recipient.phoneNumber}</span>}
+                            <span className="text-xs text-gray-500">
+                              {recipient.notificationMethods.join(', ')}
+                            </span>
+                          </div>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => handleRemoveRecipient(recipient.email)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+            
+            <div className="mt-4">
+              <label className="inline-flex items-center">
                 <input
                   type="checkbox"
                   checked={passwordProtect}
                   onChange={(e) => setPasswordProtect(e.target.checked)}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
-                <span className="ml-2 text-sm font-medium text-gray-700">Password protect this document</span>
+                <span className="ml-2 text-sm text-gray-700">Password protect this document</span>
               </label>
             </div>
             
             {passwordProtect && (
-              <div className="space-y-3">
+              <div className="space-y-4 mt-3 p-3 border border-gray-200 rounded-md bg-gray-50">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                  <label htmlFor="share-password" className="block text-sm font-medium text-gray-700">Password</label>
                   <input
                     type="password"
+                    id="share-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   />
                 </div>
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                  <label htmlFor="share-password-confirm" className="block text-sm font-medium text-gray-700">Confirm Password</label>
                   <input
                     type="password"
+                    id="share-password-confirm"
                     value={passwordConfirm}
                     onChange={(e) => setPasswordConfirm(e.target.value)}
-                    className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   />
                 </div>
-                <div className="mt-2">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={requireForAll}
-                      onChange={(e) => setRequireForAll(e.target.checked)}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Require password for all recipients</span>
-                  </label>
-                </div>
+                
+                <label className="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={requireForAll}
+                    onChange={(e) => setRequireForAll(e.target.checked)}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Require password for all recipients</span>
+                </label>
               </div>
             )}
           </div>
           
-          {/* Recipients List */}
-          {recipients.length > 0 && (
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Recipients</h4>
-              <div className="bg-gray-50 rounded-md border divide-y">
-                {recipients.map((recipient, index) => (
-                  <div key={index} className="flex justify-between items-center p-3">
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{recipient.email}</p>
-                      <p className="text-xs text-gray-500">
-                        {getPermissionLabel(recipient.permission)} 
-                        {recipient.needsPassword && ' • Password required'}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveRecipient(recipient.email)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          <div className="flex items-center">
-            <input
-              id="sendTextNotification"
-              type="checkbox"
-              checked={sendTextNotification}
-              onChange={(e) => setSendTextNotification(e.target.checked)}
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-            />
-            <label htmlFor="sendTextNotification" className="ml-2 block text-sm text-gray-900">
-              Send SMS notification when document is ready to view
-            </label>
-          </div>
-          
-          {/* Submit Button */}
-          <div className="flex justify-end pt-4 border-t border-gray-200">
+          <div className="mt-8 flex justify-end space-x-2">
             <button
               type="button"
               onClick={onClose}
-              className="mr-3 bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={recipients.length === 0}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               Share
             </button>
