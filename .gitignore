@@ -19,6 +19,7 @@
 .env.development
 .env.production
 .vercel/
+eva-financial-frontend-mvp.tar.gz
 
 npm-debug.log*
 yarn-debug.log*
