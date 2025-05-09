@@ -12,4 +12,4 @@ export const RefreshRuntime = {
 export default {
   injectIntoGlobalHook,
   RefreshRuntime,
-}; 
+};

@@ -239,3 +239,110 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 - NVIDIA for Nemotron 70B model architecture
 - Tailwind Labs for the CSS framework
 - React team for the frontend framework 
+
+## ESLint and Code Quality
+
+This project uses ESLint for code quality assurance. We've implemented a flexible, tiered approach to ESLint that lets developers choose the appropriate level of enforcement based on their current task.
+
+### Smart ESLint Solution
+
+Our smart ESLint solution gives you three different enforcement levels:
+
+#### 1. Quick Start: Choose Your ESLint Mode
+
+```bash
+# One-command ESLint mode selection
+./smart-start.sh normal    # Regular mode with warnings
+./smart-start.sh critical  # Only blocks on critical errors
+./smart-start.sh off       # No ESLint checking at all
+```
+
+#### 2. ESLint Modes Explained
+
+- **Normal Mode**: Standard ESLint configuration with all rules enforced as warnings
+- **Critical Mode**: Only enforces rules that would cause runtime errors (like React Hooks rules)
+- **Off Mode**: Completely disables ESLint for maximum development speed
+
+#### 3. npm Scripts
+
+You can also use npm scripts directly:
+
+```bash
+# Running the app with different ESLint modes
+npm start                # Normal mode
+npm run start:critical   # Critical-only mode
+npm run start:no-lint    # ESLint disabled
+
+# Linting commands
+npm run lint             # Check all rules (with warnings)
+npm run lint:critical    # Check only critical errors
+npm run lint:fix         # Auto-fix issues where possible
+npm run lint:strict      # Strict mode - fails on warnings
+```
+
+### When to Use Each Mode
+
+- **Normal Mode** (`./smart-start.sh normal`): For regular development when you want to be aware of code quality issues but don't want them blocking your work
+- **Critical Mode** (`./smart-start.sh critical`): When focusing on new feature development and only want to be blocked by errors that would crash at runtime
+- **Off Mode** (`./smart-start.sh off`): When experimenting, debugging, or in situations where you need maximum speed and will address linting issues later
+
+### Migration Plan
+
+We maintain a detailed migration plan in `ESLINT-MIGRATION-PLAN.md` that outlines:
+
+- Specific issues in each file
+- Example fixes for common problems
+- Recommended timeline for addressing all linting issues
+
+This approach allows development to continue while we gradually improve code quality by fixing ESLint issues over time.
+
+### Implementation Details
+
+The smart ESLint solution consists of:
+
+- `.eslintrc.local.js`: Base configuration with selective rule enforcement
+- `.eslintrc.critical.js`: Configuration that only enforces critical rules
+- `eslint-smart.sh`: Script that manages the ESLint setup and mode switching
+- `smart-start.sh`: Helper script for running the app with different ESLint modes
+- npm scripts in package.json for direct access to different modes
+
+## Linting and ESLint Issues
+
+Some files in this project have ESLint warnings related to React Hooks rules and Testing Library best practices. We're taking a gradual approach to fixing these issues properly rather than ignoring them entirely.
+
+### Immediate Solution
+
+Run the proper ESLint fix script:
+
+```bash
+./fix-eslint-properly.sh
+```
+
+This script:
+1. Configures ESLint to use selective rule overrides (warning instead of error for problematic files)
+2. Adds inline ESLint disable comments to specific problem areas
+3. Creates a migration plan for properly fixing all issues
+4. Adds a strict linting script for validation
+
+### Starting the Development Server
+
+You can run the regular development server:
+
+```bash
+npm start
+```
+
+### Linting Scripts
+
+- `npm run lint` - Run ESLint with warnings
+- `npm run lint:fix` - Run ESLint and try to fix issues automatically
+- `npm run lint:strict` - Run ESLint with no warnings allowed (use to validate fixes)
+
+### Migration Plan
+
+See the detailed migration plan in `ESLINT-MIGRATION-PLAN.md` that outlines:
+- Specific issues in each file
+- Example fixes for common problems
+- Timeline for addressing all issues
+
+This approach allows development to continue while we gradually improve code quality. 

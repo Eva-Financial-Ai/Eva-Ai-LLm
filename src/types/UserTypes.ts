@@ -1,9 +1,9 @@
 // UserTypes.ts - Core definitions
 export enum UserType {
-  BUSINESS = 'business',     // Borrowers seeking financing
-  VENDOR = 'vendor',         // Service providers
-  BROKERAGE = 'brokerage',   // Financial intermediaries
-  LENDER = 'lender'          // Financial institutions providing loans
+  BUSINESS = 'business', // Borrowers seeking financing
+  VENDOR = 'vendor', // Service providers
+  BROKERAGE = 'brokerage', // Financial intermediaries
+  LENDER = 'lender', // Financial institutions providing loans
 }
 
 // Permission levels from most restricted to most permissive
@@ -12,7 +12,7 @@ export enum PermissionLevel {
   VIEW = 1,
   INTERACT = 2,
   MODIFY = 3,
-  ADMIN = 4
+  ADMIN = 4,
 }
 
 // Feature access mapping
@@ -64,15 +64,15 @@ export const defaultPermissions: Record<UserType, FeatureAccess> = {
     reporting: PermissionLevel.ADMIN,
     messaging: PermissionLevel.ADMIN,
     settings: PermissionLevel.ADMIN,
-  }
-}
+  },
+};
 
 // Employee roles for additional permission granularity
 export enum EmployeeRole {
   VIEWER = 'viewer',
   OPERATOR = 'operator',
   MANAGER = 'manager',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
 }
 
 // Role hierarchy for permission checks
@@ -80,5 +80,5 @@ export const roleHierarchy: Record<EmployeeRole, number> = {
   [EmployeeRole.VIEWER]: 1,
   [EmployeeRole.OPERATOR]: 2,
   [EmployeeRole.MANAGER]: 3,
-  [EmployeeRole.ADMIN]: 4
-}; 
+  [EmployeeRole.ADMIN]: 4,
+};

@@ -1,6 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import './index.css';
+import './styles/index.css';
+import './styles/accessibility.css';
+import './styles/high-contrast.css';
 import App from './App';
 import { UserContextProvider } from './contexts/UserContext';
 
@@ -14,4 +16,4 @@ root.render(
       <App />
     </UserContextProvider>
   </React.StrictMode>
-); 
+);

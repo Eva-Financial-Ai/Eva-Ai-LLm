@@ -28,7 +28,7 @@ const FormFieldWithOther: React.FC<FormFieldWithOtherProps> = ({
   required = false,
   placeholder = 'Please select',
   error,
-  className = ''
+  className = '',
 }) => {
   const [showOtherInput, setShowOtherInput] = useState(false);
   const [otherText, setOtherText] = useState(otherValue);
@@ -42,9 +42,9 @@ const FormFieldWithOther: React.FC<FormFieldWithOtherProps> = ({
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newValue = e.target.value;
     const isOtherSelected = newValue === 'other';
-    
+
     setShowOtherInput(isOtherSelected);
-    
+
     // Pass the new value to the parent component
     onChange(name, newValue, isOtherSelected ? otherText : undefined);
   };
@@ -52,7 +52,7 @@ const FormFieldWithOther: React.FC<FormFieldWithOtherProps> = ({
   const handleOtherInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newOtherValue = e.target.value;
     setOtherText(newOtherValue);
-    
+
     // Pass the updated "other" value to the parent component
     onChange(name, value, newOtherValue);
   };
@@ -60,9 +60,10 @@ const FormFieldWithOther: React.FC<FormFieldWithOtherProps> = ({
   return (
     <div className={className}>
       <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}{required && <span className="text-red-500">*</span>}
+        {label}
+        {required && <span className="text-red-500">*</span>}
       </label>
-      
+
       <select
         name={name}
         value={value}
@@ -78,7 +79,7 @@ const FormFieldWithOther: React.FC<FormFieldWithOtherProps> = ({
         ))}
         <option value="other">Other</option>
       </select>
-      
+
       {showOtherInput && (
         <div className="mt-2">
           <input
@@ -91,10 +92,10 @@ const FormFieldWithOther: React.FC<FormFieldWithOtherProps> = ({
           />
         </div>
       )}
-      
+
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
     </div>
   );
 };
 
-export default FormFieldWithOther; 
+export default FormFieldWithOther;

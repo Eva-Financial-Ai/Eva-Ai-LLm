@@ -1,0 +1,113 @@
+/* Accessibility Enhancements */
+
+/* Increase base font size */
+html {
+  font-size: 16px;
+}
+
+/* Larger text for better readability */
+body {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Headings with improved spacing and sizing */
+h1 {
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.875rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Focus states for better keyboard navigation */
+:focus {
+  outline: 3px solid #2563eb !important; /* primary blue */
+  outline-offset: 2px;
+}
+
+/* Improved button contrast */
+button,
+.btn {
+  font-size: 1rem;
+  padding: 0.625rem 1.25rem;
+  min-height: 2.5rem;
+}
+
+/* Form controls with better sizing */
+input,
+select,
+textarea {
+  font-size: 1rem;
+  padding: 0.625rem;
+  min-height: 2.5rem;
+}
+
+/* Labels with better visibility */
+label {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+/* Links with more obvious hover states */
+a:hover {
+  text-decoration: underline;
+}
+
+/* Enhanced visibility for validation messages */
+.error-message,
+.validation-message {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #dc2626; /* red-600 */
+  margin-top: 0.25rem;
+}
+
+/* More readable tables */
+table {
+  font-size: 1rem;
+}
+
+th {
+  font-weight: 600;
+}
+
+td,
+th {
+  padding: 0.75rem;
+}
+
+/* Improved card spacing */
+.card {
+  padding: 1.25rem;
+}
+
+/* Enhanced contrast for icons */
+svg {
+  stroke-width: 2px;
+}
+
+/* More visible focus for interactive elements */
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4);
+}
+
+/* High contrast mode support */
+@media (forced-colors: active) {
+  button,
+  a {
+    forced-color-adjust: none;
+  }
+}

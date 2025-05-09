@@ -15,14 +15,14 @@ const Header: React.FC<HeaderProps> = ({ title = 'EVA AI' }) => {
     // Get initial notification count
     const allNotifications = NotificationSystem.getAll();
     setUnreadCount(allNotifications.filter(notification => !notification.isRead).length);
-    
+
     // Subscribe to new notifications
-    const unsubscribe = NotificationSystem.subscribe((notification) => {
+    const unsubscribe = NotificationSystem.subscribe(notification => {
       if (!notification.isRead) {
         setUnreadCount(prev => prev + 1);
       }
     });
-    
+
     return () => {
       unsubscribe();
     };
@@ -30,7 +30,7 @@ const Header: React.FC<HeaderProps> = ({ title = 'EVA AI' }) => {
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
-    
+
     // Reset unread count when notifications are opened
     if (!showNotifications) {
       setUnreadCount(0);
@@ -45,7 +45,9 @@ const Header: React.FC<HeaderProps> = ({ title = 'EVA AI' }) => {
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="flex items-center">
                 <span className="text-primary-600 text-2xl font-bold mr-1">EVA</span>
-                <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md">BETA</span>
+                <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md">
+                  BETA
+                </span>
               </Link>
             </div>
             {title && (
@@ -54,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ title = 'EVA AI' }) => {
               </div>
             )}
           </div>
-          
+
           <div className="flex items-center lg:hidden">
             {/* Mobile menu button */}
             <button
@@ -80,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({ title = 'EVA AI' }) => {
               </svg>
             </button>
           </div>
-          
+
           <div className="hidden lg:ml-4 lg:flex lg:items-center">
             {/* Notification bell */}
             <button
@@ -102,7 +104,7 @@ const Header: React.FC<HeaderProps> = ({ title = 'EVA AI' }) => {
                 </span>
               )}
             </button>
-            
+
             {/* Profile dropdown */}
             <div className="ml-4 relative flex-shrink-0">
               <div>
@@ -125,11 +127,11 @@ const Header: React.FC<HeaderProps> = ({ title = 'EVA AI' }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Notification Center */}
       <NotificationCenter isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
     </header>
   );
 };
 
-export default Header; 
+export default Header;

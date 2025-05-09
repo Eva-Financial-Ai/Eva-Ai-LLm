@@ -6,6 +6,7 @@ interface TooltipProps {
   position?: 'top' | 'bottom' | 'left' | 'right';
   delay?: number;
   width?: string;
+  className?: string;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -13,7 +14,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
   content,
   position = 'top',
   delay = 300,
-  width = 'auto'
+  width = 'auto',
+  className = '',
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
@@ -24,51 +26,51 @@ export const Tooltip: React.FC<TooltipProps> = ({
   // Position the tooltip based on the child element's position
   const updatePosition = () => {
     if (!childRef.current || !tooltipRef.current) return;
-    
+
     const childRect = childRef.current.getBoundingClientRect();
     const tooltipRect = tooltipRef.current.getBoundingClientRect();
-    
+
     let top = 0;
     let left = 0;
-    
+
     switch (position) {
       case 'top':
         top = childRect.top - tooltipRect.height - 8;
-        left = childRect.left + (childRect.width / 2) - (tooltipRect.width / 2);
+        left = childRect.left + childRect.width / 2 - tooltipRect.width / 2;
         break;
       case 'bottom':
         top = childRect.bottom + 8;
-        left = childRect.left + (childRect.width / 2) - (tooltipRect.width / 2);
+        left = childRect.left + childRect.width / 2 - tooltipRect.width / 2;
         break;
       case 'left':
-        top = childRect.top + (childRect.height / 2) - (tooltipRect.height / 2);
+        top = childRect.top + childRect.height / 2 - tooltipRect.height / 2;
         left = childRect.left - tooltipRect.width - 8;
         break;
       case 'right':
-        top = childRect.top + (childRect.height / 2) - (tooltipRect.height / 2);
+        top = childRect.top + childRect.height / 2 - tooltipRect.height / 2;
         left = childRect.right + 8;
         break;
       default:
         break;
     }
-    
+
     // Adjust to keep tooltip in viewport
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    
+
     if (left < 10) left = 10;
     if (left + tooltipRect.width > viewportWidth - 10) {
       left = viewportWidth - tooltipRect.width - 10;
     }
-    
+
     if (top < 10) top = 10;
     if (top + tooltipRect.height > viewportHeight - 10) {
       top = viewportHeight - tooltipRect.height - 10;
     }
-    
+
     setCoords({ top, left });
   };
-  
+
   const handleMouseEnter = () => {
     timer = setTimeout(() => {
       setIsVisible(true);
@@ -76,27 +78,27 @@ export const Tooltip: React.FC<TooltipProps> = ({
       setTimeout(updatePosition, 0);
     }, delay);
   };
-  
+
   const handleMouseLeave = () => {
     clearTimeout(timer);
     setIsVisible(false);
   };
-  
+
   // Update position if window is resized
   useEffect(() => {
     if (isVisible) {
       window.addEventListener('resize', updatePosition);
       window.addEventListener('scroll', updatePosition);
-      
+
       return () => {
         window.removeEventListener('resize', updatePosition);
         window.removeEventListener('scroll', updatePosition);
       };
     }
-    
+
     return undefined;
   }, [isVisible]);
-  
+
   // Get tooltip pointer styles based on position
   const getPointerStyles = () => {
     const baseStyles = {
@@ -105,7 +107,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
       width: 0,
       height: 0,
     };
-    
+
     switch (position) {
       case 'top':
         return {
@@ -151,25 +153,19 @@ export const Tooltip: React.FC<TooltipProps> = ({
         return {};
     }
   };
-  
-  // Clone the child element and pass required props
-  const childWithProps = React.cloneElement(children, {
-    ref: childRef,
-    onMouseEnter: handleMouseEnter,
-    onMouseLeave: handleMouseLeave,
-    className: `${children.props.className || ''} relative`
-  });
-  
+
+  // Use a wrapper div instead of trying to clone with ref
   return (
     <>
-      <div ref={childRef} 
-        onMouseEnter={handleMouseEnter} 
+      <div
+        ref={childRef}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="inline-block"
+        className={`inline-block ${className}`}
       >
         {children}
       </div>
-      
+
       {isVisible && (
         <div
           ref={tooltipRef}
@@ -185,7 +181,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
             fontSize: '0.75rem',
             padding: '0.375rem 0.625rem',
             borderRadius: '0.25rem',
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
           }}
           onMouseEnter={handleMouseLeave} // Hide tooltip when mouse enters it
         >
@@ -195,4 +191,4 @@ export const Tooltip: React.FC<TooltipProps> = ({
       )}
     </>
   );
-}; 
+};

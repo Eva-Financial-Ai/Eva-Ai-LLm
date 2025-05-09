@@ -20,11 +20,7 @@ interface PressNewAssetModalProps {
 // Step management for the form process
 type FormStep = 'classification' | 'details' | 'verification' | 'review';
 
-const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({ 
-  isOpen, 
-  onClose,
-  onPress
-}) => {
+const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({ isOpen, onClose, onPress }) => {
   const [selectedAssetClass, setSelectedAssetClass] = useState<CompatibleAssetClass | null>(null);
   const [currentStep, setCurrentStep] = useState<FormStep>('classification');
   const [formData, setFormData] = useState<any>({
@@ -32,7 +28,7 @@ const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({
     name: '',
     assetType: '',
     marketValue: 0,
-    dateCreated: new Date().toISOString()
+    dateCreated: new Date().toISOString(),
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [blockchainNetwork, setBlockchainNetwork] = useState('polygon');
@@ -42,9 +38,9 @@ const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({
 
   const handleAssetClassSelect = (assetClass: CompatibleAssetClass) => {
     setSelectedAssetClass(assetClass);
-    setFormData(prev => ({ 
-      ...prev, 
-      assetClass: assetClass
+    setFormData(prev => ({
+      ...prev,
+      assetClass: assetClass,
     }));
     // Move to next step
     setCurrentStep('details');
@@ -76,10 +72,10 @@ const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const result = await onPress({ 
-        ...formData, 
+      const result = await onPress({
+        ...formData,
         blockchainNetwork,
-        verificationStatus: 'pending' // All new assets start with pending verification
+        verificationStatus: 'pending', // All new assets start with pending verification
       });
       setIsSubmitting(false);
       setShowVerificationInfo(true);
@@ -94,23 +90,23 @@ const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({
     switch (currentStep) {
       case 'classification':
         return (
-          <AssetClassificationGrid 
-            onSelect={handleAssetClassSelect as (assetClass: AssetClass) => void} 
+          <AssetClassificationGrid
+            onSelect={handleAssetClassSelect as (assetClass: AssetClass) => void}
             selectedAsset={selectedAssetClass as AssetClass | null}
           />
         );
       case 'details':
         return (
-          <AssetForm 
-            assetType={selectedAssetClass ? (selectedAssetClass as AssetClass) : AssetClass.OTHER} 
-            formData={formData} 
+          <AssetForm
+            assetType={selectedAssetClass ? (selectedAssetClass as AssetClass) : AssetClass.OTHER}
+            formData={formData}
             onChange={handleFormChange}
           />
         );
       case 'verification':
         return (
-          <BlockchainVerificationOptions 
-            assetType={selectedAssetClass ? (selectedAssetClass as AssetClass) : AssetClass.OTHER} 
+          <BlockchainVerificationOptions
+            assetType={selectedAssetClass ? (selectedAssetClass as AssetClass) : AssetClass.OTHER}
             onChange={handleFormChange}
           />
         );
@@ -126,9 +122,7 @@ const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({
               <p className="text-sm text-gray-600">
                 Value: ${formData.marketValue?.toLocaleString()}
               </p>
-              <p className="text-sm text-gray-600">
-                Blockchain: {blockchainNetwork}
-              </p>
+              <p className="text-sm text-gray-600">Blockchain: {blockchainNetwork}</p>
               {formData.description && (
                 <p className="text-sm text-gray-600 mt-2">{formData.description}</p>
               )}
@@ -143,12 +137,12 @@ const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({
   // Animation variants
   const overlayVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1 }
+    visible: { opacity: 1 },
   };
 
   const modalVariants = {
     hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1 }
+    visible: { opacity: 1, scale: 1 },
   };
 
   return (
@@ -160,12 +154,12 @@ const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({
       variants={overlayVariants}
     >
       <div className="flex min-h-screen items-center justify-center p-4 text-center">
-        <motion.div 
+        <motion.div
           className="fixed inset-0 bg-black bg-opacity-40"
           onClick={onClose}
           variants={overlayVariants}
         />
-        
+
         <motion.div
           className="relative w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl"
           variants={modalVariants}
@@ -178,31 +172,31 @@ const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({
               {currentStep === 'verification' && 'Blockchain Verification'}
               {currentStep === 'review' && 'Review & Submit'}
             </h2>
-            <button
-              onClick={onClose}
-              className="rounded-full p-1 hover:bg-gray-100"
-            >
+            <button onClick={onClose} className="rounded-full p-1 hover:bg-gray-100">
               <XMarkIcon className="h-6 w-6 text-gray-500" />
             </button>
           </div>
-          
+
           {/* Progress bar */}
           <div className="mb-6 h-1 w-full bg-gray-200 rounded-full">
-            <div 
+            <div
               className="h-1 rounded-full bg-indigo-600 transition-all duration-300"
-              style={{ 
-                width: currentStep === 'classification' ? '25%' : 
-                       currentStep === 'details' ? '50%' : 
-                       currentStep === 'verification' ? '75%' : '100%' 
+              style={{
+                width:
+                  currentStep === 'classification'
+                    ? '25%'
+                    : currentStep === 'details'
+                      ? '50%'
+                      : currentStep === 'verification'
+                        ? '75%'
+                        : '100%',
               }}
             ></div>
           </div>
-          
+
           {/* Modal content */}
-          <div className="mb-6">
-            {renderStepContent()}
-          </div>
-          
+          <div className="mb-6">{renderStepContent()}</div>
+
           {/* Modal footer */}
           <div className="flex justify-between">
             <button
@@ -211,25 +205,43 @@ const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({
             >
               {currentStep === 'classification' ? 'Cancel' : 'Back'}
             </button>
-            
+
             <button
               onClick={currentStep === 'review' ? handleSubmit : handleNextStep}
               disabled={currentStep === 'classification' || isSubmitting}
               className={`px-4 py-2 text-sm font-medium text-white rounded-md
                 ${currentStep === 'review' ? 'bg-green-600 hover:bg-green-700' : 'bg-indigo-600 hover:bg-indigo-700'}
-                ${(currentStep === 'classification' || isSubmitting) ? 'opacity-50 cursor-not-allowed' : ''}
+                ${currentStep === 'classification' || isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
               {isSubmitting ? (
                 <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Processing...
                 </span>
+              ) : currentStep === 'review' ? (
+                'Press Asset'
               ) : (
-                currentStep === 'review' ? 'Press Asset' : 'Continue'
+                'Continue'
               )}
             </button>
           </div>
@@ -239,4 +251,4 @@ const PressNewAssetModal: React.FC<PressNewAssetModalProps> = ({
   );
 };
 
-export default PressNewAssetModal; 
+export default PressNewAssetModal;

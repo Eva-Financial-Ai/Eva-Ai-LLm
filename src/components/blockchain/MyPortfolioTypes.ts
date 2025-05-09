@@ -24,4 +24,4 @@ export interface SmartContract {
   language: 'python' | 'solidity';
   functions: ContractFunction[];
   deployedAt: string;
-} 
+}

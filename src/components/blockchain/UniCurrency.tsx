@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faChevronDown, 
-  faChevronUp, 
-  faSearch, 
-  faFilter, 
+import {
+  faChevronDown,
+  faChevronUp,
+  faSearch,
+  faFilter,
   faInfoCircle,
   faLandmark,
   faCopyright,
@@ -14,7 +14,7 @@ import {
   faCoins,
   faCompass,
   faChartLine,
-  faShieldAlt
+  faShieldAlt,
 } from '@fortawesome/free-solid-svg-icons';
 // Bitcoin icon is in the brand icons
 import { faBitcoin } from '@fortawesome/free-brands-svg-icons';
@@ -59,22 +59,89 @@ const UniCurrency: React.FC = () => {
         icon: <FontAwesomeIcon icon={faMoneyBillWave} className="text-green-500" />,
         isExpanded: true,
         assets: [
-          { id: 'usd', name: 'US Dollar', symbol: 'USD', type: 'fiat', tags: ['High Liquidity', 'Reserve Currency'], isVerified: true, marketCap: 0, liquidity: 100, volatility: 5, performance: 2 },
-          { id: 'eur', name: 'Euro', symbol: 'EUR', type: 'fiat', tags: ['High Liquidity', 'Reserve Currency'], isVerified: true, marketCap: 0, liquidity: 98, volatility: 6, performance: 0 },
-          { id: 'jpy', name: 'Japanese Yen', symbol: 'JPY', type: 'fiat', tags: ['High Liquidity', 'Safe Haven'], isVerified: true, marketCap: 0, liquidity: 95, volatility: 7, performance: -1 },
-        ]
+          {
+            id: 'usd',
+            name: 'US Dollar',
+            symbol: 'USD',
+            type: 'fiat',
+            tags: ['High Liquidity', 'Reserve Currency'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 100,
+            volatility: 5,
+            performance: 2,
+          },
+          {
+            id: 'eur',
+            name: 'Euro',
+            symbol: 'EUR',
+            type: 'fiat',
+            tags: ['High Liquidity', 'Reserve Currency'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 98,
+            volatility: 6,
+            performance: 0,
+          },
+          {
+            id: 'jpy',
+            name: 'Japanese Yen',
+            symbol: 'JPY',
+            type: 'fiat',
+            tags: ['High Liquidity', 'Safe Haven'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 95,
+            volatility: 7,
+            performance: -1,
+          },
+        ],
       },
       {
         id: 'gov-debt',
         name: 'Government and Other Asset-Backed Debt Instruments',
-        description: 'Fixed-income investments backed by governmental credit or tangible/intangible assets',
+        description:
+          'Fixed-income investments backed by governmental credit or tangible/intangible assets',
         icon: <FontAwesomeIcon icon={faLandmark} className="text-blue-500" />,
         isExpanded: false,
         assets: [
-          { id: 'us-treasury', name: 'US Treasury Bond', symbol: 'USTB', type: 'gov-debt', tags: ['Government-Backed', 'Low Risk'], isVerified: true, marketCap: 0, liquidity: 92, volatility: 10, performance: 3 },
-          { id: 'muni-bond', name: 'Municipal Bond', symbol: 'MUNI', type: 'gov-debt', tags: ['Government-Backed', 'Tax Advantaged'], isVerified: true, marketCap: 0, liquidity: 75, volatility: 15, performance: 4 },
-          { id: 'mbs', name: 'Mortgage-Backed Security', symbol: 'MBS', type: 'asset-backed', tags: ['Asset-Backed', 'Real Estate'], isVerified: true, marketCap: 0, liquidity: 78, volatility: 20, performance: 5 },
-        ]
+          {
+            id: 'us-treasury',
+            name: 'US Treasury Bond',
+            symbol: 'USTB',
+            type: 'gov-debt',
+            tags: ['Government-Backed', 'Low Risk'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 92,
+            volatility: 10,
+            performance: 3,
+          },
+          {
+            id: 'muni-bond',
+            name: 'Municipal Bond',
+            symbol: 'MUNI',
+            type: 'gov-debt',
+            tags: ['Government-Backed', 'Tax Advantaged'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 75,
+            volatility: 15,
+            performance: 4,
+          },
+          {
+            id: 'mbs',
+            name: 'Mortgage-Backed Security',
+            symbol: 'MBS',
+            type: 'asset-backed',
+            tags: ['Asset-Backed', 'Real Estate'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 78,
+            volatility: 20,
+            performance: 5,
+          },
+        ],
       },
       {
         id: 'equity',
@@ -83,9 +150,31 @@ const UniCurrency: React.FC = () => {
         icon: <FontAwesomeIcon icon={faChartLine} className="text-purple-500" />,
         isExpanded: false,
         assets: [
-          { id: 'aapl', name: 'Apple Inc.', symbol: 'AAPL', type: 'stock', tags: ['Tech', 'Blue Chip'], isVerified: true, marketCap: 2700000000000, liquidity: 98, volatility: 25, performance: 15 },
-          { id: 'voo', name: 'Vanguard S&P 500 ETF', symbol: 'VOO', type: 'etf', tags: ['Index Fund', 'Diversified'], isVerified: true, marketCap: 290000000000, liquidity: 95, volatility: 20, performance: 10 },
-        ]
+          {
+            id: 'aapl',
+            name: 'Apple Inc.',
+            symbol: 'AAPL',
+            type: 'stock',
+            tags: ['Tech', 'Blue Chip'],
+            isVerified: true,
+            marketCap: 2700000000000,
+            liquidity: 98,
+            volatility: 25,
+            performance: 15,
+          },
+          {
+            id: 'voo',
+            name: 'Vanguard S&P 500 ETF',
+            symbol: 'VOO',
+            type: 'etf',
+            tags: ['Index Fund', 'Diversified'],
+            isVerified: true,
+            marketCap: 290000000000,
+            liquidity: 95,
+            volatility: 20,
+            performance: 10,
+          },
+        ],
       },
       {
         id: 'commodity',
@@ -94,9 +183,31 @@ const UniCurrency: React.FC = () => {
         icon: <FontAwesomeIcon icon={faCoins} className="text-yellow-500" />,
         isExpanded: false,
         assets: [
-          { id: 'gold', name: 'Gold', symbol: 'XAU', type: 'commodity', tags: ['Precious Metal', 'Safe Haven'], isVerified: true, marketCap: 0, liquidity: 90, volatility: 15, performance: 8 },
-          { id: 'oil', name: 'Crude Oil', symbol: 'OIL', type: 'commodity', tags: ['Energy', 'Industrial'], isVerified: true, marketCap: 0, liquidity: 85, volatility: 30, performance: 5 },
-        ]
+          {
+            id: 'gold',
+            name: 'Gold',
+            symbol: 'XAU',
+            type: 'commodity',
+            tags: ['Precious Metal', 'Safe Haven'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 90,
+            volatility: 15,
+            performance: 8,
+          },
+          {
+            id: 'oil',
+            name: 'Crude Oil',
+            symbol: 'OIL',
+            type: 'commodity',
+            tags: ['Energy', 'Industrial'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 85,
+            volatility: 30,
+            performance: 5,
+          },
+        ],
       },
       {
         id: 'hybrid',
@@ -105,9 +216,31 @@ const UniCurrency: React.FC = () => {
         icon: <FontAwesomeIcon icon={faCompass} className="text-indigo-500" />,
         isExpanded: false,
         assets: [
-          { id: 'gold-token', name: 'Gold-Backed Token', symbol: 'GBT', type: 'hybrid', tags: ['Gold-Backed', 'Digital'], isVerified: true, marketCap: 1000000000, liquidity: 70, volatility: 20, performance: 7 },
-          { id: 'convertible', name: 'Convertible Bond', symbol: 'CBOND', type: 'hybrid', tags: ['Debt', 'Equity Option'], isVerified: true, marketCap: 0, liquidity: 65, volatility: 25, performance: 9 },
-        ]
+          {
+            id: 'gold-token',
+            name: 'Gold-Backed Token',
+            symbol: 'GBT',
+            type: 'hybrid',
+            tags: ['Gold-Backed', 'Digital'],
+            isVerified: true,
+            marketCap: 1000000000,
+            liquidity: 70,
+            volatility: 20,
+            performance: 7,
+          },
+          {
+            id: 'convertible',
+            name: 'Convertible Bond',
+            symbol: 'CBOND',
+            type: 'hybrid',
+            tags: ['Debt', 'Equity Option'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 65,
+            volatility: 25,
+            performance: 9,
+          },
+        ],
       },
       {
         id: 'crypto',
@@ -116,10 +249,43 @@ const UniCurrency: React.FC = () => {
         icon: <FontAwesomeIcon icon={faBitcoin} className="text-orange-500" />,
         isExpanded: false,
         assets: [
-          { id: 'btc', name: 'Bitcoin', symbol: 'BTC', type: 'crypto', tags: ['Store of Value', 'Decentralized'], isVerified: true, marketCap: 800000000000, liquidity: 95, volatility: 60, performance: 20 },
-          { id: 'eth', name: 'Ethereum', symbol: 'ETH', type: 'crypto', tags: ['Smart Contract', 'DeFi'], isVerified: true, marketCap: 300000000000, liquidity: 90, volatility: 70, performance: 15 },
-          { id: 'usdt', name: 'Tether', symbol: 'USDT', type: 'stablecoin', tags: ['Stablecoin', 'USD-Pegged'], isVerified: true, marketCap: 80000000000, liquidity: 99, volatility: 2, performance: 0 },
-        ]
+          {
+            id: 'btc',
+            name: 'Bitcoin',
+            symbol: 'BTC',
+            type: 'crypto',
+            tags: ['Store of Value', 'Decentralized'],
+            isVerified: true,
+            marketCap: 800000000000,
+            liquidity: 95,
+            volatility: 60,
+            performance: 20,
+          },
+          {
+            id: 'eth',
+            name: 'Ethereum',
+            symbol: 'ETH',
+            type: 'crypto',
+            tags: ['Smart Contract', 'DeFi'],
+            isVerified: true,
+            marketCap: 300000000000,
+            liquidity: 90,
+            volatility: 70,
+            performance: 15,
+          },
+          {
+            id: 'usdt',
+            name: 'Tether',
+            symbol: 'USDT',
+            type: 'stablecoin',
+            tags: ['Stablecoin', 'USD-Pegged'],
+            isVerified: true,
+            marketCap: 80000000000,
+            liquidity: 99,
+            volatility: 2,
+            performance: 0,
+          },
+        ],
       },
       {
         id: 'collateralized',
@@ -128,9 +294,31 @@ const UniCurrency: React.FC = () => {
         icon: <FontAwesomeIcon icon={faShieldAlt} className="text-red-500" />,
         isExpanded: false,
         assets: [
-          { id: 'cdos', name: 'Collateralized Debt Obligation', symbol: 'CDO', type: 'collateralized', tags: ['Structured Product', 'Debt-Backed'], isVerified: true, marketCap: 0, liquidity: 60, volatility: 35, performance: 7 },
-          { id: 'tokenized-re', name: 'Tokenized Real Estate', symbol: 'TRE', type: 'collateralized', tags: ['Real Estate', 'Fractional'], isVerified: true, marketCap: 5000000000, liquidity: 50, volatility: 20, performance: 12 },
-        ]
+          {
+            id: 'cdos',
+            name: 'Collateralized Debt Obligation',
+            symbol: 'CDO',
+            type: 'collateralized',
+            tags: ['Structured Product', 'Debt-Backed'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 60,
+            volatility: 35,
+            performance: 7,
+          },
+          {
+            id: 'tokenized-re',
+            name: 'Tokenized Real Estate',
+            symbol: 'TRE',
+            type: 'collateralized',
+            tags: ['Real Estate', 'Fractional'],
+            isVerified: true,
+            marketCap: 5000000000,
+            liquidity: 50,
+            volatility: 20,
+            performance: 12,
+          },
+        ],
       },
       {
         id: 'licensing',
@@ -139,9 +327,31 @@ const UniCurrency: React.FC = () => {
         icon: <FontAwesomeIcon icon={faCopyright} className="text-teal-500" />,
         isExpanded: false,
         assets: [
-          { id: 'music-rights', name: 'Music Royalty Fund', symbol: 'MRF', type: 'ip-based', tags: ['Royalties', 'IP-Backed'], isVerified: true, marketCap: 2000000000, liquidity: 45, volatility: 15, performance: 10 },
-          { id: 'equipment-lease', name: 'Equipment Leasing Trust', symbol: 'ELT', type: 'leasing', tags: ['Leasing Contracts', 'Equipment-Backed'], isVerified: true, marketCap: 1500000000, liquidity: 40, volatility: 18, performance: 8 },
-        ]
+          {
+            id: 'music-rights',
+            name: 'Music Royalty Fund',
+            symbol: 'MRF',
+            type: 'ip-based',
+            tags: ['Royalties', 'IP-Backed'],
+            isVerified: true,
+            marketCap: 2000000000,
+            liquidity: 45,
+            volatility: 15,
+            performance: 10,
+          },
+          {
+            id: 'equipment-lease',
+            name: 'Equipment Leasing Trust',
+            symbol: 'ELT',
+            type: 'leasing',
+            tags: ['Leasing Contracts', 'Equipment-Backed'],
+            isVerified: true,
+            marketCap: 1500000000,
+            liquidity: 40,
+            volatility: 18,
+            performance: 8,
+          },
+        ],
       },
       {
         id: 'derivatives',
@@ -150,9 +360,31 @@ const UniCurrency: React.FC = () => {
         icon: <FontAwesomeIcon icon={faFileAlt} className="text-gray-500" />,
         isExpanded: false,
         assets: [
-          { id: 'sp500-futures', name: 'S&P 500 Futures', symbol: 'ES', type: 'futures', tags: ['Derivative', 'Index'], isVerified: true, marketCap: 0, liquidity: 92, volatility: 25, performance: 9 },
-          { id: 'options', name: 'Options Contracts', symbol: 'OPT', type: 'options', tags: ['Derivative', 'Leverage'], isVerified: true, marketCap: 0, liquidity: 85, volatility: 50, performance: 12 },
-        ]
+          {
+            id: 'sp500-futures',
+            name: 'S&P 500 Futures',
+            symbol: 'ES',
+            type: 'futures',
+            tags: ['Derivative', 'Index'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 92,
+            volatility: 25,
+            performance: 9,
+          },
+          {
+            id: 'options',
+            name: 'Options Contracts',
+            symbol: 'OPT',
+            type: 'options',
+            tags: ['Derivative', 'Leverage'],
+            isVerified: true,
+            marketCap: 0,
+            liquidity: 85,
+            volatility: 50,
+            performance: 12,
+          },
+        ],
       },
       {
         id: 'ai-pools',
@@ -161,9 +393,31 @@ const UniCurrency: React.FC = () => {
         icon: <FontAwesomeIcon icon={faCogs} className="text-cyan-500" />,
         isExpanded: false,
         assets: [
-          { id: 'stable-yield', name: 'Stable Yield AI Pool', symbol: 'SYAI', type: 'ai-pool', tags: ['AI-Managed', 'Low Risk'], isVerified: true, marketCap: 3000000000, liquidity: 80, volatility: 10, performance: 7 },
-          { id: 'growth-portfolio', name: 'Growth AI Portfolio', symbol: 'GAPI', type: 'ai-pool', tags: ['AI-Managed', 'Growth'], isVerified: true, marketCap: 2500000000, liquidity: 75, volatility: 30, performance: 15 },
-        ]
+          {
+            id: 'stable-yield',
+            name: 'Stable Yield AI Pool',
+            symbol: 'SYAI',
+            type: 'ai-pool',
+            tags: ['AI-Managed', 'Low Risk'],
+            isVerified: true,
+            marketCap: 3000000000,
+            liquidity: 80,
+            volatility: 10,
+            performance: 7,
+          },
+          {
+            id: 'growth-portfolio',
+            name: 'Growth AI Portfolio',
+            symbol: 'GAPI',
+            type: 'ai-pool',
+            tags: ['AI-Managed', 'Growth'],
+            isVerified: true,
+            marketCap: 2500000000,
+            liquidity: 75,
+            volatility: 30,
+            performance: 15,
+          },
+        ],
       },
     ];
 
@@ -172,11 +426,11 @@ const UniCurrency: React.FC = () => {
   }, []);
 
   const toggleCategoryExpand = (categoryId: string) => {
-    setCategories(categories.map(category => 
-      category.id === categoryId 
-        ? { ...category, isExpanded: !category.isExpanded } 
-        : category
-    ));
+    setCategories(
+      categories.map(category =>
+        category.id === categoryId ? { ...category, isExpanded: !category.isExpanded } : category
+      )
+    );
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -202,20 +456,20 @@ const UniCurrency: React.FC = () => {
   const filteredCategories = categories.map(category => {
     const filteredAssets = category.assets.filter(asset => {
       // Search filter
-      const matchesSearch = 
-        searchTerm === '' || 
-        asset.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const matchesSearch =
+        searchTerm === '' ||
+        asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         asset.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
         asset.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      
+
       // Tag filters
-      const matchesTags = 
-        activeFilters.length === 0 || 
+      const matchesTags =
+        activeFilters.length === 0 ||
         activeFilters.some(filter => asset.tags.includes(filter) || asset.type === filter);
-      
+
       // Verified filter
       const matchesVerified = !showOnlyVerified || asset.isVerified;
-      
+
       return matchesSearch && matchesTags && matchesVerified;
     });
 
@@ -229,22 +483,23 @@ const UniCurrency: React.FC = () => {
         return (a.volatility || 0) - (b.volatility || 0);
       } else if (sortOption === 'performance') {
         return (b.performance || 0) - (a.performance || 0);
-      } else { // marketCap
+      } else {
+        // marketCap
         return (b.marketCap || 0) - (a.marketCap || 0);
       }
     });
 
     return {
       ...category,
-      assets: sortedAssets
+      assets: sortedAssets,
     };
   });
 
-  const allTags = Array.from(new Set(
-    categories.flatMap(category => 
-      category.assets.flatMap(asset => [...asset.tags, asset.type])
+  const allTags = Array.from(
+    new Set(
+      categories.flatMap(category => category.assets.flatMap(asset => [...asset.tags, asset.type]))
     )
-  ));
+  );
 
   const renderVerificationBadge = (isVerified: boolean) => {
     return isVerified ? (
@@ -269,7 +524,7 @@ const UniCurrency: React.FC = () => {
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">UniCurrency Asset Classes</h1>
-      
+
       {/* Search, Filter, and Sort Controls */}
       <div className="mb-6 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0">
@@ -285,7 +540,7 @@ const UniCurrency: React.FC = () => {
               onChange={handleSearchChange}
             />
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <select
               className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
@@ -298,13 +553,13 @@ const UniCurrency: React.FC = () => {
               <option value="volatility">Sort by Volatility</option>
               <option value="performance">Sort by Performance</option>
             </select>
-            
+
             <button
               type="button"
               onClick={toggleVerifiedFilter}
               className={`inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                showOnlyVerified 
-                  ? 'bg-blue-500 text-white border-blue-500' 
+                showOnlyVerified
+                  ? 'bg-blue-500 text-white border-blue-500'
                   : 'bg-white text-gray-700'
               }`}
             >
@@ -312,13 +567,13 @@ const UniCurrency: React.FC = () => {
             </button>
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-2 items-center">
           <div className="flex items-center text-sm text-gray-600">
             <FontAwesomeIcon icon={faFilter} className="mr-1" />
             <span>Filters:</span>
           </div>
-          
+
           {allTags.map(tag => (
             <button
               key={tag}
@@ -333,7 +588,7 @@ const UniCurrency: React.FC = () => {
               {tag}
             </button>
           ))}
-          
+
           {activeFilters.length > 0 && (
             <button
               type="button"
@@ -345,7 +600,7 @@ const UniCurrency: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       {/* Categories and Assets List */}
       <div className="space-y-6">
         {filteredCategories.map(category => (
@@ -361,42 +616,64 @@ const UniCurrency: React.FC = () => {
                   <span className="text-sm text-gray-500">({category.assets.length})</span>
                 )}
               </div>
-              
+
               <div className="flex items-center">
                 <div className="group relative mr-2">
-                  <FontAwesomeIcon icon={faInfoCircle} className="text-gray-400 hover:text-gray-600 cursor-pointer" />
+                  <FontAwesomeIcon
+                    icon={faInfoCircle}
+                    className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                  />
                   <div className="absolute right-0 w-64 bg-white p-2 rounded shadow-lg text-sm text-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 z-10">
                     {category.description}
                   </div>
                 </div>
-                {category.isExpanded ? 
-                  <FontAwesomeIcon icon={faChevronUp} /> : 
+                {category.isExpanded ? (
+                  <FontAwesomeIcon icon={faChevronUp} />
+                ) : (
                   <FontAwesomeIcon icon={faChevronDown} />
-                }
+                )}
               </div>
             </button>
-            
+
             {category.isExpanded && category.assets.length > 0 && (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Asset
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Symbol
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Type
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Tags
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Metrics
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Status
                       </th>
                     </tr>
@@ -416,7 +693,10 @@ const UniCurrency: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-wrap gap-1">
                             {asset.tags.map(tag => (
-                              <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              <span
+                                key={tag}
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                              >
                                 {tag}
                               </span>
                             ))}
@@ -425,13 +705,30 @@ const UniCurrency: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-xs text-gray-500">
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                              <div>Liquidity: <span className="font-medium">{asset.liquidity || 0}/100</span></div>
-                              <div>Volatility: <span className="font-medium">{asset.volatility || 0}/100</span></div>
-                              <div>Performance: <span className={`font-medium ${(asset.performance || 0) > 0 ? 'text-green-600' : (asset.performance || 0) < 0 ? 'text-red-600' : ''}`}>
-                                {(asset.performance || 0) > 0 ? '+' : ''}{asset.performance || 0}%
-                              </span></div>
+                              <div>
+                                Liquidity:{' '}
+                                <span className="font-medium">{asset.liquidity || 0}/100</span>
+                              </div>
+                              <div>
+                                Volatility:{' '}
+                                <span className="font-medium">{asset.volatility || 0}/100</span>
+                              </div>
+                              <div>
+                                Performance:{' '}
+                                <span
+                                  className={`font-medium ${(asset.performance || 0) > 0 ? 'text-green-600' : (asset.performance || 0) < 0 ? 'text-red-600' : ''}`}
+                                >
+                                  {(asset.performance || 0) > 0 ? '+' : ''}
+                                  {asset.performance || 0}%
+                                </span>
+                              </div>
                               {(asset.marketCap || 0) > 0 && (
-                                <div>Mkt Cap: <span className="font-medium">${((asset.marketCap || 0) / 1_000_000_000).toFixed(1)}B</span></div>
+                                <div>
+                                  Mkt Cap:{' '}
+                                  <span className="font-medium">
+                                    ${((asset.marketCap || 0) / 1_000_000_000).toFixed(1)}B
+                                  </span>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -445,7 +742,7 @@ const UniCurrency: React.FC = () => {
                 </table>
               </div>
             )}
-            
+
             {category.isExpanded && category.assets.length === 0 && (
               <div className="p-4 text-center text-gray-500">
                 No assets match your current filters in this category.
@@ -454,7 +751,7 @@ const UniCurrency: React.FC = () => {
           </div>
         ))}
       </div>
-      
+
       {/* AI Recommendations Section */}
       <div className="mt-8 border border-blue-200 bg-blue-50 rounded-md p-4">
         <h2 className="text-lg font-medium text-blue-800 mb-2 flex items-center">
@@ -462,7 +759,8 @@ const UniCurrency: React.FC = () => {
           AI Portfolio Recommendations
         </h2>
         <p className="text-sm text-blue-600 mb-3">
-          Based on current market conditions and your browsing history, our AI suggests the following allocations:
+          Based on current market conditions and your browsing history, our AI suggests the
+          following allocations:
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white p-3 rounded shadow-sm border border-blue-100">
@@ -501,4 +799,3 @@ const UniCurrency: React.FC = () => {
 };
 
 export default UniCurrency;
-

@@ -25,7 +25,7 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: any, errorInfo: any) {
-    console.error("Error loading component:", error, errorInfo);
+    console.error('Error loading component:', error, errorInfo);
   }
 
   render() {
@@ -39,23 +39,23 @@ class ErrorBoundary extends React.Component<
 
 // Helper function to create lazy-loaded routes with appropriate loading states
 const createLazyRoute = (
-  path: string, 
+  path: string,
   importFunc: () => Promise<{ default: ComponentType<any> }>,
   displayName: string
 ) => {
   const LazyComponent = lazy(importFunc);
-  
+
   return (
-    <Route 
+    <Route
       key={path}
-      path={path} 
+      path={path}
       element={
         <ErrorBoundary
           fallback={
             <div className="p-8 text-center">
               <h2 className="text-xl text-red-600 font-bold mb-4">Failed to load {displayName}</h2>
               <p className="mb-4">There was a problem loading this page.</p>
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
               >
@@ -68,37 +68,130 @@ const createLazyRoute = (
             <LazyComponent />
           </Suspense>
         </ErrorBoundary>
-      } 
+      }
     />
   );
 };
 
 const LazyRouter: React.FC = () => {
   const routes = [
-    { path: "/", importFunc: () => import('../../pages/Dashboard'), displayName: "Dashboard" },
-    { path: "/transactions", importFunc: () => import('../../pages/Transactions'), displayName: "Transactions" },
-    { path: "/documents", importFunc: () => import('../../pages/Documents'), displayName: "Documents" },
-    { path: "/risk-assessment", importFunc: () => import('../../pages/RiskAssessment'), displayName: "Risk Assessment" },
-    { path: "/credit-application", importFunc: () => import('../../pages/CreditApplication'), displayName: "Credit Application" },
-    { path: "/deal-structuring", importFunc: () => import('../../pages/DealStructuring'), displayName: "Deal Structuring" },
-    { path: "/deal-structuring/smart-match", importFunc: () => import('../../pages/SmartMatchPage'), displayName: "Smart Match" },
-    { path: "/profile", importFunc: () => import('../../pages/ProfileSettings'), displayName: "Profile Settings" },
-    { path: "/examples", importFunc: () => import('../../pages/ExampleTransactions'), displayName: "Example Transactions" },
-    { path: "/asset-press", importFunc: () => import('../../pages/EnhancedAssetPress'), displayName: "Asset Press" },
-    { 
-      path: "/portfolio-wallet", 
-      importFunc: () => import('../../pages/PortfolioNavigatorPage').then(m => ({ default: m.PortfolioNavigatorPage })), 
-      displayName: "Portfolio Wallet" 
+    { path: '/', importFunc: () => import('../../pages/Dashboard'), displayName: 'Dashboard' },
+    {
+      path: '/transactions',
+      importFunc: () => import('../../pages/Transactions'),
+      displayName: 'Transactions',
     },
-    { 
-      path: "/asset-portfolio", 
-      importFunc: () => import('../../pages/PortfolioNavigatorPage').then(m => ({ default: m.PortfolioNavigatorPage })), 
-      displayName: "Asset Portfolio" 
+    {
+      path: '/documents',
+      importFunc: () => import('../../pages/Documents'),
+      displayName: 'Documents',
     },
-    { path: "/commercial-paper", importFunc: () => import('../../pages/CommercialPaper'), displayName: "Commercial Paper" },
-    { path: "/customer-retention", importFunc: () => import('../../pages/CustomerRetention'), displayName: "Customer Retention" },
-    { path: "/forms/:templateId", importFunc: () => import('../../pages/FormTemplate'), displayName: "Form Template" },
-    { path: "/transactions/:transactionId/execute", importFunc: () => import('../../pages/TransactionExecutionPage'), displayName: "Transaction Execution" },
+    {
+      path: '/risk-assessment',
+      importFunc: () => import('../../pages/RiskAssessment'),
+      displayName: 'Risk Assessment',
+    },
+    {
+      path: '/risk-assessment/standard',
+      importFunc: () => import('../../pages/RiskAssessment'),
+      displayName: 'Risk Assessment - Standard',
+    },
+    {
+      path: '/risk-assessment/report',
+      importFunc: () => import('../../pages/RiskAssessment'),
+      displayName: 'Risk Assessment - Eva Risk Report',
+    },
+    {
+      path: '/risk-assessment/lab',
+      importFunc: () => import('../../pages/RiskAssessment'),
+      displayName: 'Risk Assessment - RiskLab',
+    },
+    {
+      path: '/risk-assessment/score',
+      importFunc: () => import('../../pages/RiskAssessment'),
+      displayName: 'Risk Assessment - Eva Score',
+    },
+    {
+      path: '/credit-application',
+      importFunc: () => import('../../pages/CreditApplication'),
+      displayName: 'Credit Application',
+    },
+    {
+      path: '/deal-structuring',
+      importFunc: () => import('../../pages/DealStructuring'),
+      displayName: 'Deal Structuring',
+    },
+    {
+      path: '/deal-structuring/smart-match',
+      importFunc: () => import('../../pages/SmartMatchPage'),
+      displayName: 'Smart Match',
+    },
+    {
+      path: '/profile',
+      importFunc: () => import('../../pages/ProfileSettings'),
+      displayName: 'Profile Settings',
+    },
+    {
+      path: '/examples',
+      importFunc: () => import('../../pages/ExampleTransactions'),
+      displayName: 'Example Transactions',
+    },
+    {
+      path: '/asset-press',
+      importFunc: () => import('../../pages/EnhancedAssetPress'),
+      displayName: 'Asset Press',
+    },
+    {
+      path: '/portfolio-wallet',
+      importFunc: () =>
+        import('../../pages/PortfolioNavigatorPage').then(m => ({
+          default: m.PortfolioNavigatorPage,
+        })),
+      displayName: 'Portfolio Wallet',
+    },
+    {
+      path: '/asset-portfolio',
+      importFunc: () =>
+        import('../../pages/PortfolioNavigatorPage').then(m => ({
+          default: m.PortfolioNavigatorPage,
+        })),
+      displayName: 'Asset Portfolio',
+    },
+    {
+      path: '/commercial-paper',
+      importFunc: () => import('../../pages/CommercialPaper'),
+      displayName: 'Commercial Paper',
+    },
+    {
+      path: '/customer-retention',
+      importFunc: () => import('../../pages/CustomerRetention'),
+      displayName: 'Customer Retention',
+    },
+    {
+      path: '/forms',
+      importFunc: () => import('../../pages/FormsList'),
+      displayName: 'Safe Forms',
+    },
+    {
+      path: '/forms/:templateId',
+      importFunc: () => import('../../pages/FormTemplate'),
+      displayName: 'Form Template',
+    },
+    {
+      path: '/transactions/:transactionId/execute',
+      importFunc: () => import('../../pages/TransactionExecutionPage'),
+      displayName: 'Transaction Execution',
+    },
+    {
+      path: '/kyc-verification',
+      importFunc: () => import('../../pages/KYCVerificationDemo'),
+      displayName: 'KYC Verification',
+    },
+    {
+      path: '/commercial-market',
+      importFunc: () => import('../../pages/CommercialMarket'),
+      displayName: 'Commercial Market',
+    },
   ];
 
   return (
@@ -109,4 +202,4 @@ const LazyRouter: React.FC = () => {
   );
 };
 
-export default LazyRouter; 
+export default LazyRouter;

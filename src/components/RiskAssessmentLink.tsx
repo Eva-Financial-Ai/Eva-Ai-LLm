@@ -8,16 +8,18 @@ const RiskAssessmentLink: React.FC = () => {
 
   const handleRiskAssessmentClick = () => {
     console.log('Navigating to risk assessment');
-    
+
     // Use the context function to find/set appropriate transaction
     const transaction = navigateToRiskAssessment();
-    
+
     if (transaction) {
       // Navigate to risk assessment page
       navigate('/risk-assessment');
     } else {
       // No suitable transaction found
-      alert('No suitable transaction found for risk assessment. Please create a new transaction first.');
+      alert(
+        'No suitable transaction found for risk assessment. Please create a new transaction first.'
+      );
     }
   };
 
@@ -31,4 +33,4 @@ const RiskAssessmentLink: React.FC = () => {
   );
 };
 
-export default RiskAssessmentLink; 
+export default RiskAssessmentLink;

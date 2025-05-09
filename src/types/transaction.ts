@@ -15,7 +15,7 @@ export interface Metrics {
     complianceCoverage: number;
     riskExposures: { name: string; value: number }[];
   };
-  
+
   // Legal History metrics
   legalHistoryScore: number;
   legalRecord: {
@@ -24,7 +24,7 @@ export interface Metrics {
     recentCases: number;
     pendingLitigation: number;
   };
-  
+
   // Business Duration metrics
   businessDurationScore: number;
   businessAge: {
@@ -33,7 +33,7 @@ export interface Metrics {
     stabilityRating: number;
     historicalConsistency: number;
   };
-  
+
   // Industry Reputation metrics
   industryReputationScore: number;
   reputation: {
@@ -42,7 +42,7 @@ export interface Metrics {
     customerSatisfaction: number;
     industryAwards: number;
   };
-  
+
   // Business Stability metrics
   businessStabilityScore: number;
   stability: {
@@ -56,4 +56,4 @@ export interface Metrics {
 export interface TransactionTimeTracking {
   metrics: Metrics;
   timeMetrics: TimeMetrics;
-} 
+}

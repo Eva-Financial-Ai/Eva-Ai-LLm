@@ -13,25 +13,25 @@ const RiskConfiguration: React.FC = () => {
     setRiskAppetite,
     riskAppetiteLevels,
     saveRiskConfiguration,
-    resetToDefaults
+    resetToDefaults,
   } = useRiskConfig();
-  
+
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<boolean | null>(null);
 
   const handleFactorWeightChange = (id: string, newValue: number) => {
-    const updatedFactors = riskFactors.map(factor => 
+    const updatedFactors = riskFactors.map(factor =>
       factor.id === id ? { ...factor, weight: newValue } : factor
     );
-    
+
     // Calculate total weight
     const totalWeight = updatedFactors.reduce((sum, factor) => sum + factor.weight, 0);
-    
+
     // Normalize weights to ensure they sum to 100
     if (totalWeight !== 100) {
       const normalizedFactors = updatedFactors.map(factor => ({
         ...factor,
-        weight: Math.round((factor.weight / totalWeight) * 100)
+        weight: Math.round((factor.weight / totalWeight) * 100),
       }));
       setRiskFactors(normalizedFactors);
     } else {
@@ -42,7 +42,7 @@ const RiskConfiguration: React.FC = () => {
   const handleSaveConfiguration = async () => {
     setIsSaving(true);
     setSaveSuccess(null);
-    
+
     try {
       const success = await saveRiskConfiguration();
       setSaveSuccess(success);
@@ -51,7 +51,7 @@ const RiskConfiguration: React.FC = () => {
       console.error('Error saving risk configuration:', error);
     } finally {
       setIsSaving(false);
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => {
         setSaveSuccess(null);
@@ -75,16 +75,19 @@ const RiskConfiguration: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-bold text-gray-800">Risk Configuration Dashboard</h2>
-          
+
           {/* Status message */}
           {saveSuccess !== null && (
-            <div className={`text-sm px-3 py-1 rounded-md ${saveSuccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            <div
+              className={`text-sm px-3 py-1 rounded-md ${saveSuccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+            >
               {saveSuccess ? 'Configuration saved successfully!' : 'Failed to save configuration'}
             </div>
           )}
         </div>
         <p className="text-gray-600">
-          Customize your lending risk parameters to align with your institution's goals and appetite.
+          Customize your lending risk parameters to align with your institution's goals and
+          appetite.
         </p>
       </div>
 
@@ -92,8 +95,8 @@ const RiskConfiguration: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Risk Balance Weighting Tool</h3>
         <p className="text-gray-600 mb-6">
-          Adjust the relative importance of different risk factors in your assessment model.
-          The total weight will automatically be normalized to 100%.
+          Adjust the relative importance of different risk factors in your assessment model. The
+          total weight will automatically be normalized to 100%.
         </p>
 
         <div className="space-y-6">
@@ -114,7 +117,7 @@ const RiskConfiguration: React.FC = () => {
                 min="0"
                 max="100"
                 value={factor.weight}
-                onChange={(e) => handleFactorWeightChange(factor.id, parseInt(e.target.value))}
+                onChange={e => handleFactorWeightChange(factor.id, parseInt(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
               />
             </div>
@@ -140,18 +143,20 @@ const RiskConfiguration: React.FC = () => {
             min="0"
             max="100"
             value={collateralCoverage}
-            onChange={(e) => setCollateralCoverage(parseInt(e.target.value))}
+            onChange={e => setCollateralCoverage(parseInt(e.target.value))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
           />
-          
+
           <div className="mt-4 p-4 bg-blue-50 rounded-md">
-            <h4 className="font-medium text-gray-800 mb-2">Current Collateral Setting: {collateralCoverage}%</h4>
+            <h4 className="font-medium text-gray-800 mb-2">
+              Current Collateral Setting: {collateralCoverage}%
+            </h4>
             <p className="text-sm text-gray-600">
-              {collateralCoverage < 33 ? 
-                "Low importance: Less emphasis on collateral value, focusing more on other factors like cash flow and credit history." : 
-                collateralCoverage < 66 ?
-                "Balanced importance: Moderate emphasis on collateral as one of several important factors in lending decisions." :
-                "High importance: Strong emphasis on collateral value, requiring substantial assets to secure loans."}
+              {collateralCoverage < 33
+                ? 'Low importance: Less emphasis on collateral value, focusing more on other factors like cash flow and credit history.'
+                : collateralCoverage < 66
+                  ? 'Balanced importance: Moderate emphasis on collateral as one of several important factors in lending decisions.'
+                  : 'High importance: Strong emphasis on collateral value, requiring substantial assets to secure loans.'}
             </p>
           </div>
         </div>
@@ -175,18 +180,20 @@ const RiskConfiguration: React.FC = () => {
             min="0"
             max="100"
             value={guarantorStrength}
-            onChange={(e) => setGuarantorStrength(parseInt(e.target.value))}
+            onChange={e => setGuarantorStrength(parseInt(e.target.value))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
           />
-          
+
           <div className="mt-4 p-4 bg-green-50 rounded-md">
-            <h4 className="font-medium text-gray-800 mb-2">Current Guarantor Setting: {guarantorStrength}%</h4>
+            <h4 className="font-medium text-gray-800 mb-2">
+              Current Guarantor Setting: {guarantorStrength}%
+            </h4>
             <p className="text-sm text-gray-600">
-              {guarantorStrength < 33 ? 
-                "Minimal requirements: Limited reliance on guarantors, focusing instead on borrower's primary qualifications and assets." : 
-                guarantorStrength < 66 ?
-                "Moderate requirements: Guarantors should have good credit and reasonable financial strength to support the borrower." :
-                "Stringent requirements: Strong emphasis on guarantor quality, requiring substantial financial strength and impeccable credit."}
+              {guarantorStrength < 33
+                ? "Minimal requirements: Limited reliance on guarantors, focusing instead on borrower's primary qualifications and assets."
+                : guarantorStrength < 66
+                  ? 'Moderate requirements: Guarantors should have good credit and reasonable financial strength to support the borrower.'
+                  : 'Stringent requirements: Strong emphasis on guarantor quality, requiring substantial financial strength and impeccable credit.'}
             </p>
           </div>
         </div>
@@ -218,19 +225,22 @@ const RiskConfiguration: React.FC = () => {
               min="0"
               max="100"
               value={riskAppetite}
-              onChange={(e) => setRiskAppetite(parseInt(e.target.value))}
+              onChange={e => setRiskAppetite(parseInt(e.target.value))}
               className="relative w-full h-2 bg-transparent rounded-lg appearance-none cursor-pointer z-10"
               style={{ WebkitAppearance: 'none', appearance: 'none' }}
             />
           </div>
-          
-          <div className="mt-6 p-4 rounded-md" style={{ backgroundColor: `rgba(${currentRiskLevel.id === 'conservative' ? '59, 130, 246' : currentRiskLevel.id === 'moderate' ? '16, 185, 129' : currentRiskLevel.id === 'balanced' ? '245, 158, 11' : currentRiskLevel.id === 'aggressive' ? '249, 115, 22' : '239, 68, 68'}, 0.1)` }}>
+
+          <div
+            className="mt-6 p-4 rounded-md"
+            style={{
+              backgroundColor: `rgba(${currentRiskLevel.id === 'conservative' ? '59, 130, 246' : currentRiskLevel.id === 'moderate' ? '16, 185, 129' : currentRiskLevel.id === 'balanced' ? '245, 158, 11' : currentRiskLevel.id === 'aggressive' ? '249, 115, 22' : '239, 68, 68'}, 0.1)`,
+            }}
+          >
             <h4 className="font-medium text-gray-800 mb-2">
               Current Setting: {currentRiskLevel.level}
             </h4>
-            <p className="text-sm text-gray-600">
-              {currentRiskLevel.description}
-            </p>
+            <p className="text-sm text-gray-600">{currentRiskLevel.description}</p>
           </div>
         </div>
       </div>
@@ -243,7 +253,7 @@ const RiskConfiguration: React.FC = () => {
         >
           Reset to Defaults
         </button>
-        
+
         <button
           className={`px-6 py-2 ${isSaving ? 'bg-gray-400' : 'bg-primary-600 hover:bg-primary-700'} text-white rounded-md shadow-sm flex items-center`}
           onClick={handleSaveConfiguration}
@@ -251,9 +261,25 @@ const RiskConfiguration: React.FC = () => {
         >
           {isSaving ? (
             <>
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               Saving...
             </>
@@ -266,4 +292,4 @@ const RiskConfiguration: React.FC = () => {
   );
 };
 
-export default RiskConfiguration; 
+export default RiskConfiguration;

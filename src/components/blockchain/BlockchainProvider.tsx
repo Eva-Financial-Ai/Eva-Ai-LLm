@@ -14,7 +14,7 @@ const BlockchainContext = createContext<BlockchainContextType>({
   isWidgetVisible: false,
   showWidget: () => {},
   hideWidget: () => {},
-  toggleWidget: () => {}
+  toggleWidget: () => {},
 });
 
 // Custom hook to use the blockchain context
@@ -27,12 +27,12 @@ interface BlockchainProviderProps {
 // Create the main provider component
 export const BlockchainProvider: React.FC<BlockchainProviderProps> = ({ children }) => {
   const [isWidgetVisible, setIsWidgetVisible] = useState(false);
-  
+
   // Methods to control widget visibility
   const showWidget = () => setIsWidgetVisible(true);
   const hideWidget = () => setIsWidgetVisible(false);
   const toggleWidget = () => setIsWidgetVisible(prev => !prev);
-  
+
   // Register keyboard shortcut (Alt+C)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -40,19 +40,19 @@ export const BlockchainProvider: React.FC<BlockchainProviderProps> = ({ children
         toggleWidget();
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-  
+
   // Define the context value
   const contextValue: BlockchainContextType = {
     isWidgetVisible,
     showWidget,
     hideWidget,
-    toggleWidget
+    toggleWidget,
   };
-  
+
   return (
     <BlockchainContext.Provider value={contextValue}>
       {children}
@@ -61,4 +61,4 @@ export const BlockchainProvider: React.FC<BlockchainProviderProps> = ({ children
   );
 };
 
-export default BlockchainProvider; 
+export default BlockchainProvider;

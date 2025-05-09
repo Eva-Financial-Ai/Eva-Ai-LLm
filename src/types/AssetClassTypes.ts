@@ -19,7 +19,7 @@ export enum AssetClass {
   UNSECURED_COMMERCIAL_PAPER = 'unsecured_commercial_paper',
   INTELLECTUAL_PROPERTY = 'intellectual_property',
   DIGITAL_ASSETS = 'digital_assets',
-  OTHER = 'other'
+  OTHER = 'other',
 }
 
 // Asset class display names for UI
@@ -41,7 +41,7 @@ export const AssetClassNames: Record<AssetClass, string> = {
   [AssetClass.UNSECURED_COMMERCIAL_PAPER]: 'Unsecured Commercial Paper',
   [AssetClass.INTELLECTUAL_PROPERTY]: 'Intellectual Property',
   [AssetClass.DIGITAL_ASSETS]: 'Digital Assets (Non-Crypto)',
-  [AssetClass.OTHER]: 'Other Assets'
+  [AssetClass.OTHER]: 'Other Assets',
 };
 
 // Blockchain verification status
@@ -49,7 +49,7 @@ export enum VerificationStatus {
   UNVERIFIED = 'unverified',
   PENDING = 'pending',
   VERIFIED = 'verified',
-  FAILED = 'failed'
+  FAILED = 'failed',
 }
 
 // Ownership structure
@@ -105,25 +105,25 @@ export interface Asset {
   assetClass: AssetClass;
   assetSubclass?: string;
   description?: string;
-  
+
   // Core financial data
   financialData: FinancialData;
-  
+
   // Risk and performance
   risk: 'Low' | 'Medium' | 'High';
   performance?: number;
   performanceTrend?: number; // Year-over-year change
-  
+
   // Ownership and legal information
   ownership: Ownership[];
   lienStatus?: LienStatus;
-  
+
   // Tracking and utilization
   trackingInfo: TrackingInfo;
-  
+
   // Advanced features
   blockchainVerification: BlockchainVerification;
-  
+
   // Metadata
   lastUpdate: string;
   dateCreated: string;
@@ -132,33 +132,36 @@ export interface Asset {
 
 // Role-specific portfolio view configuration
 export enum PortfolioUserRole {
-  OWNER = 'owner',           // Asset owner (e.g., borrower)
-  MANAGER = 'manager',       // Portfolio manager (e.g., broker)
-  SERVICER = 'servicer',     // Asset servicer (e.g., lender)
-  VENDOR = 'vendor'          // Service provider
+  OWNER = 'owner', // Asset owner (e.g., borrower)
+  MANAGER = 'manager', // Portfolio manager (e.g., broker)
+  SERVICER = 'servicer', // Asset servicer (e.g., lender)
+  VENDOR = 'vendor', // Service provider
 }
 
 // Role-specific views and permissions
-export const RoleViewPermissions: Record<PortfolioUserRole, {
-  viewableAssetClasses: AssetClass[],
-  canInitiateVerification: boolean,
-  canTransferOwnership: boolean,
-  canUpdateAssetInfo: boolean,
-  defaultSortField: string
-}> = {
+export const RoleViewPermissions: Record<
+  PortfolioUserRole,
+  {
+    viewableAssetClasses: AssetClass[];
+    canInitiateVerification: boolean;
+    canTransferOwnership: boolean;
+    canUpdateAssetInfo: boolean;
+    defaultSortField: string;
+  }
+> = {
   [PortfolioUserRole.OWNER]: {
     viewableAssetClasses: Object.values(AssetClass),
     canInitiateVerification: true,
     canTransferOwnership: true,
     canUpdateAssetInfo: true,
-    defaultSortField: 'assetClass'
+    defaultSortField: 'assetClass',
   },
   [PortfolioUserRole.MANAGER]: {
     viewableAssetClasses: Object.values(AssetClass),
     canInitiateVerification: true,
     canTransferOwnership: false,
     canUpdateAssetInfo: true,
-    defaultSortField: 'marketValue'
+    defaultSortField: 'marketValue',
   },
   [PortfolioUserRole.SERVICER]: {
     viewableAssetClasses: [
@@ -166,22 +169,18 @@ export const RoleViewPermissions: Record<PortfolioUserRole, {
       AssetClass.UNSECURED_COMMERCIAL_PAPER,
       AssetClass.EQUIPMENT,
       AssetClass.VEHICLES,
-      AssetClass.REAL_ESTATE
+      AssetClass.REAL_ESTATE,
     ],
     canInitiateVerification: true,
     canTransferOwnership: false,
     canUpdateAssetInfo: true,
-    defaultSortField: 'blockchainVerification'
+    defaultSortField: 'blockchainVerification',
   },
   [PortfolioUserRole.VENDOR]: {
-    viewableAssetClasses: [
-      AssetClass.EQUIPMENT,
-      AssetClass.VEHICLES,
-      AssetClass.DIGITAL_ASSETS
-    ],
+    viewableAssetClasses: [AssetClass.EQUIPMENT, AssetClass.VEHICLES, AssetClass.DIGITAL_ASSETS],
     canInitiateVerification: false,
     canTransferOwnership: false,
     canUpdateAssetInfo: false,
-    defaultSortField: 'lastUpdate'
-  }
-}; 
+    defaultSortField: 'lastUpdate',
+  },
+};

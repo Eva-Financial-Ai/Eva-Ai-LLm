@@ -9,60 +9,67 @@ export const mockRatios = {
   profitability: [
     { name: 'Profit Margin', value: 8.5, benchmark: 12.0, status: 'below' },
     { name: 'Return on Assets', value: 5.2, benchmark: 7.0, status: 'below' },
-    { name: 'Return on Equity', value: 12.1, benchmark: 15.0, status: 'below' }
+    { name: 'Return on Equity', value: 12.1, benchmark: 15.0, status: 'below' },
   ],
   liquidity: [
     { name: 'Current Ratio', value: 1.2, benchmark: 2.0, status: 'below' },
     { name: 'Quick Ratio', value: 0.9, benchmark: 1.0, status: 'below' },
-    { name: 'Cash Ratio', value: 0.5, benchmark: 0.2, status: 'above' }
+    { name: 'Cash Ratio', value: 0.5, benchmark: 0.2, status: 'above' },
   ],
   leverage: [
     { name: 'Debt to Equity', value: 2.3, benchmark: 1.5, status: 'above' },
     { name: 'Debt Ratio', value: 0.65, benchmark: 0.5, status: 'above' },
-    { name: 'Interest Coverage', value: 3.8, benchmark: 5.0, status: 'below' }
+    { name: 'Interest Coverage', value: 3.8, benchmark: 5.0, status: 'below' },
   ],
   efficiency: [
     { name: 'Asset Turnover', value: 1.8, benchmark: 2.0, status: 'below' },
     { name: 'Inventory Turnover', value: 6.2, benchmark: 5.0, status: 'above' },
-    { name: 'Receivables Turnover', value: 8.5, benchmark: 8.0, status: 'above' }
-  ]
+    { name: 'Receivables Turnover', value: 8.5, benchmark: 8.0, status: 'above' },
+  ],
 };
 
 export const mockChatResponses = {
   portfolio: {
-    query: "Analyze our portfolio risk",
-    response: "Your portfolio has a moderate risk level with a Sharpe ratio of 0.85. The concentration in technology stocks (42% of holdings) increases volatility. Consider diversifying across more sectors and including defensive assets."
+    query: 'Analyze our portfolio risk',
+    response:
+      'Your portfolio has a moderate risk level with a Sharpe ratio of 0.85. The concentration in technology stocks (42% of holdings) increases volatility. Consider diversifying across more sectors and including defensive assets.',
   },
   mitigation: {
-    query: "Suggest risk mitigation strategies",
-    response: "To mitigate your financial risks: 1) Reduce debt-to-equity ratio by paying down high-interest loans, 2) Improve liquidity by optimizing inventory management, 3) Diversify customer base to reduce concentration risk, 4) Consider hedging against key commodity price fluctuations relevant to your business."
+    query: 'Suggest risk mitigation strategies',
+    response:
+      'To mitigate your financial risks: 1) Reduce debt-to-equity ratio by paying down high-interest loans, 2) Improve liquidity by optimizing inventory management, 3) Diversify customer base to reduce concentration risk, 4) Consider hedging against key commodity price fluctuations relevant to your business.',
   },
   benchmark: {
-    query: "How do we compare to industry benchmarks?",
-    response: "Your company underperforms industry benchmarks in 7 of 12 key financial ratios. Particularly concerning are liquidity ratios (Current Ratio at 1.2 vs benchmark 2.0) and profitability metrics (Profit Margin at 8.5% vs benchmark 12%). Your leverage ratios show higher risk tolerance than peers."
+    query: 'How do we compare to industry benchmarks?',
+    response:
+      'Your company underperforms industry benchmarks in 7 of 12 key financial ratios. Particularly concerning are liquidity ratios (Current Ratio at 1.2 vs benchmark 2.0) and profitability metrics (Profit Margin at 8.5% vs benchmark 12%). Your leverage ratios show higher risk tolerance than peers.',
   },
   default: {
-    query: "Explain our debt to equity ratio",
-    response: "Your debt to equity ratio is 2.3, which is higher than the industry benchmark of 1.5. This suggests that your company is using more debt financing than equity, which could increase financial risk. Consider strategies to either reduce debt or increase equity to improve this ratio."
-  }
+    query: 'Explain our debt to equity ratio',
+    response:
+      'Your debt to equity ratio is 2.3, which is higher than the industry benchmark of 1.5. This suggests that your company is using more debt financing than equity, which could increase financial risk. Consider strategies to either reduce debt or increase equity to improve this ratio.',
+  },
 };
 
 export const mockReferences = [
   {
-    source: "Understanding Financial Ratios",
+    source: 'Understanding Financial Ratios',
     relevance: 0.92,
-    content: "Comprehensive guide to interpreting common financial ratios including liquidity, profitability, leverage, and efficiency metrics. Key insights on balance sheet analysis."
+    content:
+      'Comprehensive guide to interpreting common financial ratios including liquidity, profitability, leverage, and efficiency metrics. Key insights on balance sheet analysis.',
   },
   {
-    source: "Industry Benchmarks 2023",
+    source: 'Industry Benchmarks 2023',
     relevance: 0.88,
-    content: "Latest industry financial performance benchmarks across 12 key sectors. Includes quartile breakdowns for all major financial ratios and peer group comparisons."
+    content:
+      'Latest industry financial performance benchmarks across 12 key sectors. Includes quartile breakdowns for all major financial ratios and peer group comparisons.',
   },
   {
-    source: "Risk Mitigation Strategies for SMEs",
+    source: 'Risk Mitigation Strategies for SMEs',
     relevance: 0.76,
-    content: "Practical approaches to identifying and addressing financial risks for small and medium enterprises. Includes case studies and implementation frameworks."
-  }
+    content:
+      'Practical approaches to identifying and addressing financial risks for small and medium enterprises. Includes case studies and implementation frameworks.',
+  },
 ];
 
 // Import insights from mockData.ts if it exists
@@ -174,10 +181,10 @@ export const performCreditAnalysis = async (
     // In a real implementation, this would call the backend API
     // For now, simulate network request with timeout
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     // Cache key for this specific analysis
     const cacheKey = generateCacheKey(context);
-    
+
     /*
     // Real implementation would use the optimized apiService
     const response = await apiService.post<AnalysisResult>(
@@ -194,7 +201,7 @@ export const performCreditAnalysis = async (
     
     return response;
     */
-    
+
     // Mock result
     return {
       ratios: mockRatios,
@@ -203,16 +210,16 @@ export const performCreditAnalysis = async (
         code: context.debtType ? context.debtType : '45322',
         name: 'Commercial Equipment Financing',
         dataQuality: 'High (231 companies)',
-        regionalAdjustment: true
+        regionalAdjustment: true,
       },
       overallRiskScore: 68,
       recommendations: [
         'Review capital structure to address high debt levels',
         'Implement cash flow monitoring system',
-        'Consider working capital optimization strategy'
+        'Consider working capital optimization strategy',
       ],
       analysisId: `analysis-${Date.now()}`,
-      analysisTimestamp: new Date().toISOString()
+      analysisTimestamp: new Date().toISOString(),
     };
   } catch (error) {
     console.error('Error in credit analysis:', error);
@@ -224,43 +231,44 @@ export const performCreditAnalysis = async (
       recommendations: [],
       analysisId: '',
       analysisTimestamp: new Date().toISOString(),
-      error: 'Failed to perform credit analysis. Please try again.'
+      error: 'Failed to perform credit analysis. Please try again.',
     };
   }
 };
 
 // Debounced chat function to prevent rapid API calls
-export const getChatResponseDebounced = debounce(async (
-  context: ModelContextProtocol,
-  callback: (response: ChatResponse) => void
-): Promise<void> => {
-  try {
-    const response = await getChatResponse(context);
-    callback(response);
-  } catch (error) {
-    console.error('Debounced chat error:', error);
-    callback({
-      messageId: '',
-      text: 'Sorry, I encountered an error while processing your request. Please try again.',
-      timestamp: new Date().toISOString(),
-      aiModel: '',
-      confidence: 0,
-      error: 'Failed to communicate with EVA AI. Please try again.'
-    });
-  }
-}, 500); // 500ms debounce time
+export const getChatResponseDebounced = debounce(
+  async (
+    context: ModelContextProtocol,
+    callback: (response: ChatResponse) => void
+  ): Promise<void> => {
+    try {
+      const response = await getChatResponse(context);
+      callback(response);
+    } catch (error) {
+      console.error('Debounced chat error:', error);
+      callback({
+        messageId: '',
+        text: 'Sorry, I encountered an error while processing your request. Please try again.',
+        timestamp: new Date().toISOString(),
+        aiModel: '',
+        confidence: 0,
+        error: 'Failed to communicate with EVA AI. Please try again.',
+      });
+    }
+  },
+  500
+); // 500ms debounce time
 
 /**
  * Sends a message to EVA AI and gets a response
  */
-export const getChatResponse = async (
-  context: ModelContextProtocol
-): Promise<ChatResponse> => {
+export const getChatResponse = async (context: ModelContextProtocol): Promise<ChatResponse> => {
   try {
     // In a real implementation, this would call the backend AI service
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
     /*
     // For file uploads, we'd use formData
     if (context.attachments && context.attachments.length > 0) {
@@ -298,11 +306,11 @@ export const getChatResponse = async (
       );
     }
     */
-    
+
     // Generate a mock response based on the incoming message
     const input = context.message?.toLowerCase() || '';
     let responseText = '';
-    
+
     if (input.includes('portfolio') || input.includes('operators') || input.includes('servicing')) {
       responseText = mockChatResponses.portfolio.response;
     } else if (input.includes('mitigation')) {
@@ -310,16 +318,19 @@ export const getChatResponse = async (
     } else if (input.includes('benchmark')) {
       responseText = mockChatResponses.benchmark.response;
     } else {
-      responseText = mockChatResponses.default.response.replace('your account', context.userId || 'your account');
+      responseText = mockChatResponses.default.response.replace(
+        'your account',
+        context.userId || 'your account'
+      );
     }
-    
+
     return {
       messageId: `msg-${Date.now()}`,
       text: responseText,
       timestamp: new Date().toISOString(),
       aiModel: context.modelId || 'EVA-Financial-Analyst-v1',
       confidence: 0.92,
-      references: mockReferences
+      references: mockReferences,
     };
   } catch (error) {
     console.error('Error getting AI response:', error);
@@ -329,14 +340,16 @@ export const getChatResponse = async (
       timestamp: new Date().toISOString(),
       aiModel: '',
       confidence: 0,
-      error: 'Failed to communicate with EVA AI. Please try again.'
+      error: 'Failed to communicate with EVA AI. Please try again.',
     };
   }
 };
 
 // Add this function to handle cache clearing since clearCache doesn't exist on the new ApiService
 export const clearAnalysisCache = () => {
-  console.log('[creditAnalysisApi] Cache clearing requested but not implemented in current ApiService');
+  console.log(
+    '[creditAnalysisApi] Cache clearing requested but not implemented in current ApiService'
+  );
   // This is a placeholder for the functionality that used to be there
   // In a real implementation, you would add proper cache clearing logic
 };
@@ -345,5 +358,5 @@ export default {
   performCreditAnalysis,
   getChatResponse,
   getChatResponseDebounced,
-  clearAnalysisCache
-}; 
+  clearAnalysisCache,
+};

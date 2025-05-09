@@ -28,12 +28,42 @@ const CommercialPaper: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issuer</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Maturity</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Issuer
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Type
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Value
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Rate
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Maturity
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -54,7 +84,9 @@ const CommercialPaper: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">4.2%</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">180 days</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <button className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">View</button>
+                    <button className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                      View
+                    </button>
                   </td>
                 </tr>
                 <tr>
@@ -69,12 +101,16 @@ const CommercialPaper: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Commercial Paper</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    Commercial Paper
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$750,000</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5.1%</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">90 days</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <button className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">View</button>
+                    <button className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                      View
+                    </button>
                   </td>
                 </tr>
                 <tr>
@@ -89,12 +125,16 @@ const CommercialPaper: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Asset-Backed</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    Asset-Backed
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$1,250,000</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">3.8%</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">365 days</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <button className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">View</button>
+                    <button className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                      View
+                    </button>
                   </td>
                 </tr>
                 <tr>
@@ -114,7 +154,9 @@ const CommercialPaper: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">4.5%</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">730 days</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <button className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">View</button>
+                    <button className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                      View
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -128,7 +170,9 @@ const CommercialPaper: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Total Trading Volume (24h)</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    Total Trading Volume (24h)
+                  </span>
                   <span className="text-sm font-medium text-gray-900">$12.5M</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -185,17 +229,23 @@ const CommercialPaper: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">Interest Rate Update</h3>
-                <p className="text-sm text-gray-600 mt-1">Federal Reserve signals potential rate adjustments in the coming quarter.</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Federal Reserve signals potential rate adjustments in the coming quarter.
+                </p>
                 <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">New Tokenization Standards</h3>
-                <p className="text-sm text-gray-600 mt-1">Industry leaders agree on new tokenization standards for commercial paper.</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Industry leaders agree on new tokenization standards for commercial paper.
+                </p>
                 <p className="text-xs text-gray-400 mt-1">1 day ago</p>
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">Record Trading Volume</h3>
-                <p className="text-sm text-gray-600 mt-1">Last week saw record trading volumes across all digital debt instruments.</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Last week saw record trading volumes across all digital debt instruments.
+                </p>
                 <p className="text-xs text-gray-400 mt-1">3 days ago</p>
               </div>
             </div>
@@ -206,4 +256,4 @@ const CommercialPaper: React.FC = () => {
   );
 };
 
-export default CommercialPaper; 
+export default CommercialPaper;

@@ -1,160 +1,173 @@
-import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
-import { Link } from 'react-router-dom';
-import { UserContext } from '../../contexts/UserContext';
-import { useUserType } from '../../contexts/UserTypeContext';
-import { UserType } from '../../types/UserTypes';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { RiskCategory } from './RiskMapOptimized';
 
-// Icons
-import { 
-  ChartBarIcon, 
-  UserGroupIcon, 
-  ShieldCheckIcon, 
-  CurrencyDollarIcon, 
-  CubeIcon,
-  DocumentReportIcon,
-  ChartPieIcon,
-  UserIcon,
-  OfficeBuildingIcon,
-  DocumentTextIcon,
-  ExclamationCircleIcon
-} from '@heroicons/react/outline';
-
-interface NavigationItem {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  current: boolean;
-  expanded?: boolean;
-  children?: NavigationChild[];
-  visibleTo?: ('all' | 'broker' | 'lender' | 'borrower' | 'vendor')[];
-}
-
-interface NavigationChild {
-  id: string;
-  name: string;
-  icon?: React.ReactNode;
-  current: boolean;
-  visibleTo?: ('all' | 'broker' | 'lender' | 'borrower' | 'vendor')[];
-}
+export type RiskMapType = 'unsecured' | 'equipment' | 'realestate';
 
 interface RiskMapNavigatorProps {
   selectedCategory: RiskCategory;
   onCategorySelect: (category: RiskCategory) => void;
+  riskMapType?: RiskMapType;
 }
 
-// Category definition with icons and descriptions
-const categories: {
-  id: RiskCategory;
-  name: string;
-  icon: React.ReactNode;
-  description: string;
-}[] = [
-  {
-    id: 'all',
-    name: 'Overview',
-    description: 'Complete risk assessment summary',
-    icon: (
-      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'credit',
-    name: 'Credit',
-    description: 'Credit history and performance',
-    icon: (
-      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'capacity',
-    name: 'Capacity',
-    description: 'Ability to repay obligations',
-    icon: (
-      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'collateral',
-    name: 'Collateral',
-    description: 'Assets securing the financing',
-    icon: (
-      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-      </svg>
-    ),
-  },
-  {
-    id: 'capital',
-    name: 'Capital',
-    description: 'Investment and financial strength',
-    icon: (
-      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'conditions',
-    name: 'Conditions',
-    description: 'Market and industry factors',
-    icon: (
-      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-      </svg>
-    ),
-  },
-  {
-    id: 'character',
-    name: 'Character',
-    description: 'Management quality and history',
-    icon: (
-      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    ),
-  }
-];
-
-// Memoized RiskMapNavigator component
-const RiskMapNavigator: React.FC<RiskMapNavigatorProps> = ({ 
+const RiskMapNavigator: React.FC<RiskMapNavigatorProps> = ({
   selectedCategory,
-  onCategorySelect 
+  onCategorySelect,
+  riskMapType = 'unsecured',
 }) => {
+  const navigate = useNavigate();
+
+  // Define available categories with readable labels and icons
+  const categoryConfig: {
+    id: RiskCategory;
+    label: string;
+    icon: string;
+    description?: string;
+  }[] = [
+    {
+      id: 'all',
+      label: 'Overview',
+      icon: '📊',
+      description: 'Complete risk assessment overview',
+    },
+    {
+      id: 'credit',
+      label: 'Credit',
+      icon: '💳',
+      description: 'Credit history and score analysis',
+    },
+    {
+      id: 'capacity',
+      label: 'Capacity',
+      icon: '💼',
+      description: 'Debt service capacity assessment',
+    },
+    {
+      id: 'collateral',
+      label: 'Collateral',
+      icon: '🏠',
+      description: 'Asset evaluation and coverage',
+    },
+    {
+      id: 'capital',
+      label: 'Capital',
+      icon: '💰',
+      description: 'Available funds and investments',
+    },
+    {
+      id: 'conditions',
+      label: 'Conditions',
+      icon: '📈',
+      description: 'Market and economic factors',
+    },
+    {
+      id: 'character',
+      label: 'Character',
+      icon: '👤',
+      description: 'Reputation and responsibility',
+    },
+  ];
+
+  const handleNavigationClick = (category: RiskCategory) => {
+    onCategorySelect(category);
+    // Stay on the current view (standard, report, etc.) but change the category
+  };
+
+  // Get the title and subtitle based on risk map type
+  const getRiskMapTypeInfo = () => {
+    switch (riskMapType) {
+      case 'unsecured':
+        return {
+          title: 'Unsecured Commercial Paper',
+          subtitle: 'General credit application and intangible assets',
+          bgColor: 'bg-blue-50',
+          borderColor: 'border-blue-200',
+          textColor: 'text-blue-800',
+        };
+      case 'equipment':
+        return {
+          title: 'Commercial Equipment',
+          subtitle: 'Equipment, vehicles, machines, technology assets',
+          bgColor: 'bg-green-50',
+          borderColor: 'border-green-200',
+          textColor: 'text-green-800',
+        };
+      case 'realestate':
+        return {
+          title: 'Commercial Real Estate',
+          subtitle: 'Properties, land, and real estate assets',
+          bgColor: 'bg-amber-50',
+          borderColor: 'border-amber-200',
+          textColor: 'text-amber-800',
+        };
+      default:
+        return {
+          title: 'Risk Categories',
+          subtitle: 'Select a category to view details',
+          bgColor: 'bg-gray-50',
+          borderColor: 'border-gray-200',
+          textColor: 'text-gray-900',
+        };
+    }
+  };
+
+  const typeInfo = getRiskMapTypeInfo();
+
   return (
-    <div>
-      <h3 className="text-sm font-medium text-gray-700 mb-4">Risk Categories</h3>
-      <nav className="space-y-2">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => onCategorySelect(category.id)}
-            className={`flex items-center w-full px-3 py-2 text-left rounded-md transition-colors ${
-              selectedCategory === category.id
-                ? 'bg-primary-100 text-primary-800'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <div className={`flex-shrink-0 ${
-              selectedCategory === category.id ? 'text-primary-600' : 'text-gray-500'
-            }`}>
-              {category.icon}
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium">{category.name}</p>
-              <p className="text-xs text-gray-500 mt-0.5 hidden md:block">{category.description}</p>
-            </div>
-          </button>
-        ))}
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+      <div className={`p-4 border-b ${typeInfo.borderColor} ${typeInfo.bgColor}`}>
+        <h3 className={`text-lg font-medium ${typeInfo.textColor}`}>{typeInfo.title}</h3>
+        <p className="text-sm text-gray-500 mt-1">{typeInfo.subtitle}</p>
+      </div>
+      <nav className="p-3">
+        <ul className="space-y-1">
+          {categoryConfig.map(category => (
+            <li key={category.id}>
+              <button
+                onClick={() => handleNavigationClick(category.id)}
+                className={`w-full flex items-center text-left px-3 py-2 rounded-md text-sm font-medium transition-colors
+                  ${
+                    selectedCategory === category.id
+                      ? `bg-${riskMapType === 'unsecured' ? 'blue' : riskMapType === 'equipment' ? 'green' : 'amber'}-50 
+                       text-${riskMapType === 'unsecured' ? 'blue' : riskMapType === 'equipment' ? 'green' : 'amber'}-700 
+                       border-l-4 border-${riskMapType === 'unsecured' ? 'blue' : riskMapType === 'equipment' ? 'green' : 'amber'}-600`
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  }`}
+                title={category.description}
+              >
+                <span className="mr-3">{category.icon}</span>
+                <span>{category.label}</span>
+                {selectedCategory === category.id && (
+                  <span className="ml-auto">
+                    <svg
+                      className={`h-5 w-5 text-${riskMapType === 'unsecured' ? 'blue' : riskMapType === 'equipment' ? 'green' : 'amber'}-600`}
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
       </nav>
+      <div className={`p-3 ${typeInfo.bgColor} border-t ${typeInfo.borderColor} mt-2`}>
+        <div className="text-xs text-gray-500">
+          <p className="font-medium mb-1">5C's of Credit Analysis</p>
+          <p>
+            These traditional categories help evaluate overall creditworthiness and risk profile.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default React.memo(RiskMapNavigator); 
+export default RiskMapNavigator;

@@ -21,7 +21,7 @@ const RiskAccordionItem: React.FC<RiskAccordionItemProps> = ({
   maxScore = 100,
   children,
   defaultOpen = false,
-  metrics = []
+  metrics = [],
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -31,7 +31,7 @@ const RiskAccordionItem: React.FC<RiskAccordionItemProps> = ({
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
-      <RiskAccordionHeader 
+      <RiskAccordionHeader
         title={title}
         score={score}
         maxScore={maxScore}
@@ -39,14 +39,10 @@ const RiskAccordionItem: React.FC<RiskAccordionItemProps> = ({
         onToggle={toggleAccordion}
         metrics={metrics}
       />
-      
-      {isOpen && (
-        <div className="p-6 bg-white border-t border-gray-200">
-          {children}
-        </div>
-      )}
+
+      {isOpen && <div className="p-6 bg-white border-t border-gray-200">{children}</div>}
     </div>
   );
 };
 
-export default RiskAccordionItem; 
+export default RiskAccordionItem;

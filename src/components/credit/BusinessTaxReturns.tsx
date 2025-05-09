@@ -6,17 +6,17 @@ const BusinessTaxReturns: React.FC = () => {
     mostRecentYear: false,
     priorYear: false,
     twoYearsPrior: false,
-    taxExtension: false
+    taxExtension: false,
   });
 
   // State to track uploaded files
-  const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: string}>({});
+  const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: string }>({});
 
   // Handle checkbox changes
   const handleCheckboxChange = (year: keyof typeof selectedYears) => {
     setSelectedYears({
       ...selectedYears,
-      [year]: !selectedYears[year]
+      [year]: !selectedYears[year],
     });
   };
 
@@ -25,7 +25,7 @@ const BusinessTaxReturns: React.FC = () => {
     if (e.target.files && e.target.files.length > 0) {
       setUploadedFiles({
         ...uploadedFiles,
-        [year]: e.target.files[0].name
+        [year]: e.target.files[0].name,
       });
     }
   };
@@ -33,13 +33,15 @@ const BusinessTaxReturns: React.FC = () => {
   return (
     <div className="business-tax-returns p-4 border rounded-lg bg-white">
       <h3 className="text-lg font-medium text-gray-900 mb-4">Business Tax Returns</h3>
-      <p className="text-sm text-gray-600 mb-4">Please select which years of business tax returns you will be providing:</p>
-      
+      <p className="text-sm text-gray-600 mb-4">
+        Please select which years of business tax returns you will be providing:
+      </p>
+
       <div className="space-y-4 mb-6">
         <div className="flex items-center">
-          <input 
-            type="checkbox" 
-            id="mostRecentYear" 
+          <input
+            type="checkbox"
+            id="mostRecentYear"
             className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
             checked={selectedYears.mostRecentYear}
             onChange={() => handleCheckboxChange('mostRecentYear')}
@@ -54,10 +56,10 @@ const BusinessTaxReturns: React.FC = () => {
                 id="file-2024"
                 className="hidden"
                 accept=".pdf"
-                onChange={(e) => handleFileUpload('2024', e)}
+                onChange={e => handleFileUpload('2024', e)}
               />
-              <label 
-                htmlFor="file-2024" 
+              <label
+                htmlFor="file-2024"
                 className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer"
               >
                 {uploadedFiles['2024'] ? 'Change File' : 'Upload'}
@@ -68,11 +70,11 @@ const BusinessTaxReturns: React.FC = () => {
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center">
-          <input 
-            type="checkbox" 
-            id="priorYear" 
+          <input
+            type="checkbox"
+            id="priorYear"
             className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
             checked={selectedYears.priorYear}
             onChange={() => handleCheckboxChange('priorYear')}
@@ -87,10 +89,10 @@ const BusinessTaxReturns: React.FC = () => {
                 id="file-2023"
                 className="hidden"
                 accept=".pdf"
-                onChange={(e) => handleFileUpload('2023', e)}
+                onChange={e => handleFileUpload('2023', e)}
               />
-              <label 
-                htmlFor="file-2023" 
+              <label
+                htmlFor="file-2023"
                 className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer"
               >
                 {uploadedFiles['2023'] ? 'Change File' : 'Upload'}
@@ -101,11 +103,11 @@ const BusinessTaxReturns: React.FC = () => {
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center">
-          <input 
-            type="checkbox" 
-            id="twoYearsPrior" 
+          <input
+            type="checkbox"
+            id="twoYearsPrior"
             className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
             checked={selectedYears.twoYearsPrior}
             onChange={() => handleCheckboxChange('twoYearsPrior')}
@@ -120,10 +122,10 @@ const BusinessTaxReturns: React.FC = () => {
                 id="file-2022"
                 className="hidden"
                 accept=".pdf"
-                onChange={(e) => handleFileUpload('2022', e)}
+                onChange={e => handleFileUpload('2022', e)}
               />
-              <label 
-                htmlFor="file-2022" 
+              <label
+                htmlFor="file-2022"
                 className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer"
               >
                 {uploadedFiles['2022'] ? 'Change File' : 'Upload'}
@@ -134,11 +136,11 @@ const BusinessTaxReturns: React.FC = () => {
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center">
-          <input 
-            type="checkbox" 
-            id="taxExtension" 
+          <input
+            type="checkbox"
+            id="taxExtension"
             className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
             checked={selectedYears.taxExtension}
             onChange={() => handleCheckboxChange('taxExtension')}
@@ -153,10 +155,10 @@ const BusinessTaxReturns: React.FC = () => {
                 id="file-extension"
                 className="hidden"
                 accept=".pdf"
-                onChange={(e) => handleFileUpload('extension', e)}
+                onChange={e => handleFileUpload('extension', e)}
               />
-              <label 
-                htmlFor="file-extension" 
+              <label
+                htmlFor="file-extension"
                 className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer"
               >
                 {uploadedFiles['extension'] ? 'Change File' : 'Upload'}
@@ -168,15 +170,15 @@ const BusinessTaxReturns: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       <div className="mt-6">
         <p className="text-sm text-gray-500">
-          Tax returns should include all schedules and attachments. Please ensure all documents are complete 
-          before uploading to avoid delays in processing your application.
+          Tax returns should include all schedules and attachments. Please ensure all documents are
+          complete before uploading to avoid delays in processing your application.
         </p>
       </div>
     </div>
   );
 };
 
-export default BusinessTaxReturns; 
+export default BusinessTaxReturns;

@@ -33,19 +33,19 @@ class AuthService {
   private token: string | null = null;
   private refreshToken: string | null = null;
   private tokenExpiry: number = 0;
-  
+
   constructor() {
     // Load from localStorage on initialization
     this.loadFromStorage();
   }
-  
+
   public static getInstance(): AuthService {
     if (!AuthService.instance) {
       AuthService.instance = new AuthService();
     }
     return AuthService.instance;
   }
-  
+
   /**
    * Login with email and password
    */
@@ -53,10 +53,10 @@ class AuthService {
     try {
       // In a real app, this would make an API call to a backend
       // For now, we'll simulate a successful response for a demo user
-      
+
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // Mock JWT token response
       const user: AuthUser = {
         id: 'usr_123456789',
@@ -66,9 +66,9 @@ class AuthService {
         userType: UserType.LENDER, // Default to lender
         employeeRole: EmployeeRole.ADMIN,
         organizationId: 'org_123456789',
-        organizationName: 'Demo Financial Services'
+        organizationName: 'Demo Financial Services',
       };
-      
+
       // Determine user type based on email domain (demo only)
       if (credentials.email.includes('@business.com')) {
         user.userType = UserType.BUSINESS;
@@ -80,41 +80,41 @@ class AuthService {
         user.userType = UserType.BROKERAGE;
         user.organizationName = 'Demo Brokerage';
       }
-      
+
       // Create expiry 2 hours from now
       const expiresAt = Date.now() + 2 * 60 * 60 * 1000;
-      
+
       // Create mock tokens
       const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIke3VzZXIuaWR9IiwidXNlclR5cGUiOiIke3VzZXIudXNlclR5cGV9IiwiZW1wbG95ZWVSb2xlIjoiJHt1c2VyLmVtcGxveWVlUm9sZX0iLCJvcmdJZCI6IiR7dXNlci5vcmdhbml6YXRpb25JZH0iLCJleHAiOiR7ZXhwaXJlc0F0fX0`;
       const refreshToken = `refresh_${token}`;
-      
+
       // Save to state and localStorage
       this.currentUser = user;
       this.token = token;
       this.refreshToken = refreshToken;
       this.tokenExpiry = expiresAt;
-      
+
       this.saveToStorage();
-      
+
       // Set user role in localStorage for demo purposes
       let userRole = 'lender';
       if (user.userType === UserType.BUSINESS) userRole = 'borrower';
       if (user.userType === UserType.VENDOR) userRole = 'vendor';
       if (user.userType === UserType.BROKERAGE) userRole = 'broker';
       localStorage.setItem('userRole', userRole);
-      
+
       return {
         user,
         token,
         refreshToken,
-        expiresAt
+        expiresAt,
       };
     } catch (error) {
       console.error('Login failed:', error);
       throw new Error('Authentication failed. Please check your credentials and try again.');
     }
   }
-  
+
   /**
    * Log out the current user
    */
@@ -123,32 +123,32 @@ class AuthService {
     this.token = null;
     this.refreshToken = null;
     this.tokenExpiry = 0;
-    
+
     // Clear storage
     localStorage.removeItem('auth_user');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_refresh_token');
     localStorage.removeItem('auth_expires');
     localStorage.removeItem('userRole');
-    
+
     // Redirect to login page
     window.location.href = '/login';
   }
-  
+
   /**
    * Get the current authenticated user
    */
   public getCurrentUser(): AuthUser | null {
     return this.currentUser;
   }
-  
+
   /**
    * Check if the user is authenticated
    */
   public isAuthenticated(): boolean {
     return !!this.currentUser && !!this.token && this.tokenExpiry > Date.now();
   }
-  
+
   /**
    * Get the JWT access token
    */
@@ -159,7 +159,7 @@ class AuthService {
     }
     return this.token;
   }
-  
+
   /**
    * Refresh the user token
    */
@@ -169,7 +169,7 @@ class AuthService {
         this.logout();
         return false;
       }
-      
+
       // In a real app, this would make an API call to refresh the token
       // For demo purposes, just extend the expiry
       this.tokenExpiry = Date.now() + 2 * 60 * 60 * 1000;
@@ -181,7 +181,7 @@ class AuthService {
       return false;
     }
   }
-  
+
   /**
    * Get the HTTP Authorization header
    */
@@ -189,30 +189,30 @@ class AuthService {
     const token = this.getToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
-  
+
   /**
    * Check if the current user has a specific role
    */
   public hasRole(role: UserType): boolean {
     return this.currentUser?.userType === role;
   }
-  
+
   /**
    * Check if the current user's employee role meets a minimum level
    */
   public hasEmployeeRole(minRole: EmployeeRole): boolean {
     if (!this.currentUser?.employeeRole) return false;
-    
+
     const roleValues: Record<EmployeeRole, number> = {
       [EmployeeRole.VIEWER]: 1,
       [EmployeeRole.OPERATOR]: 2,
       [EmployeeRole.MANAGER]: 3,
-      [EmployeeRole.ADMIN]: 4
+      [EmployeeRole.ADMIN]: 4,
     };
-    
+
     return roleValues[this.currentUser.employeeRole] >= roleValues[minRole];
   }
-  
+
   /**
    * Save auth data to localStorage
    */
@@ -230,7 +230,7 @@ class AuthService {
       localStorage.setItem('auth_expires', this.tokenExpiry.toString());
     }
   }
-  
+
   /**
    * Load auth data from localStorage
    */
@@ -244,13 +244,13 @@ class AuthService {
         this.currentUser = null;
       }
     }
-    
+
     this.token = localStorage.getItem('auth_token');
     this.refreshToken = localStorage.getItem('auth_refresh_token');
-    
+
     const expiryStr = localStorage.getItem('auth_expires');
     this.tokenExpiry = expiryStr ? parseInt(expiryStr, 10) : 0;
-    
+
     // If token is expired, try to refresh, otherwise logout
     if (this.tokenExpiry && this.tokenExpiry < Date.now()) {
       this.refreshUserToken().catch(() => this.logout());
@@ -259,4 +259,4 @@ class AuthService {
 }
 
 // Export singleton instance
-export default AuthService.getInstance(); 
+export default AuthService.getInstance();

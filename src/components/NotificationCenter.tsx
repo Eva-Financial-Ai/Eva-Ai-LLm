@@ -13,13 +13,13 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
   useEffect(() => {
     // Get initial notifications
     setNotifications(NotificationSystem.getAll());
-    
+
     // Subscribe to notification updates
-    const unsubscribe = NotificationSystem.subscribe((notification) => {
+    const unsubscribe = NotificationSystem.subscribe(notification => {
       setNotifications(prev => [notification, ...prev]);
       setNewNotificationCount(prev => prev + 1);
     });
-    
+
     return () => {
       unsubscribe();
     };
@@ -32,25 +32,27 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
         NotificationSystem.markAsRead(notification.id);
       }
     });
-    
-    setNotifications(notifications.map(notification => ({
-      ...notification,
-      isRead: true
-    })));
-    
+
+    setNotifications(
+      notifications.map(notification => ({
+        ...notification,
+        isRead: true,
+      }))
+    );
+
     setNewNotificationCount(0);
   };
 
   // Mark a specific notification as read
   const handleMarkAsRead = (id: string) => {
     NotificationSystem.markAsRead(id);
-    
-    setNotifications(notifications.map(notification => 
-      notification.id === id 
-        ? { ...notification, isRead: true } 
-        : notification
-    ));
-    
+
+    setNotifications(
+      notifications.map(notification =>
+        notification.id === id ? { ...notification, isRead: true } : notification
+      )
+    );
+
     setNewNotificationCount(prev => Math.max(0, prev - 1));
   };
 
@@ -60,24 +62,54 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
       case 'success':
         return (
           <div className="flex-shrink-0">
-            <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="h-6 w-6 text-green-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
         );
       case 'warning':
         return (
           <div className="flex-shrink-0">
-            <svg className="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="h-6 w-6 text-yellow-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
         );
       case 'error':
         return (
           <div className="flex-shrink-0">
-            <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="h-6 w-6 text-red-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
         );
@@ -85,8 +117,18 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
       default:
         return (
           <div className="flex-shrink-0">
-            <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="h-6 w-6 text-blue-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
         );
@@ -96,15 +138,15 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
   // Format time elapsed
   const formatTimeElapsed = (timestamp: number) => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
-    
+
     if (seconds < 60) return `${seconds} seconds ago`;
-    
+
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
-    
+
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
-    
+
     const days = Math.floor(hours / 24);
     return `${days} day${days !== 1 ? 's' : ''} ago`;
   };
@@ -115,8 +157,11 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
   return (
     <div className="fixed inset-0 overflow-hidden z-50">
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose}></div>
-        
+        <div
+          className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          onClick={onClose}
+        ></div>
+
         <div className="fixed inset-y-0 right-0 pl-10 max-w-full flex">
           <div className="w-screen max-w-md">
             <div className="h-full flex flex-col bg-white shadow-xl overflow-y-scroll">
@@ -130,24 +175,33 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
                     >
                       Mark all as read
                     </button>
-                    <button
-                      className="ml-4 text-gray-400 hover:text-gray-500"
-                      onClick={onClose}
-                    >
+                    <button className="ml-4 text-gray-400 hover:text-gray-500" onClick={onClose}>
                       <span className="sr-only">Close panel</span>
-                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
                 </div>
                 {newNotificationCount > 0 && (
                   <div className="mt-1">
-                    <span className="text-sm text-gray-500">{newNotificationCount} new notification{newNotificationCount !== 1 ? 's' : ''}</span>
+                    <span className="text-sm text-gray-500">
+                      {newNotificationCount} new notification{newNotificationCount !== 1 ? 's' : ''}
+                    </span>
                   </div>
                 )}
               </div>
-              
+
               <ul className="flex-1 divide-y divide-gray-200 overflow-y-auto">
                 {notifications.length === 0 ? (
                   <li className="py-6 px-5">
@@ -156,15 +210,15 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
                     </div>
                   </li>
                 ) : (
-                  notifications.map((notification) => (
-                    <li 
-                      key={notification.id} 
+                  notifications.map(notification => (
+                    <li
+                      key={notification.id}
                       className={`py-5 px-6 ${!notification.isRead ? 'bg-primary-50' : ''}`}
                       onClick={() => {
                         if (!notification.isRead) {
                           handleMarkAsRead(notification.id);
                         }
-                        
+
                         if (notification.actionUrl) {
                           // In a real app, we would use a router to navigate
                           console.log(`Navigate to: ${notification.actionUrl}`);
@@ -182,9 +236,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
                               {formatTimeElapsed(notification.timestamp)}
                             </p>
                           </div>
-                          <p className="mt-1 text-sm text-gray-600">
-                            {notification.message}
-                          </p>
+                          <p className="mt-1 text-sm text-gray-600">{notification.message}</p>
                           {notification.actionUrl && (
                             <div className="mt-2">
                               <button className="text-xs text-primary-600 hover:text-primary-500">
@@ -206,4 +258,4 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
   );
 };
 
-export default NotificationCenter; 
+export default NotificationCenter;

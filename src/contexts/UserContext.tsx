@@ -21,7 +21,7 @@ export interface UserContextType {
   setSidebarCollapsed: (collapsed: boolean) => void;
   theme: string;
   setTheme: (theme: string) => void;
-  isPQCAuthenticated: boolean; 
+  isPQCAuthenticated: boolean;
   setPQCAuthenticated: (authenticated: boolean) => void;
   isAuthenticated: boolean;
   setIsAuthenticated: (authenticated: boolean) => void;
@@ -37,30 +37,56 @@ export interface UserContextType {
 export const UserContext = createContext<UserContextType>({
   userRole: 'lender',
   showSmartMatching: false,
-  setShowSmartMatching: (show: boolean) => { /* Implementation not needed for default context */ },
+  setShowSmartMatching: (show: boolean) => {
+    /* Implementation not needed for default context */
+  },
   showDataOrchestrator: false,
-  setShowDataOrchestrator: (show: boolean) => { /* Implementation not needed for default context */ },
+  setShowDataOrchestrator: (show: boolean) => {
+    /* Implementation not needed for default context */
+  },
   showDocVerification: false,
-  setShowDocVerification: (show: boolean) => { /* Implementation not needed for default context */ },
+  setShowDocVerification: (show: boolean) => {
+    /* Implementation not needed for default context */
+  },
   showCreditAnalysis: false,
-  setShowCreditAnalysis: (show: boolean) => { /* Implementation not needed for default context */ },
+  setShowCreditAnalysis: (show: boolean) => {
+    /* Implementation not needed for default context */
+  },
   showAILifecycleAssistant: false,
-  setShowAILifecycleAssistant: (show: boolean) => { /* Implementation not needed for default context */ },
-  toggleTool: (tool: string) => { /* Implementation not needed for default context */ },
+  setShowAILifecycleAssistant: (show: boolean) => {
+    /* Implementation not needed for default context */
+  },
+  toggleTool: (tool: string) => {
+    /* Implementation not needed for default context */
+  },
   sidebarCollapsed: false,
-  setSidebarCollapsed: (collapsed: boolean) => { /* Implementation not needed for default context */ },
+  setSidebarCollapsed: (collapsed: boolean) => {
+    /* Implementation not needed for default context */
+  },
   theme: 'light',
-  setTheme: (theme: string) => { /* Implementation not needed for default context */ },
+  setTheme: (theme: string) => {
+    /* Implementation not needed for default context */
+  },
   isPQCAuthenticated: false,
-  setPQCAuthenticated: (authenticated: boolean) => { /* Implementation not needed for default context */ },
+  setPQCAuthenticated: (authenticated: boolean) => {
+    /* Implementation not needed for default context */
+  },
   isAuthenticated: false,
-  setIsAuthenticated: (authenticated: boolean) => { /* Implementation not needed for default context */ },
+  setIsAuthenticated: (authenticated: boolean) => {
+    /* Implementation not needed for default context */
+  },
   userName: '',
-  setUserName: (name: string) => { /* Implementation not needed for default context */ },
+  setUserName: (name: string) => {
+    /* Implementation not needed for default context */
+  },
   userId: '',
-  setUserId: (id: string) => { /* Implementation not needed for default context */ },
+  setUserId: (id: string) => {
+    /* Implementation not needed for default context */
+  },
   userProfileImage: '/avatars/default-avatar.png',
-  setUserProfileImage: (image: string) => { /* Implementation not needed for default context */ }
+  setUserProfileImage: (image: string) => {
+    /* Implementation not needed for default context */
+  },
 });
 
 // Provider component
@@ -87,28 +113,30 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const storedUserRole = localStorage.getItem('userRole');
     const storedUserId = localStorage.getItem('userId');
     const storedUserProfileImage = localStorage.getItem('userProfileImage');
-    
+
     if (storedAuth === 'true' && storedUserName) {
       setIsAuthenticated(true);
       setUserName(storedUserName);
-      
+
       // Safely cast the role to AppUserRole type
-      if (storedUserRole === 'borrower' || 
-          storedUserRole === 'lender' || 
-          storedUserRole === 'admin' || 
-          storedUserRole === 'broker' || 
-          storedUserRole === 'vendor') {
+      if (
+        storedUserRole === 'borrower' ||
+        storedUserRole === 'lender' ||
+        storedUserRole === 'admin' ||
+        storedUserRole === 'broker' ||
+        storedUserRole === 'vendor'
+      ) {
         setUserRole(storedUserRole as AppUserRole);
       } else {
         setUserRole('');
       }
-      
+
       setUserId(storedUserId || '');
       if (storedUserProfileImage) {
         setUserProfileImage(storedUserProfileImage);
       }
     }
-    
+
     // Check for PQC authentication
     const storedPQCAuth = localStorage.getItem('isPQCAuthenticated');
     if (storedPQCAuth === 'true') {
@@ -152,35 +180,37 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   return (
-    <UserContext.Provider value={{
-      userRole,
-      showSmartMatching,
-      setShowSmartMatching,
-      showDataOrchestrator,
-      setShowDataOrchestrator,
-      showDocVerification,
-      setShowDocVerification, 
-      showCreditAnalysis,
-      setShowCreditAnalysis,
-      showAILifecycleAssistant,
-      setShowAILifecycleAssistant,
-      toggleTool,
-      sidebarCollapsed,
-      setSidebarCollapsed,
-      theme,
-      setTheme,
-      isPQCAuthenticated,
-      setPQCAuthenticated,
-      isAuthenticated,
-      setIsAuthenticated,
-      userName,
-      setUserName,
-      userId,
-      setUserId,
-      userProfileImage,
-      setUserProfileImage
-    }}>
+    <UserContext.Provider
+      value={{
+        userRole,
+        showSmartMatching,
+        setShowSmartMatching,
+        showDataOrchestrator,
+        setShowDataOrchestrator,
+        showDocVerification,
+        setShowDocVerification,
+        showCreditAnalysis,
+        setShowCreditAnalysis,
+        showAILifecycleAssistant,
+        setShowAILifecycleAssistant,
+        toggleTool,
+        sidebarCollapsed,
+        setSidebarCollapsed,
+        theme,
+        setTheme,
+        isPQCAuthenticated,
+        setPQCAuthenticated,
+        isAuthenticated,
+        setIsAuthenticated,
+        userName,
+        setUserName,
+        userId,
+        setUserId,
+        userProfileImage,
+        setUserProfileImage,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
-}; 
+};

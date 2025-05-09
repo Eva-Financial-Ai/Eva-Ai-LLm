@@ -52,17 +52,17 @@ class ApiService {
 
     // Add request interceptor
     this.instance.interceptors.request.use(
-      (config) => {
+      config => {
         // Add auth token if available
         const token = localStorage.getItem('auth_token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
-        
+
         console.log(`[apiService] Request to ${config.url}`, { method: config.method });
         return config;
       },
-      (error) => {
+      error => {
         console.error('[apiService] Request error:', error);
         return Promise.reject(error);
       }
@@ -70,7 +70,7 @@ class ApiService {
 
     // Add response interceptor
     this.instance.interceptors.response.use(
-      (response) => {
+      response => {
         // Reset network issue flag on successful response
         if (this.isNetworkIssue) {
           console.log('[apiService] Network connectivity restored');
@@ -78,39 +78,41 @@ class ApiService {
         }
         return response;
       },
-      async (error) => {
+      async error => {
         const originalRequest = error.config;
-        
+
         // Check if error is a network error (offline, timeout, etc.)
         if (axios.isAxiosError(error) && !error.response) {
           console.warn('[apiService] Network error detected:', error.message);
           this.isNetworkIssue = true;
-          
+
           // If request hasn't been retried yet
           if (!originalRequest._retry && (originalRequest._retryCount || 0) < MAX_RETRIES) {
             originalRequest._retry = true;
             originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
-            
+
             const retryDelay = Math.pow(2, originalRequest._retryCount) * 1000; // Exponential backoff
-            
-            console.log(`[apiService] Retrying request to ${originalRequest.url} in ${retryDelay}ms (attempt ${originalRequest._retryCount}/${MAX_RETRIES})`);
-            
+
+            console.log(
+              `[apiService] Retrying request to ${originalRequest.url} in ${retryDelay}ms (attempt ${originalRequest._retryCount}/${MAX_RETRIES})`
+            );
+
             // Wait before retrying
             await new Promise(resolve => setTimeout(resolve, retryDelay));
-            
+
             return this.instance(originalRequest);
           }
         }
-        
+
         // Log detailed error information
         console.error('[apiService] Response error:', {
           url: originalRequest?.url,
           status: error.response?.status,
           statusText: error.response?.statusText,
           message: error.message,
-          response: error.response?.data
+          response: error.response?.data,
         });
-        
+
         return Promise.reject(error);
       }
     );
@@ -125,9 +127,11 @@ class ApiService {
       // Check for connection issues and handle gracefully
       if (axios.isAxiosError(error) && !error.response) {
         console.error('[apiService] Connection error:', error.message);
-        throw new Error(`Connection error: ${error.message}. Please check your internet connection.`);
+        throw new Error(
+          `Connection error: ${error.message}. Please check your internet connection.`
+        );
       }
-      
+
       throw error;
     }
   }
@@ -177,7 +181,7 @@ class ApiService {
       return false;
     }
   }
-  
+
   // Get network status
   isNetworkOffline(): boolean {
     return this.isNetworkIssue;
@@ -185,4 +189,4 @@ class ApiService {
 }
 
 const apiService = new ApiService();
-export default apiService; 
+export default apiService;

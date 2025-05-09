@@ -15,9 +15,9 @@ export const APP_CONFIG = {
 export const RISK_CONFIG = {
   DEFAULT_RISK_THRESHOLD: 65,
   HIGH_RISK_THRESHOLD: 50, // Scores below this are high risk
-  LOW_RISK_THRESHOLD: 80,  // Scores above this are low risk
+  LOW_RISK_THRESHOLD: 80, // Scores above this are low risk
   AUTO_APPROVAL_THRESHOLD: 90, // Scores above this can be auto-approved
-  AUTO_DECLINE_THRESHOLD: 30,  // Scores below this can be auto-declined
+  AUTO_DECLINE_THRESHOLD: 30, // Scores below this can be auto-declined
 };
 
 // Feature Flags
@@ -56,4 +56,4 @@ export const RECONSIDERATION_TIMELINES = [
   { value: '60days', label: 'After 60 Days' },
   { value: '90days', label: 'After 90 Days' },
   { value: 'custom', label: 'Custom Timeline' },
-]; 
+];

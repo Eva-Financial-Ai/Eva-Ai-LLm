@@ -50,7 +50,7 @@ interface DocumentVerificationWrapperProps {
 
 /**
  * Enhanced DocumentVerificationWrapper component
- * 
+ *
  * This wrapper component handles:
  * 1. Transaction context
  * 2. Error states
@@ -66,11 +66,15 @@ const DocumentVerificationWrapper: React.FC<DocumentVerificationWrapperProps> = 
   onVerificationComplete,
   initialError,
   redirectOnSuccess = false,
-  navigate
+  navigate,
 }) => {
   const location = useLocation();
-  const { currentTransaction, loading: transactionLoading, error: transactionError } = useTransactionStore();
-  
+  const {
+    currentTransaction,
+    loading: transactionLoading,
+    error: transactionError,
+  } = useTransactionStore();
+
   const [error, setError] = useState<string | null>(initialError || null);
   const [isLoading, setIsLoading] = useState(true);
   const [transactionId, setTransactionId] = useState<string | null>(initialTransactionId || null);
@@ -89,29 +93,29 @@ const DocumentVerificationWrapper: React.FC<DocumentVerificationWrapperProps> = 
     annualRevenue: '$2,500,000',
     yearsInBusiness: '5',
     loanAmount: '$250,000',
-    loanPurpose: 'Equipment financing'
+    loanPurpose: 'Equipment financing',
   });
-  
+
   // Determine if we should use a document ID from URL params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const docIdFromParams = params.get('documentId');
-    
+
     if (docIdFromParams) {
       setTransactionId(docIdFromParams);
     }
   }, [location.search]);
-  
+
   // Set up transaction ID and handle loading states
   useEffect(() => {
     setIsLoading(true);
-    
+
     // Priority order for transaction ID:
     // 1. Explicitly provided documentId prop
     // 2. URL parameter
     // 3. Current transaction from context
     // 4. Fallback ID
-    
+
     if (documentId) {
       setTransactionId(documentId);
       setIsLoading(false);
@@ -126,49 +130,55 @@ const DocumentVerificationWrapper: React.FC<DocumentVerificationWrapperProps> = 
       setIsLoading(true);
     } else {
       // No transaction found, use fallback
-      setTransactionId("DOC-FALLBACK");
+      setTransactionId('DOC-FALLBACK');
       setIsLoading(false);
-      
+
       // Only show error if transaction loading has completed
       if (!transactionLoading && !documentId) {
-        setError("No active transaction found. Document verification may have limited functionality.");
+        setError(
+          'No active transaction found. Document verification may have limited functionality.'
+        );
       }
     }
-    
+
     // Handle transaction errors
     if (transactionError && !documentId) {
       setError(`Error loading transaction: ${transactionError.message}`);
     }
   }, [currentTransaction, documentId, transactionId, transactionLoading, transactionError]);
-  
+
   // Custom close handler to clean up URL params if needed
   const handleClose = () => {
     // Remove URL parameters when closing
-    if (navigate && (location.search && location.search.includes('documentId') || location.search.includes('doc=verification'))) {
+    if (
+      navigate &&
+      ((location.search && location.search.includes('documentId')) ||
+        location.search.includes('doc=verification'))
+    ) {
       navigate(location.pathname, { replace: true });
     }
-    
+
     // Call the parent onClose handler
     onClose();
   };
-  
+
   // Handle verification completion - could redirect to another page
   const handleVerificationComplete = (result: { success: boolean; documentId?: string }) => {
     if (result.success && redirectOnSuccess && navigate) {
       // Example: redirect to transaction details or confirmation page
       navigate(`/transactions/details/${result.documentId || transactionId}`);
     }
-    
+
     // Close the verification window
     handleClose();
   };
-  
+
   const handleUserDataChange = (newData: any) => {
     setUserData(newData);
   };
-  
+
   if (!isOpen) return null;
-  
+
   return (
     <Transition
       show={isOpen}
@@ -192,7 +202,7 @@ const DocumentVerificationWrapper: React.FC<DocumentVerificationWrapperProps> = 
         <DocumentVerificationSystem
           isOpen={isOpen}
           onClose={handleClose}
-          documentId={documentId || transactionId || "DOC-FALLBACK"}
+          documentId={documentId || transactionId || 'DOC-FALLBACK'}
           userData={userData}
           onUserDataChange={handleUserDataChange}
           onVerificationComplete={handleVerificationComplete}
@@ -203,4 +213,4 @@ const DocumentVerificationWrapper: React.FC<DocumentVerificationWrapperProps> = 
   );
 };
 
-export default DocumentVerificationWrapper; 
+export default DocumentVerificationWrapper;

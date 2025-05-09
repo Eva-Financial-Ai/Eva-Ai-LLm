@@ -6,11 +6,7 @@ interface AppProps {
 }
 
 const App: React.FC<AppProps> = ({ children }) => {
-  return (
-    <BlockchainProvider>
-      {children}
-    </BlockchainProvider>
-  );
+  return <BlockchainProvider>{children}</BlockchainProvider>;
 };
 
-export default App; 
+export default App;

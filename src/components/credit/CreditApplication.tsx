@@ -17,9 +17,9 @@ interface CreditApplicationProps {
   applicationId?: string;
 }
 
-const CreditApplication: React.FC<CreditApplicationProps> = ({ 
-  userType, 
-  applicationId = 'APP-12345' 
+const CreditApplication: React.FC<CreditApplicationProps> = ({
+  userType,
+  applicationId = 'APP-12345',
 }) => {
   const [activeView, setActiveView] = useState('main');
   const [customDocumentRequests, setCustomDocumentRequests] = useState<CustomDocumentRequest[]>([
@@ -29,7 +29,7 @@ const CreditApplication: React.FC<CreditApplicationProps> = ({
       description: 'Original invoice for financed equipment',
       required: true,
       requestedBy: 'ABC Funding',
-      requestDate: '2023-07-10'
+      requestDate: '2023-07-10',
     },
     {
       id: 'doc-2',
@@ -37,37 +37,37 @@ const CreditApplication: React.FC<CreditApplicationProps> = ({
       description: 'Current business license',
       required: true,
       requestedBy: 'XYZ Brokers',
-      requestDate: '2023-07-12'
-    }
+      requestDate: '2023-07-12',
+    },
   ]);
-  
+
   const [newDocumentRequest, setNewDocumentRequest] = useState({
     name: '',
     description: '',
-    required: true
+    required: true,
   });
-  
+
   // Handle adding a new custom document request
   const handleAddCustomDocument = () => {
     if (!newDocumentRequest.name) return;
-    
+
     const newRequest: CustomDocumentRequest = {
       id: `doc-${Date.now()}`,
       name: newDocumentRequest.name,
       description: newDocumentRequest.description,
       required: newDocumentRequest.required,
       requestedBy: userType === 'lender' ? 'ABC Funding' : 'XYZ Brokers',
-      requestDate: new Date().toISOString().split('T')[0]
+      requestDate: new Date().toISOString().split('T')[0],
     };
-    
+
     setCustomDocumentRequests([...customDocumentRequests, newRequest]);
     setNewDocumentRequest({
       name: '',
       description: '',
-      required: true
+      required: true,
     });
   };
-  
+
   // Render different headers based on user type
   const renderHeader = () => {
     switch (userType) {
@@ -114,39 +114,39 @@ const CreditApplication: React.FC<CreditApplicationProps> = ({
         );
     }
   };
-  
+
   // Render view selector tabs
   const renderViewSelector = () => {
     // Only show view selector for non-borrower users
     if (userType === 'borrower') return null;
-    
+
     return (
       <div className="view-selector">
         <h3>Application View</h3>
         <div className="view-options">
-          <button 
-            className={activeView === 'main' ? 'active' : ''} 
+          <button
+            className={activeView === 'main' ? 'active' : ''}
             onClick={() => setActiveView('main')}
           >
             Main View
           </button>
-          <button 
-            className={activeView === 'borrower' ? 'active' : ''} 
+          <button
+            className={activeView === 'borrower' ? 'active' : ''}
             onClick={() => setActiveView('borrower')}
           >
             Borrower View
           </button>
           {userType === 'lender' && (
-            <button 
-              className={activeView === 'broker' ? 'active' : ''} 
+            <button
+              className={activeView === 'broker' ? 'active' : ''}
               onClick={() => setActiveView('broker')}
             >
               Broker View
             </button>
           )}
           {(userType === 'lender' || userType === 'broker') && (
-            <button 
-              className={activeView === 'vendor' ? 'active' : ''} 
+            <button
+              className={activeView === 'vendor' ? 'active' : ''}
               onClick={() => setActiveView('vendor')}
             >
               Vendor View
@@ -156,48 +156,52 @@ const CreditApplication: React.FC<CreditApplicationProps> = ({
       </div>
     );
   };
-  
+
   // Render custom document request form for lenders and brokers
   const renderCustomDocumentRequestForm = () => {
     if (userType !== 'lender' && userType !== 'broker') return null;
-    
+
     return (
       <div className="custom-document-request">
         <h3>Request Additional Documents</h3>
         <p>Select custom documents to request from the borrower</p>
-        
+
         <div className="custom-document-form">
           <div className="form-group">
             <label>Document Name</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={newDocumentRequest.name}
-              onChange={(e) => setNewDocumentRequest({...newDocumentRequest, name: e.target.value})}
+              onChange={e => setNewDocumentRequest({ ...newDocumentRequest, name: e.target.value })}
               placeholder="Enter document name"
             />
           </div>
-          
+
           <div className="form-group">
             <label>Description</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={newDocumentRequest.description}
-              onChange={(e) => setNewDocumentRequest({...newDocumentRequest, description: e.target.value})}
+              onChange={e =>
+                setNewDocumentRequest({ ...newDocumentRequest, description: e.target.value })
+              }
               placeholder="Enter document description"
             />
           </div>
-          
+
           <div className="form-group checkbox">
-            <input 
-              type="checkbox" 
-              id="required-doc" 
+            <input
+              type="checkbox"
+              id="required-doc"
               checked={newDocumentRequest.required}
-              onChange={(e) => setNewDocumentRequest({...newDocumentRequest, required: e.target.checked})}
+              onChange={e =>
+                setNewDocumentRequest({ ...newDocumentRequest, required: e.target.checked })
+              }
             />
             <label htmlFor="required-doc">Required Document</label>
           </div>
-          
-          <button 
+
+          <button
             className="add-document-btn"
             onClick={handleAddCustomDocument}
             disabled={!newDocumentRequest.name}
@@ -205,10 +209,10 @@ const CreditApplication: React.FC<CreditApplicationProps> = ({
             Add Document Request
           </button>
         </div>
-        
+
         <div className="requested-documents">
           <h4>Requested Documents</h4>
-          
+
           {customDocumentRequests.length === 0 ? (
             <p>No custom documents requested</p>
           ) : (
@@ -216,17 +220,19 @@ const CreditApplication: React.FC<CreditApplicationProps> = ({
               {customDocumentRequests.map(doc => (
                 <li key={doc.id} className="document-request-item">
                   <div className="doc-request-details">
-                    <h5>{doc.name} {doc.required && <span className="required-badge">Required</span>}</h5>
+                    <h5>
+                      {doc.name} {doc.required && <span className="required-badge">Required</span>}
+                    </h5>
                     <p>{doc.description}</p>
                     <p className="request-meta">
                       Requested by {doc.requestedBy} on {doc.requestDate}
                     </p>
                   </div>
-                  <button 
+                  <button
                     className="remove-request"
-                    onClick={() => setCustomDocumentRequests(
-                      customDocumentRequests.filter(d => d.id !== doc.id)
-                    )}
+                    onClick={() =>
+                      setCustomDocumentRequests(customDocumentRequests.filter(d => d.id !== doc.id))
+                    }
                   >
                     Remove
                   </button>
@@ -238,48 +244,48 @@ const CreditApplication: React.FC<CreditApplicationProps> = ({
       </div>
     );
   };
-  
+
   // Determine the effective user type for the view
-  const effectiveUserType = activeView === 'main' ? userType : activeView as 'lender' | 'broker' | 'borrower' | 'vendor';
-  
+  const effectiveUserType =
+    activeView === 'main' ? userType : (activeView as 'lender' | 'broker' | 'borrower' | 'vendor');
+
   return (
     <div className={`credit-application ${userType}-type ${activeView}-view`}>
       {renderHeader()}
       {renderViewSelector()}
-      
+
       <div className="credit-app-sections">
         {/* Show Safe Forms - templates for requesters, requested forms for borrowers */}
         <div className="credit-app-section">
-          <SafeForms 
-            userType={effectiveUserType} 
-            requestMode={effectiveUserType !== 'borrower'}
-          />
+          <SafeForms userType={effectiveUserType} requestMode={effectiveUserType !== 'borrower'} />
         </div>
-        
+
         {/* Financial Statements Section */}
         <div className="credit-app-section">
           <FinancialStatements userType={effectiveUserType} />
         </div>
-        
+
         {/* Business Tax Returns Section */}
         <div className="credit-app-section">
           <BusinessTaxReturns />
         </div>
-        
+
         {/* Custom Document Requests */}
         {renderCustomDocumentRequestForm()}
-        
+
         {/* Custom Document Upload/View for Borrowers */}
         {effectiveUserType === 'borrower' && customDocumentRequests.length > 0 && (
           <div className="credit-app-section custom-document-uploads">
             <h3>Requested Documents</h3>
             <p>Please upload the following requested documents:</p>
-            
+
             <ul className="requested-document-list">
               {customDocumentRequests.map(doc => (
                 <li key={doc.id} className="requested-document-item">
                   <div className="document-details">
-                    <h4>{doc.name} {doc.required && <span className="required-badge">Required</span>}</h4>
+                    <h4>
+                      {doc.name} {doc.required && <span className="required-badge">Required</span>}
+                    </h4>
                     <p>{doc.description}</p>
                     <p className="request-meta">
                       Requested by {doc.requestedBy} on {doc.requestDate}
@@ -287,7 +293,9 @@ const CreditApplication: React.FC<CreditApplicationProps> = ({
                   </div>
                   <div className="upload-controls">
                     <input type="file" id={`upload-${doc.id}`} className="hidden-file-input" />
-                    <label htmlFor={`upload-${doc.id}`} className="upload-button">Upload Document</label>
+                    <label htmlFor={`upload-${doc.id}`} className="upload-button">
+                      Upload Document
+                    </label>
                   </div>
                 </li>
               ))}
@@ -295,7 +303,7 @@ const CreditApplication: React.FC<CreditApplicationProps> = ({
           </div>
         )}
       </div>
-      
+
       {/* Application Action Footer */}
       <div className="credit-app-footer">
         {effectiveUserType === 'borrower' ? (
@@ -324,4 +332,4 @@ const CreditApplication: React.FC<CreditApplicationProps> = ({
   );
 };
 
-export default CreditApplication; 
+export default CreditApplication;

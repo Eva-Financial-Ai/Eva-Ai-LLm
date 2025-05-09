@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react';
+import { PropsWithChildren } from 'react';
 import { ErrorBoundary as ReactErrorBoundary, type FallbackProps } from 'react-error-boundary';
 
 interface ErrorBoundaryProps extends PropsWithChildren {
@@ -12,8 +12,19 @@ const DefaultFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
     <div className="bg-red-50 border border-red-200 rounded-lg p-6">
       <div className="flex">
         <div className="flex-shrink-0">
-          <svg className="h-6 w-6 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <svg
+            className="h-6 w-6 text-red-400"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
         </div>
         <div className="ml-3">
@@ -43,10 +54,10 @@ const logError = (error: Error, info: React.ErrorInfo) => {
   console.error('Component stack:', info.componentStack || 'No component stack available');
 };
 
-export const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({ 
-  children, 
-  fallbackComponent, 
-  onReset 
+export const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({
+  children,
+  fallbackComponent,
+  onReset,
 }) => {
   const handleReset = () => {
     // Call custom reset logic if provided
@@ -77,15 +88,15 @@ export const LoadingFallback: React.FC<{ message?: string }> = ({ message = 'Loa
 };
 
 // Simple skeleton loader
-export const SkeletonLoader: React.FC<{ rows?: number; className?: string }> = ({ 
-  rows = 3, 
-  className = "" 
+export const SkeletonLoader: React.FC<{ rows?: number; className?: string }> = ({
+  rows = 3,
+  className = '',
 }) => {
   return (
     <div className={`animate-pulse ${className}`}>
       {Array.from({ length: rows }).map((_, index) => (
-        <div 
-          key={index} 
+        <div
+          key={index}
           className="h-4 bg-gray-200 rounded mb-3"
           style={{ width: `${Math.floor(Math.random() * 30) + 70}%` }}
         ></div>
@@ -94,4 +105,4 @@ export const SkeletonLoader: React.FC<{ rows?: number; className?: string }> = (
   );
 };
 
-export default ErrorBoundary; 
+export default ErrorBoundary;

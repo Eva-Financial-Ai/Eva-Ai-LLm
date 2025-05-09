@@ -48,12 +48,14 @@ const RiskMetricsDisplay: React.FC<RiskMetricsDisplayProps> = ({ metrics, catego
               <h4 className="text-sm font-medium text-gray-700 mb-2">Compliance Coverage</h4>
               <div className="flex items-center">
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-                  <div 
-                    className="h-2.5 rounded-full bg-green-500" 
+                  <div
+                    className="h-2.5 rounded-full bg-green-500"
                     style={{ width: `${metrics.regulatoryCompliance.complianceCoverage}%` }}
                   ></div>
                 </div>
-                <span className="text-sm font-medium">{metrics.regulatoryCompliance.complianceCoverage}%</span>
+                <span className="text-sm font-medium">
+                  {metrics.regulatoryCompliance.complianceCoverage}%
+                </span>
               </div>
             </div>
 
@@ -80,11 +82,15 @@ const RiskMetricsDisplay: React.FC<RiskMetricsDisplayProps> = ({ metrics, catego
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Judgments Count</div>
-                <div className="text-lg font-semibold mt-1">{metrics.legalRecord.judgmentsCount}</div>
+                <div className="text-lg font-semibold mt-1">
+                  {metrics.legalRecord.judgmentsCount}
+                </div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Litigation Risk</div>
-                <div className="text-lg font-semibold mt-1">{metrics.legalRecord.litigationRisk}%</div>
+                <div className="text-lg font-semibold mt-1">
+                  {metrics.legalRecord.litigationRisk}%
+                </div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Recent Cases</div>
@@ -92,20 +98,32 @@ const RiskMetricsDisplay: React.FC<RiskMetricsDisplayProps> = ({ metrics, catego
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Pending Litigation</div>
-                <div className="text-lg font-semibold mt-1">{metrics.legalRecord.pendingLitigation}</div>
+                <div className="text-lg font-semibold mt-1">
+                  {metrics.legalRecord.pendingLitigation}
+                </div>
               </div>
             </div>
 
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
               <div className="flex">
-                <svg className="h-5 w-5 text-blue-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="h-5 w-5 text-blue-500 mt-0.5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <p className="text-sm text-blue-700">
-                  {metrics.legalRecord.judgmentsCount === 0 && metrics.legalRecord.pendingLitigation === 0
+                  {metrics.legalRecord.judgmentsCount === 0 &&
+                  metrics.legalRecord.pendingLitigation === 0
                     ? "No legal judgments or pending litigation found. This is a positive indicator for the applicant's legal standing."
-                    : `Applicant has ${metrics.legalRecord.judgmentsCount} judgment(s) and ${metrics.legalRecord.pendingLitigation} pending litigation case(s). Review details for potential impact on credit decision.`
-                  }
+                    : `Applicant has ${metrics.legalRecord.judgmentsCount} judgment(s) and ${metrics.legalRecord.pendingLitigation} pending litigation case(s). Review details for potential impact on credit decision.`}
                 </p>
               </div>
             </div>
@@ -118,19 +136,23 @@ const RiskMetricsDisplay: React.FC<RiskMetricsDisplayProps> = ({ metrics, catego
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Years in Business</div>
-                <div className="text-lg font-semibold mt-1">{metrics.businessAge.yearsInBusiness} years</div>
+                <div className="text-lg font-semibold mt-1">
+                  {metrics.businessAge.yearsInBusiness} years
+                </div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Industry Peer Percentile</div>
                 <div className="mt-1">
                   <div className="flex items-center">
                     <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-                      <div 
+                      <div
                         className={`h-2.5 rounded-full ${getPercentileClass(metrics.businessAge.industryPeerPercentile)}`}
                         style={{ width: `${metrics.businessAge.industryPeerPercentile}%` }}
                       ></div>
                     </div>
-                    <span className="text-sm font-medium">{metrics.businessAge.industryPeerPercentile}%</span>
+                    <span className="text-sm font-medium">
+                      {metrics.businessAge.industryPeerPercentile}%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -139,24 +161,37 @@ const RiskMetricsDisplay: React.FC<RiskMetricsDisplayProps> = ({ metrics, catego
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Stability Rating</div>
-                <div className="text-lg font-semibold mt-1">{metrics.businessAge.stabilityRating}/100</div>
+                <div className="text-lg font-semibold mt-1">
+                  {metrics.businessAge.stabilityRating}/100
+                </div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Historical Consistency</div>
-                <div className="text-lg font-semibold mt-1">{metrics.businessAge.historicalConsistency}/100</div>
+                <div className="text-lg font-semibold mt-1">
+                  {metrics.businessAge.historicalConsistency}/100
+                </div>
               </div>
             </div>
 
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
               <div className="flex">
-                <svg className="h-5 w-5 text-blue-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="h-5 w-5 text-blue-500 mt-0.5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <p className="text-sm text-blue-700">
-                  {metrics.businessAge.yearsInBusiness >= 5 
+                  {metrics.businessAge.yearsInBusiness >= 5
                     ? `With ${metrics.businessAge.yearsInBusiness} years in business, the applicant demonstrates established market presence and operational resilience.`
-                    : `At ${metrics.businessAge.yearsInBusiness} years in business, the applicant is relatively new in the market. Consider additional performance indicators to assess stability.`
-                  }
+                    : `At ${metrics.businessAge.yearsInBusiness} years in business, the applicant is relatively new in the market. Consider additional performance indicators to assess stability.`}
                 </p>
               </div>
             </div>
@@ -170,40 +205,57 @@ const RiskMetricsDisplay: React.FC<RiskMetricsDisplayProps> = ({ metrics, catego
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Market Perception</div>
                 <div className="flex items-end mt-1">
-                  <span className="text-lg font-semibold">{metrics.reputation.marketPerception}</span>
+                  <span className="text-lg font-semibold">
+                    {metrics.reputation.marketPerception}
+                  </span>
                   <span className="text-xs text-gray-500 ml-1">/ 100</span>
                 </div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Public Sentiment</div>
                 <div className="flex items-end mt-1">
-                  <span className="text-lg font-semibold">{metrics.reputation.publicSentiment}</span>
+                  <span className="text-lg font-semibold">
+                    {metrics.reputation.publicSentiment}
+                  </span>
                   <span className="text-xs text-gray-500 ml-1">/ 100</span>
                 </div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Customer Satisfaction</div>
                 <div className="flex items-end mt-1">
-                  <span className="text-lg font-semibold">{metrics.reputation.customerSatisfaction}</span>
+                  <span className="text-lg font-semibold">
+                    {metrics.reputation.customerSatisfaction}
+                  </span>
                   <span className="text-xs text-gray-500 ml-1">/ 100</span>
                 </div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Industry Awards</div>
-                <div className="text-lg font-semibold mt-1">{metrics.reputation.industryAwards}</div>
+                <div className="text-lg font-semibold mt-1">
+                  {metrics.reputation.industryAwards}
+                </div>
               </div>
             </div>
 
             <div className="bg-green-50 p-4 rounded-lg border border-green-100">
               <div className="flex">
-                <svg className="h-5 w-5 text-green-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="h-5 w-5 text-green-500 mt-0.5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <p className="text-sm text-green-700">
                   {metrics.reputation.customerSatisfaction >= 80
-                    ? "High customer satisfaction indicates strong market positioning and reliable product/service delivery."
-                    : "Customer satisfaction metrics suggest room for improvement, which may affect business growth potential."
-                  }
+                    ? 'High customer satisfaction indicates strong market positioning and reliable product/service delivery.'
+                    : 'Customer satisfaction metrics suggest room for improvement, which may affect business growth potential.'}
                 </p>
               </div>
             </div>
@@ -217,7 +269,9 @@ const RiskMetricsDisplay: React.FC<RiskMetricsDisplayProps> = ({ metrics, catego
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Cash Flow Consistency</div>
                 <div className="flex items-end mt-1">
-                  <span className="text-lg font-semibold">{metrics.stability.cashFlowConsistency}</span>
+                  <span className="text-lg font-semibold">
+                    {metrics.stability.cashFlowConsistency}
+                  </span>
                   <span className="text-xs text-gray-500 ml-1">/ 100</span>
                 </div>
               </div>
@@ -231,14 +285,18 @@ const RiskMetricsDisplay: React.FC<RiskMetricsDisplayProps> = ({ metrics, catego
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Employee Retention</div>
                 <div className="flex items-end mt-1">
-                  <span className="text-lg font-semibold">{metrics.stability.employeeRetention}</span>
+                  <span className="text-lg font-semibold">
+                    {metrics.stability.employeeRetention}
+                  </span>
                   <span className="text-xs text-gray-500 ml-1">/ 100</span>
                 </div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="text-xs text-gray-500">Market Position Strength</div>
                 <div className="flex items-end mt-1">
-                  <span className="text-lg font-semibold">{metrics.stability.marketPositionStrength}</span>
+                  <span className="text-lg font-semibold">
+                    {metrics.stability.marketPositionStrength}
+                  </span>
                   <span className="text-xs text-gray-500 ml-1">/ 100</span>
                 </div>
               </div>
@@ -246,14 +304,24 @@ const RiskMetricsDisplay: React.FC<RiskMetricsDisplayProps> = ({ metrics, catego
 
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
               <div className="flex">
-                <svg className="h-5 w-5 text-blue-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="h-5 w-5 text-blue-500 mt-0.5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <p className="text-sm text-blue-700">
-                  {metrics.stability.cashFlowConsistency >= 75 && metrics.stability.revenueGrowth >= 70
-                    ? "Strong cash flow consistency and revenue growth indicate a stable business with positive trajectory."
-                    : "Cash flow patterns and revenue metrics suggest potential volatility. Consider implementing risk mitigation measures."
-                  }
+                  {metrics.stability.cashFlowConsistency >= 75 &&
+                  metrics.stability.revenueGrowth >= 70
+                    ? 'Strong cash flow consistency and revenue growth indicate a stable business with positive trajectory.'
+                    : 'Cash flow patterns and revenue metrics suggest potential volatility. Consider implementing risk mitigation measures.'}
                 </p>
               </div>
             </div>
@@ -265,11 +333,7 @@ const RiskMetricsDisplay: React.FC<RiskMetricsDisplayProps> = ({ metrics, catego
     }
   };
 
-  return (
-    <div className="space-y-4">
-      {renderCategoryContent()}
-    </div>
-  );
+  return <div className="space-y-4">{renderCategoryContent()}</div>;
 };
 
-export default RiskMetricsDisplay; 
+export default RiskMetricsDisplay;

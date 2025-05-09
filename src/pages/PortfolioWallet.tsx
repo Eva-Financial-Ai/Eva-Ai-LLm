@@ -11,8 +11,19 @@ const PortfolioWallet: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex items-center mb-6">
           <div className="bg-indigo-100 p-4 rounded-full w-16 h-16 flex items-center justify-center">
-            <svg className="w-8 h-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            <svg
+              className="w-8 h-8 text-indigo-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
             </svg>
           </div>
           <div className="ml-6">
@@ -32,7 +43,7 @@ const PortfolioWallet: React.FC = () => {
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div className="bg-indigo-600 h-2 rounded-full" style={{ width: '45%' }}></div>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <span>Equipment</span>
                 <span className="font-medium">30%</span>
@@ -40,7 +51,7 @@ const PortfolioWallet: React.FC = () => {
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div className="bg-purple-600 h-2 rounded-full" style={{ width: '30%' }}></div>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <span>Vehicles</span>
                 <span className="font-medium">15%</span>
@@ -48,7 +59,7 @@ const PortfolioWallet: React.FC = () => {
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div className="bg-blue-600 h-2 rounded-full" style={{ width: '15%' }}></div>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <span>IP & Digital</span>
                 <span className="font-medium">10%</span>
@@ -58,7 +69,7 @@ const PortfolioWallet: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <h3 className="font-medium mb-2">Recent Performance</h3>
             <div className="space-y-2">
@@ -80,7 +91,7 @@ const PortfolioWallet: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <h3 className="font-medium mb-2">Quick Actions</h3>
             <div className="space-y-2">
@@ -100,7 +111,7 @@ const PortfolioWallet: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">Assets Overview</h2>
@@ -120,17 +131,29 @@ const PortfolioWallet: React.FC = () => {
             </select>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Asset Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Category
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Value
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tokens
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -140,9 +163,13 @@ const PortfolioWallet: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap">$1,250,000</td>
                 <td className="px-6 py-4 whitespace-nowrap">1,250 BLDG</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    Active
+                  </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 hover:text-indigo-900">View Details</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 hover:text-indigo-900">
+                  View Details
+                </td>
               </tr>
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap">Manufacturing Equipment</td>
@@ -150,9 +177,13 @@ const PortfolioWallet: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap">$875,000</td>
                 <td className="px-6 py-4 whitespace-nowrap">875 EQIP</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    Active
+                  </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 hover:text-indigo-900">View Details</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 hover:text-indigo-900">
+                  View Details
+                </td>
               </tr>
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap">Delivery Fleet Vehicles</td>
@@ -160,9 +191,13 @@ const PortfolioWallet: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap">$625,000</td>
                 <td className="px-6 py-4 whitespace-nowrap">625 VHCL</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">For Sale</span>
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                    For Sale
+                  </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 hover:text-indigo-900">View Details</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 hover:text-indigo-900">
+                  View Details
+                </td>
               </tr>
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap">Software Patent Bundle</td>
@@ -170,9 +205,13 @@ const PortfolioWallet: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap">$500,000</td>
                 <td className="px-6 py-4 whitespace-nowrap">500 PTNT</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    Pending
+                  </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 hover:text-indigo-900">View Details</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 hover:text-indigo-900">
+                  View Details
+                </td>
               </tr>
             </tbody>
           </table>
@@ -182,4 +221,4 @@ const PortfolioWallet: React.FC = () => {
   );
 };
 
-export default PortfolioWallet; 
+export default PortfolioWallet;

@@ -30,7 +30,7 @@ const RiskScoreChart: React.FC<RiskScoreChartProps> = ({ data, selectedCategory 
     <div className="w-full">
       <h3 className="text-sm font-medium text-gray-700 mb-3">Risk Score Breakdown</h3>
       <div className="space-y-4">
-        {sortedData.map((item) => (
+        {sortedData.map(item => (
           <div key={item.label} className="w-full">
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium text-gray-700">{item.label}</span>
@@ -39,9 +39,10 @@ const RiskScoreChart: React.FC<RiskScoreChartProps> = ({ data, selectedCategory 
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div
                 className={`h-2.5 rounded-full ${getBarColorClass(item.value)}`}
-                style={{ 
+                style={{
                   width: `${item.value}%`,
-                  backgroundColor: selectedCategory === item.label.toLowerCase() ? item.color : undefined
+                  backgroundColor:
+                    selectedCategory === item.label.toLowerCase() ? item.color : undefined,
                 }}
               ></div>
             </div>
@@ -59,4 +60,4 @@ const RiskScoreChart: React.FC<RiskScoreChartProps> = ({ data, selectedCategory 
   );
 };
 
-export default React.memo(RiskScoreChart); 
+export default React.memo(RiskScoreChart);

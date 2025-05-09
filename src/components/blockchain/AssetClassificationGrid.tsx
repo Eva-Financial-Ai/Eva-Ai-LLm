@@ -50,25 +50,26 @@ interface AssetClassificationGridProps {
   selectedAsset: AssetClass | null;
 }
 
-const AssetClassificationGrid: React.FC<AssetClassificationGridProps> = ({ 
-  onSelect, 
-  selectedAsset 
+const AssetClassificationGrid: React.FC<AssetClassificationGridProps> = ({
+  onSelect,
+  selectedAsset,
 }) => {
   return (
     <div className="space-y-4">
       <p className="text-gray-600">
         Select the classification that best describes your asset to proceed with pressing.
       </p>
-      
+
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {Object.values(AssetClass).map((assetClass) => (
+        {Object.values(AssetClass).map(assetClass => (
           <div
             key={assetClass}
             onClick={() => onSelect(assetClass)}
             className={`p-4 rounded-lg border cursor-pointer transition-all
-              ${selectedAsset === assetClass 
-                ? 'border-indigo-500 bg-indigo-50' 
-                : 'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/30'
+              ${
+                selectedAsset === assetClass
+                  ? 'border-indigo-500 bg-indigo-50'
+                  : 'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/30'
               }
             `}
           >
@@ -92,4 +93,4 @@ const AssetClassificationGrid: React.FC<AssetClassificationGridProps> = ({
   );
 };
 
-export default AssetClassificationGrid; 
+export default AssetClassificationGrid;

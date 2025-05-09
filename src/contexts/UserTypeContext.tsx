@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserType, FeatureAccess, defaultPermissions, EmployeeRole, roleHierarchy } from '../types/UserTypes';
+import {
+  UserType,
+  FeatureAccess,
+  defaultPermissions,
+  EmployeeRole,
+  roleHierarchy,
+} from '../types/UserTypes';
 
 interface UserTypeContextType {
   userType: UserType | null;
@@ -12,9 +18,12 @@ interface UserTypeContextType {
   loadingPermissions: boolean;
 }
 
+// Export the interface
+export type { UserTypeContextType };
+
 const UserTypeContext = createContext<UserTypeContextType | undefined>(undefined);
 
-export const UserTypeProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+export const UserTypeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userType, setUserType] = useState<UserType | null>(null);
   const [employeeRole, setEmployeeRole] = useState<EmployeeRole | null>(null);
   const [permissions, setPermissions] = useState<FeatureAccess | null>(null);
@@ -27,7 +36,7 @@ export const UserTypeProvider: React.FC<{children: React.ReactNode}> = ({ childr
         // Get stored user role if available
         const storedUserType = localStorage.getItem('userRole');
         const mappedUserType = mapToUserType(storedUserType || '');
-        
+
         if (mappedUserType) {
           setUserType(mappedUserType);
           // Set default permissions based on user type
@@ -37,7 +46,7 @@ export const UserTypeProvider: React.FC<{children: React.ReactNode}> = ({ childr
           setUserType(UserType.BUSINESS);
           setPermissions(defaultPermissions[UserType.BUSINESS]);
         }
-        
+
         // Set default employee role
         setEmployeeRole(EmployeeRole.VIEWER);
       } catch (error) {
@@ -84,13 +93,13 @@ export const UserTypeProvider: React.FC<{children: React.ReactNode}> = ({ childr
 
   const hasRolePermission = (feature: keyof FeatureAccess, minimumRole: EmployeeRole): boolean => {
     if (!permissions || !employeeRole) return false;
-    
+
     // First check if the user type has access to this feature
     const hasFeatureAccess = permissions[feature] > 0;
-    
+
     // Then check if the employee role is sufficient
     const hasRoleAccess = roleHierarchy[employeeRole] >= roleHierarchy[minimumRole];
-    
+
     return hasFeatureAccess && hasRoleAccess;
   };
 
@@ -102,14 +111,10 @@ export const UserTypeProvider: React.FC<{children: React.ReactNode}> = ({ childr
     hasRolePermission,
     setUserType,
     setEmployeeRole,
-    loadingPermissions
+    loadingPermissions,
   };
 
-  return (
-    <UserTypeContext.Provider value={value}>
-      {children}
-    </UserTypeContext.Provider>
-  );
+  return <UserTypeContext.Provider value={value}>{children}</UserTypeContext.Provider>;
 };
 
 export const useUserType = (): UserTypeContextType => {
@@ -118,4 +123,4 @@ export const useUserType = (): UserTypeContextType => {
     throw new Error('useUserType must be used within a UserTypeProvider');
   }
   return context;
-}; 
+};

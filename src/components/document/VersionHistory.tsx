@@ -16,7 +16,7 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({
   onSelectVersion,
   formatDate,
   formatFileSize,
-  isLoading = false
+  isLoading = false,
 }) => {
   const [visibleVersions, setVisibleVersions] = useState<number>(10);
 
@@ -66,12 +66,11 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({
                         Version {version.versionNumber}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {version.createdBy ? `Created by ${version.createdBy}` : 'Created'} on {formatDate(version.createdAt)}
+                        {version.createdBy ? `Created by ${version.createdBy}` : 'Created'} on{' '}
+                        {formatDate(version.createdAt)}
                       </div>
                       {version.notes && (
-                        <div className="text-sm text-gray-600 mt-1">
-                          {version.notes}
-                        </div>
+                        <div className="text-sm text-gray-600 mt-1">{version.notes}</div>
                       )}
                     </div>
                   </div>
@@ -83,7 +82,7 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({
             </li>
           ))}
         </ul>
-        
+
         {visibleVersions < versions.length && (
           <div className="px-4 py-4 text-center">
             <button
@@ -99,4 +98,4 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({
   );
 };
 
-export default VersionHistory; 
+export default VersionHistory;

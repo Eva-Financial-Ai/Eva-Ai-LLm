@@ -24,7 +24,12 @@ declare module '@headlessui/react' {
   export const Menu: React.FC<MenuProps> & {
     Button: React.FC<{ as?: ElementType; className?: string; children: ReactNode }>;
     Items: React.FC<{ as?: ElementType; className?: string; children: ReactNode }>;
-    Item: React.FC<{ as?: ElementType; className?: string; disabled?: boolean; children: (props: { active: boolean }) => ReactNode }>;
+    Item: React.FC<{
+      as?: ElementType;
+      className?: string;
+      disabled?: boolean;
+      children: (props: { active: boolean }) => ReactNode;
+    }>;
   };
 
   export interface TransitionProps {
@@ -48,4 +53,4 @@ declare module '@headlessui/react' {
   export const Transition: React.FC<TransitionProps> & {
     Child: React.FC<Omit<TransitionProps, 'show'>>;
   };
-} 
+}

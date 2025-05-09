@@ -4,4 +4,4 @@ import runComponentTests from './ComponentTesterRunner';
 window.onload = () => {
   console.log('Starting component test runner...');
   runComponentTests();
-}; 
+};

@@ -17,32 +17,32 @@ export interface VerificationResult {
  * Uploads a document for verification and analysis by EVA AI
  */
 export const verifyDocument = async (
-  file: File, 
+  file: File,
   transactionId: string
 ): Promise<VerificationResult> => {
   try {
     // In a real implementation, this would upload to a server endpoint
     // Here we'll simulate a response for demo purposes
-    
+
     // For demo: Simulate network request with timeout
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
     // Create a FormData object to send the file
     // const formData = new FormData();
     // formData.append('file', file);
     // formData.append('transactionId', transactionId);
-    
+
     // const response = await axios.post(`${API_BASE_URL}/api/documents/verify`, formData, {
     //   headers: {
     //     'Content-Type': 'multipart/form-data'
     //   }
     // });
-    
+
     // return response.data;
-    
+
     // For demo: Return mock data based on file type
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    
+
     // Create different mock data based on file type
     if (fileExtension === 'pdf') {
       return {
@@ -57,7 +57,7 @@ export const verifyDocument = async (
         },
         confidence: 0.92,
         verificationTimestamp: new Date().toISOString(),
-        documentId: `doc-${Date.now()}`
+        documentId: `doc-${Date.now()}`,
       };
     } else if (['jpg', 'jpeg', 'png'].includes(fileExtension || '')) {
       return {
@@ -72,7 +72,7 @@ export const verifyDocument = async (
         },
         confidence: 0.87,
         verificationTimestamp: new Date().toISOString(),
-        documentId: `doc-${Date.now()}`
+        documentId: `doc-${Date.now()}`,
       };
     } else if (['doc', 'docx'].includes(fileExtension || '')) {
       return {
@@ -87,7 +87,7 @@ export const verifyDocument = async (
         },
         confidence: 0.89,
         verificationTimestamp: new Date().toISOString(),
-        documentId: `doc-${Date.now()}`
+        documentId: `doc-${Date.now()}`,
       };
     } else if (['xls', 'xlsx', 'csv'].includes(fileExtension || '')) {
       return {
@@ -102,7 +102,7 @@ export const verifyDocument = async (
         },
         confidence: 0.95,
         verificationTimestamp: new Date().toISOString(),
-        documentId: `doc-${Date.now()}`
+        documentId: `doc-${Date.now()}`,
       };
     } else {
       return {
@@ -112,11 +112,12 @@ export const verifyDocument = async (
           fileName: file.name,
           fileSize: `${(file.size / 1024).toFixed(2)} KB`,
           uploadDate: new Date().toLocaleDateString(),
-          contentSummary: 'Document contains business information and details related to the transaction.',
+          contentSummary:
+            'Document contains business information and details related to the transaction.',
         },
         confidence: 0.75,
         verificationTimestamp: new Date().toISOString(),
-        documentId: `doc-${Date.now()}`
+        documentId: `doc-${Date.now()}`,
       };
     }
   } catch (error) {
@@ -127,7 +128,7 @@ export const verifyDocument = async (
       extractedData: {},
       confidence: 0,
       verificationTimestamp: new Date().toISOString(),
-      error: 'Failed to process document. Please try again.'
+      error: 'Failed to process document. Please try again.',
     };
   }
 };
@@ -140,7 +141,7 @@ export const getVerificationStatus = async (documentId: string): Promise<Verific
     // In a real implementation, this would check the status from the server
     // const response = await axios.get(`${API_BASE_URL}/api/documents/status/${documentId}`);
     // return response.data;
-    
+
     // For demo: Return mock data
     return {
       verified: true,
@@ -154,7 +155,7 @@ export const getVerificationStatus = async (documentId: string): Promise<Verific
       },
       confidence: 0.92,
       verificationTimestamp: new Date().toISOString(),
-      documentId
+      documentId,
     };
   } catch (error) {
     console.error('Error checking verification status:', error);
@@ -164,12 +165,12 @@ export const getVerificationStatus = async (documentId: string): Promise<Verific
       extractedData: {},
       confidence: 0,
       verificationTimestamp: new Date().toISOString(),
-      error: 'Failed to retrieve verification status.'
+      error: 'Failed to retrieve verification status.',
     };
   }
 };
 
 export default {
   verifyDocument,
-  getVerificationStatus
-}; 
+  getVerificationStatus,
+};

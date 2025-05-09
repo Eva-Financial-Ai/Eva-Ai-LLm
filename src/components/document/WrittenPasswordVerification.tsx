@@ -17,31 +17,31 @@ interface PortfolioManager {
 
 // Demo portfolio managers for testing
 const demoPortfolioManagers: PortfolioManager[] = [
-  { 
-    id: 'pm1', 
-    name: 'Michael Chen', 
-    email: 'michael.chen@evafi.com', 
-    phone: '+1-555-123-4567' 
+  {
+    id: 'pm1',
+    name: 'Michael Chen',
+    email: 'michael.chen@evafi.com',
+    phone: '+1-555-123-4567',
   },
-  { 
-    id: 'pm2', 
-    name: 'Sarah Johnson', 
-    email: 'sarah.johnson@evafi.com', 
-    phone: '+1-555-987-6543' 
+  {
+    id: 'pm2',
+    name: 'Sarah Johnson',
+    email: 'sarah.johnson@evafi.com',
+    phone: '+1-555-987-6543',
   },
-  { 
-    id: 'pm3', 
-    name: 'David Rodriguez', 
-    email: 'david.rodriguez@evafi.com', 
-    phone: '+1-555-456-7890' 
-  }
+  {
+    id: 'pm3',
+    name: 'David Rodriguez',
+    email: 'david.rodriguez@evafi.com',
+    phone: '+1-555-456-7890',
+  },
 ];
 
 const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = ({
   transactionId,
   onVerificationSuccess,
   onCancel,
-  isVisible
+  isVisible,
 }) => {
   const { currentTransaction } = useWorkflow();
   const [writtenPassword, setWrittenPassword] = useState('');
@@ -50,27 +50,27 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
   const [selectedManager, setSelectedManager] = useState<PortfolioManager | null>(null);
   const [passwordSent, setPasswordSent] = useState(false);
   const [notificationMethod, setNotificationMethod] = useState<'email' | 'sms' | 'app'>('email');
-  
+
   // Demo verification password - would be generated and stored securely in a real app
   // Format: EVA-PM-[Manager ID]-[Random 5 chars]
   const [demoPassword, setDemoPassword] = useState('');
-  
+
   useEffect(() => {
     if (selectedManager) {
       generateNewPassword();
     }
   }, [selectedManager]);
-  
+
   // Generate a random password for demo purposes
   const generateNewPassword = () => {
     if (!selectedManager) return;
-    
+
     const randomChars = Math.random().toString(36).substring(2, 7).toUpperCase();
     const generatedPassword = `EVA-PM-${selectedManager.id.toUpperCase()}-${randomChars}`;
     setDemoPassword(generatedPassword);
     console.log('Demo password generated (for testing only):', generatedPassword);
   };
-  
+
   // For demo - in production this would go to a secure backend service
   const sendNotification = () => {
     if (!selectedManager) {
@@ -79,13 +79,13 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
     }
 
     setVerifying(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       // Log the notification that would be sent
       console.log(`Notification sent to ${selectedManager.name} via ${notificationMethod}:`);
       console.log(`One-time password for transaction ${transactionId}: ${demoPassword}`);
-      
+
       if (notificationMethod === 'email') {
         console.log(`Email sent to: ${selectedManager.email}`);
       } else if (notificationMethod === 'sms') {
@@ -93,16 +93,16 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
       } else {
         console.log(`In-app notification sent to ${selectedManager.id}`);
       }
-      
+
       setPasswordSent(true);
       setVerifying(false);
     }, 1500);
   };
-  
+
   const verifyPassword = () => {
     setVerifying(true);
     setErrorMessage('');
-    
+
     // For demo purposes, directly compare with demoPassword
     // In production, this would be a secure API call to verify the password
     setTimeout(() => {
@@ -114,11 +114,11 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
       setVerifying(false);
     }, 1000);
   };
-  
+
   if (!isVisible) {
     return null;
   }
-  
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-xl">
@@ -128,7 +128,7 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
             Additional security verification required by portfolio manager to close this transaction
           </p>
         </div>
-        
+
         <div className="mb-6">
           <h3 className="font-medium mb-2">Transaction Details</h3>
           <div className="bg-gray-50 p-3 rounded-md">
@@ -140,11 +140,15 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
               <>
                 <div className="flex justify-between mt-1">
                   <span className="text-sm font-medium">Applicant</span>
-                  <span className="text-sm">{currentTransaction.applicantData?.name || 'Unknown'}</span>
+                  <span className="text-sm">
+                    {currentTransaction.applicantData?.name || 'Unknown'}
+                  </span>
                 </div>
                 <div className="flex justify-between mt-1">
                   <span className="text-sm font-medium">Amount</span>
-                  <span className="text-sm">${currentTransaction.amount?.toLocaleString() || '0'}</span>
+                  <span className="text-sm">
+                    ${currentTransaction.amount?.toLocaleString() || '0'}
+                  </span>
                 </div>
               </>
             )}
@@ -155,15 +159,15 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
             </div>
           </div>
         </div>
-        
+
         {!passwordSent ? (
           <div className="mb-6">
             <h3 className="font-medium mb-2">Request Written Password</h3>
             <p className="text-sm text-gray-600 mb-4">
-              To complete this transaction, you need a written password from a portfolio manager. 
+              To complete this transaction, you need a written password from a portfolio manager.
               This is an extra security measure to prevent fraud.
             </p>
-            
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Select Portfolio Manager
@@ -171,7 +175,7 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
               <select
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 value={selectedManager?.id || ''}
-                onChange={(e) => {
+                onChange={e => {
                   const manager = demoPortfolioManagers.find(m => m.id === e.target.value);
                   setSelectedManager(manager || null);
                 }}
@@ -184,7 +188,7 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
                 ))}
               </select>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Notification Method
@@ -225,7 +229,7 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
                 </label>
               </div>
             </div>
-            
+
             <button
               type="button"
               onClick={sendNotification}
@@ -241,7 +245,7 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
             <p className="text-sm text-gray-600 mb-4">
               Please enter the written password provided by {selectedManager?.name}.
             </p>
-            
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Written Password
@@ -250,17 +254,15 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
                 type="text"
                 placeholder="EVA-PM-XXXX-XXXXX"
                 value={writtenPassword}
-                onChange={(e) => setWrittenPassword(e.target.value)}
+                onChange={e => setWrittenPassword(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Written passwords are case-sensitive and follow the format: EVA-PM-XXXX-XXXXX
               </p>
-              {errorMessage && (
-                <p className="text-xs text-red-600 mt-1">{errorMessage}</p>
-              )}
+              {errorMessage && <p className="text-xs text-red-600 mt-1">{errorMessage}</p>}
             </div>
-            
+
             <div className="flex space-x-2">
               <button
                 type="button"
@@ -270,7 +272,7 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
               >
                 {verifying ? 'Verifying...' : 'Verify Password'}
               </button>
-              
+
               <button
                 type="button"
                 onClick={() => {
@@ -285,7 +287,7 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
             </div>
           </div>
         )}
-        
+
         <div className="flex justify-end border-t border-gray-200 pt-4">
           <button
             type="button"
@@ -295,19 +297,24 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
             Cancel
           </button>
         </div>
-        
+
         <div className="mt-4 bg-blue-50 p-3 rounded-md text-xs text-blue-800">
           <p>
-            Written passwords are issued to portfolio managers and are used to verify high-value or sensitive transactions.
-            This provides an additional human verification layer for security.
+            Written passwords are issued to portfolio managers and are used to verify high-value or
+            sensitive transactions. This provides an additional human verification layer for
+            security.
           </p>
         </div>
-        
+
         {/* For DEMO purposes only - would not exist in production */}
         {process.env.NODE_ENV === 'development' && demoPassword && (
           <div className="mt-4 border border-dashed border-red-300 bg-red-50 p-3 rounded-md">
-            <p className="text-xs font-medium text-red-800 mb-1">DEMO PASSWORD (for testing only):</p>
-            <p className="text-sm font-mono bg-white p-2 rounded border border-red-200">{demoPassword}</p>
+            <p className="text-xs font-medium text-red-800 mb-1">
+              DEMO PASSWORD (for testing only):
+            </p>
+            <p className="text-sm font-mono bg-white p-2 rounded border border-red-200">
+              {demoPassword}
+            </p>
           </div>
         )}
       </div>
@@ -315,4 +322,4 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
   );
 };
 
-export default WrittenPasswordVerification; 
+export default WrittenPasswordVerification;

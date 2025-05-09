@@ -13,13 +13,13 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   onUploadComplete,
   onCancel,
   documentTypes = ['Contract', 'Invoice', 'Statement', 'Tax Form', 'Identity Document', 'Other'],
-  allowedFileTypes = ['.pdf', '.docx', '.jpg', '.png']
+  allowedFileTypes = ['.pdf', '.docx', '.jpg', '.png'],
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -27,57 +27,53 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       setError('');
     }
   };
-  
+
   const handleUpload = () => {
     if (!selectedFile) {
       setError('Please select a file to upload');
       return;
     }
-    
+
     if (!documentType) {
       setError('Please select a document type');
       return;
     }
-    
+
     setUploading(true);
-    
+
     // In a real app, this would be an API call to upload the file
     setTimeout(() => {
       const fakeDocumentId = `doc-${Date.now()}`;
       setUploading(false);
-      
+
       if (onUploadComplete) {
         onUploadComplete(fakeDocumentId);
       }
     }, 1500);
   };
-  
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-lg font-medium text-gray-900 mb-4">Upload Document</h2>
-      
+
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Document Type
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
         <select
           value={documentType}
-          onChange={(e) => setDocumentType(e.target.value)}
+          onChange={e => setDocumentType(e.target.value)}
           className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
         >
           <option value="">-- Select document type --</option>
-          {documentTypes.map((type) => (
+          {documentTypes.map(type => (
             <option key={type} value={type}>
               {type}
             </option>
           ))}
         </select>
       </div>
-      
+
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Select File
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Select File</label>
         <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
           <div className="space-y-1 text-center">
             <svg
@@ -111,9 +107,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
               </label>
               <p className="pl-1">or drag and drop</p>
             </div>
-            <p className="text-xs text-gray-500">
-              {allowedFileTypes.join(', ')} up to 10MB
-            </p>
+            <p className="text-xs text-gray-500">{allowedFileTypes.join(', ')} up to 10MB</p>
           </div>
         </div>
         {selectedFile && (
@@ -122,13 +116,9 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
           </p>
         )}
       </div>
-      
-      {error && (
-        <div className="mb-4 p-2 bg-red-50 text-red-700 text-sm rounded-md">
-          {error}
-        </div>
-      )}
-      
+
+      {error && <div className="mb-4 p-2 bg-red-50 text-red-700 text-sm rounded-md">{error}</div>}
+
       <div className="flex justify-end space-x-2">
         {onCancel && (
           <button
@@ -152,4 +142,4 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   );
 };
 
-export default DocumentUpload; 
+export default DocumentUpload;

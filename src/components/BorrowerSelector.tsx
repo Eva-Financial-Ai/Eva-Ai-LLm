@@ -37,7 +37,7 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
         // In a real implementation, this would be an API call
         // For demo, using mock data
         await new Promise(resolve => setTimeout(resolve, 800));
-        
+
         const mockBorrowers: Borrower[] = [
           {
             id: 'brw-001',
@@ -52,7 +52,7 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
             address: '123 Innovation Dr',
             city: 'San Francisco',
             state: 'CA',
-            zipCode: '94105'
+            zipCode: '94105',
           },
           {
             id: 'brw-002',
@@ -67,7 +67,7 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
             address: '456 Market St',
             city: 'San Francisco',
             state: 'CA',
-            zipCode: '94103'
+            zipCode: '94103',
           },
           {
             id: 'brw-003',
@@ -82,7 +82,7 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
             address: '789 Cedar Ave',
             city: 'Oakland',
             state: 'CA',
-            zipCode: '94610'
+            zipCode: '94610',
           },
           {
             id: 'brw-004',
@@ -96,7 +96,7 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
             address: '555 Maple Ln',
             city: 'San Jose',
             state: 'CA',
-            zipCode: '95113'
+            zipCode: '95113',
           },
           {
             id: 'brw-005',
@@ -111,10 +111,10 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
             address: '321 Oak St',
             city: 'Pleasanton',
             state: 'CA',
-            zipCode: '94588'
-          }
+            zipCode: '94588',
+          },
         ];
-        
+
         setBorrowers(mockBorrowers);
         setFilteredBorrowers(mockBorrowers);
         setLoading(false);
@@ -123,7 +123,7 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
         setLoading(false);
       }
     };
-    
+
     fetchBorrowers();
   }, []);
 
@@ -133,15 +133,16 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
       setFilteredBorrowers(borrowers);
       return;
     }
-    
+
     const term = searchTerm.toLowerCase();
-    const filtered = borrowers.filter(borrower => 
-      borrower.businessName.toLowerCase().includes(term) ||
-      borrower.contactName.toLowerCase().includes(term) ||
-      borrower.email.toLowerCase().includes(term) ||
-      borrower.taxId.includes(term)
+    const filtered = borrowers.filter(
+      borrower =>
+        borrower.businessName.toLowerCase().includes(term) ||
+        borrower.contactName.toLowerCase().includes(term) ||
+        borrower.email.toLowerCase().includes(term) ||
+        borrower.taxId.includes(term)
     );
-    
+
     setFilteredBorrowers(filtered);
   }, [searchTerm, borrowers]);
 
@@ -160,7 +161,7 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
             <input
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               placeholder="Search by name, email, or tax ID"
               className="w-full p-2 pr-10 border border-gray-300 rounded-md text-gray-700 bg-white focus:ring-primary-500 focus:border-primary-500"
             />
@@ -180,7 +181,7 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
           </div>
         )}
       </div>
-      
+
       <div className="overflow-hidden">
         {loading ? (
           <div className="flex justify-center items-center py-10">
@@ -195,25 +196,38 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 sticky top-0">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tax ID</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Business Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Contact
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tax ID
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredBorrowers.map(borrower => (
-                  <tr 
-                    key={borrower.id} 
+                  <tr
+                    key={borrower.id}
                     className={`hover:bg-blue-50 transition-colors duration-150 cursor-pointer ${selectedBorrower?.id === borrower.id ? 'bg-blue-50' : ''}`}
                     onClick={() => handleSelectBorrower(borrower)}
                   >
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{borrower.businessName}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {borrower.businessName}
+                      </div>
                       {borrower.lastTransactionDate && (
                         <div className="text-xs text-gray-500">
-                          Last transaction: {new Date(borrower.lastTransactionDate).toLocaleDateString()}
+                          Last transaction:{' '}
+                          {new Date(borrower.lastTransactionDate).toLocaleDateString()}
                         </div>
                       )}
                     </td>
@@ -225,25 +239,39 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
                       {borrower.taxId}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        borrower.status === 'active' ? 'bg-green-100 text-green-800' :
-                        borrower.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          borrower.status === 'active'
+                            ? 'bg-green-100 text-green-800'
+                            : borrower.status === 'inactive'
+                              ? 'bg-gray-100 text-gray-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
                         {borrower.status.charAt(0).toUpperCase() + borrower.status.slice(1)}
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">
                       <button
                         type="button"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation(); // Prevent row click event
                           handleSelectBorrower(borrower);
                         }}
                         className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                       >
-                        <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <svg
+                          className="h-4 w-4 mr-1"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                         Select
                       </button>
@@ -259,4 +287,4 @@ const BorrowerSelector: React.FC<BorrowerSelectorProps> = ({ onSelect, showSearc
   );
 };
 
-export default BorrowerSelector; 
+export default BorrowerSelector;

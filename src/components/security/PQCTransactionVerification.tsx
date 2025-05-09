@@ -37,19 +37,20 @@ interface VerificationStatus {
 const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
   transaction,
   onVerificationComplete,
-  onCancel
+  onCancel,
 }) => {
-  const { isReady, signData, verifySignature, verifyTransaction, sessionTimeRemaining } = usePQCryptography();
-  
+  const { isReady, signData, verifySignature, verifyTransaction, sessionTimeRemaining } =
+    usePQCryptography();
+
   const [currentRole, setCurrentRole] = useState<'sender' | 'receiver'>('sender');
   const [passphrase, setPassphrase] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>({
     sender: { verified: false },
-    receiver: { verified: false }
+    receiver: { verified: false },
   });
-  
+
   // Determine if written password verification is required
   const isHighValueTransaction = transaction?.amount >= 100000;
   const [showWrittenPasswordVerification, setShowWrittenPasswordVerification] = useState(false);
@@ -63,16 +64,20 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
       id: transaction.senderId || '1001',
       name: transaction.senderName || 'Financial Corp LLC',
       role: 'lender',
-      publicKey: transaction.senderPublicKey || 'dilithium-pk-7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e'
+      publicKey:
+        transaction.senderPublicKey ||
+        'dilithium-pk-7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e',
     },
     receiver: {
       id: transaction.receiverId || '1002',
       name: transaction.receiverName || 'John Smith',
       role: 'borrower',
-      publicKey: transaction.receiverPublicKey || 'dilithium-pk-1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b'
-    }
+      publicKey:
+        transaction.receiverPublicKey ||
+        'dilithium-pk-1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
+    },
   });
-  
+
   useEffect(() => {
     // If both parties have verified, check if written password is required
     if (verificationStatus.sender.verified && verificationStatus.receiver.verified) {
@@ -84,7 +89,7 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
       }
     }
   }, [verificationStatus]);
-  
+
   const completeVerification = () => {
     const verifiedTransaction = {
       ...transaction,
@@ -92,34 +97,34 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
         sender: {
           signature: verificationStatus.sender.signature,
           timestamp: verificationStatus.sender.timestamp,
-          publicKey: parties.sender.publicKey
+          publicKey: parties.sender.publicKey,
         },
         receiver: {
           signature: verificationStatus.receiver.signature,
           timestamp: verificationStatus.receiver.timestamp,
-          publicKey: parties.receiver.publicKey
+          publicKey: parties.receiver.publicKey,
         },
         writtenPassword: verificationStatus.writtenPassword,
-        blockchainStatus: 'pending'
-      }
+        blockchainStatus: 'pending',
+      },
     };
-    
+
     onVerificationComplete(true, verifiedTransaction);
   };
-  
+
   const handleSignTransaction = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // In a real app, this would be handled by the user's secure wallet or HSM
       // For this demo, we'll simulate the signing process
-      
+
       // Validate passphrase (in a real app, this would use the private key)
       if (passphrase !== 'quantum') {
         throw new Error('Invalid passphrase. Use "quantum" for this demo.');
       }
-      
+
       // Create a string representation of the transaction to sign
       const transactionData = JSON.stringify({
         id: transaction.id,
@@ -130,39 +135,39 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
         details: transaction.details || {},
         // Add any other relevant transaction data
       });
-      
+
       // Mock private key (in a real app, this would be securely stored)
-      const mockPrivateKey = currentRole === 'sender'
-        ? 'dilithium-sk-7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e'
-        : 'dilithium-sk-1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b';
-      
+      const mockPrivateKey =
+        currentRole === 'sender'
+          ? 'dilithium-sk-7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e'
+          : 'dilithium-sk-1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b';
+
       // Sign the transaction data
       const signature = await signData(transactionData, mockPrivateKey);
       const timestamp = new Date().toISOString();
-      
+
       // Update verification status
       setVerificationStatus(prev => ({
         ...prev,
         [currentRole]: {
           verified: true,
           signature,
-          timestamp
-        }
+          timestamp,
+        },
       }));
-      
+
       // If sender is verifying, switch to receiver role
       if (currentRole === 'sender' && !verificationStatus.receiver.verified) {
         setCurrentRole('receiver');
         setPassphrase('');
       }
-      
     } catch (err: any) {
       setError(err.message || 'Transaction signing failed');
     } finally {
       setLoading(false);
     }
   };
-  
+
   const handleWrittenPasswordVerification = (success: boolean, verificationDetails: any) => {
     if (success) {
       setVerificationStatus(prev => ({
@@ -171,12 +176,12 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
           verified: true,
           portfolioManagerId: verificationDetails.portfolioManagerId,
           portfolioManagerName: verificationDetails.portfolioManagerName,
-          timestamp: verificationDetails.timestamp
-        }
+          timestamp: verificationDetails.timestamp,
+        },
       }));
-      
+
       setShowWrittenPasswordVerification(false);
-      
+
       // Complete the verification process
       setTimeout(() => {
         completeVerification();
@@ -186,7 +191,7 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
       setShowWrittenPasswordVerification(false);
     }
   };
-  
+
   // Render loading spinner when PQC modules are initializing
   if (!isReady) {
     return (
@@ -198,7 +203,7 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
       </div>
     );
   }
-  
+
   // Show written password verification if needed
   if (showWrittenPasswordVerification) {
     return (
@@ -209,7 +214,7 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
       />
     );
   }
-  
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="text-center mb-6">
@@ -221,13 +226,13 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
           Session time remaining: {sessionTimeRemaining} seconds
         </div>
       </div>
-      
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
-      
+
       <div className="mb-6">
         <h3 className="text-md font-medium text-gray-900 mb-2">Transaction Details</h3>
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -254,7 +259,7 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
               <p className="text-sm font-medium">{new Date().toLocaleDateString()}</p>
             </div>
           </div>
-          
+
           {transaction.approvedDeal && (
             <div className="mt-4 pt-4 border-t border-gray-200">
               <p className="text-sm font-medium text-gray-900 mb-2">Approved Deal Terms</p>
@@ -269,7 +274,9 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
                 </div>
                 <div>
                   <p className="text-gray-500">Payment</p>
-                  <p className="font-medium">${transaction.approvedDeal.payment?.toLocaleString()}/mo</p>
+                  <p className="font-medium">
+                    ${transaction.approvedDeal.payment?.toLocaleString()}/mo
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500">Type</p>
@@ -280,12 +287,14 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
           )}
         </div>
       </div>
-      
+
       <div className="mb-6">
         <h3 className="text-md font-medium text-gray-900 mb-2">Verification Status</h3>
         <div className="bg-gray-50 rounded-lg overflow-hidden">
           {/* Sender Verification */}
-          <div className={`p-4 border-b border-gray-200 ${currentRole === 'sender' ? 'bg-blue-50' : ''}`}>
+          <div
+            className={`p-4 border-b border-gray-200 ${currentRole === 'sender' ? 'bg-blue-50' : ''}`}
+          >
             <div className="flex justify-between items-center">
               <div>
                 <div className="flex items-center">
@@ -296,33 +305,43 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Using PQC Dilithium signatures</p>
               </div>
-              
+
               {verificationStatus.sender.verified ? (
                 <div className="flex items-center text-green-600">
-                  <svg className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="h-5 w-5 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   <span className="text-sm font-medium">Verified</span>
                 </div>
+              ) : currentRole === 'sender' ? (
+                <span className="text-xs text-blue-600 font-medium">Current Signer</span>
               ) : (
-                currentRole === 'sender' ? (
-                  <span className="text-xs text-blue-600 font-medium">Current Signer</span>
-                ) : (
-                  <span className="text-xs text-yellow-600">Pending</span>
-                )
+                <span className="text-xs text-yellow-600">Pending</span>
               )}
             </div>
-            
+
             {verificationStatus.sender.verified && (
               <div className="mt-2 text-xs text-gray-500">
-                <p>Signed: {new Date(verificationStatus.sender.timestamp || '').toLocaleString()}</p>
+                <p>
+                  Signed: {new Date(verificationStatus.sender.timestamp || '').toLocaleString()}
+                </p>
                 <p className="font-mono text-xs mt-1 truncate">
                   Sig: {verificationStatus.sender.signature?.substring(0, 20)}...
                 </p>
               </div>
             )}
           </div>
-          
+
           {/* Receiver Verification */}
           <div className={`p-4 ${currentRole === 'receiver' ? 'bg-blue-50' : ''}`}>
             <div className="flex justify-between items-center">
@@ -335,33 +354,43 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Using PQC Dilithium signatures</p>
               </div>
-              
+
               {verificationStatus.receiver.verified ? (
                 <div className="flex items-center text-green-600">
-                  <svg className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="h-5 w-5 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   <span className="text-sm font-medium">Verified</span>
                 </div>
+              ) : currentRole === 'receiver' ? (
+                <span className="text-xs text-blue-600 font-medium">Current Signer</span>
               ) : (
-                currentRole === 'receiver' ? (
-                  <span className="text-xs text-blue-600 font-medium">Current Signer</span>
-                ) : (
-                  <span className="text-xs text-yellow-600">Pending</span>
-                )
+                <span className="text-xs text-yellow-600">Pending</span>
               )}
             </div>
-            
+
             {verificationStatus.receiver.verified && (
               <div className="mt-2 text-xs text-gray-500">
-                <p>Signed: {new Date(verificationStatus.receiver.timestamp || '').toLocaleString()}</p>
+                <p>
+                  Signed: {new Date(verificationStatus.receiver.timestamp || '').toLocaleString()}
+                </p>
                 <p className="font-mono text-xs mt-1 truncate">
                   Sig: {verificationStatus.receiver.signature?.substring(0, 20)}...
                 </p>
               </div>
             )}
           </div>
-          
+
           {/* Written Password Section */}
           {isHighValueTransaction && (
             <div className="p-4 border-t border-gray-200 bg-yellow-50">
@@ -373,51 +402,64 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
                       Required
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Written password for high-value transaction</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Written password for high-value transaction
+                  </p>
                 </div>
-                
+
                 {verificationStatus.writtenPassword?.verified ? (
                   <div className="flex items-center text-green-600">
-                    <svg className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="h-5 w-5 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     <span className="text-sm font-medium">Verified</span>
                   </div>
+                ) : verificationStatus.sender.verified && verificationStatus.receiver.verified ? (
+                  <span className="text-xs text-blue-600 font-medium">Next Step</span>
                 ) : (
-                  verificationStatus.sender.verified && verificationStatus.receiver.verified ? (
-                    <span className="text-xs text-blue-600 font-medium">Next Step</span>
-                  ) : (
-                    <span className="text-xs text-yellow-600">Pending</span>
-                  )
+                  <span className="text-xs text-yellow-600">Pending</span>
                 )}
               </div>
-              
+
               {verificationStatus.writtenPassword?.verified && (
                 <div className="mt-2 text-xs text-gray-500">
                   <p>Verified by: {verificationStatus.writtenPassword.portfolioManagerName}</p>
-                  <p>Time: {new Date(verificationStatus.writtenPassword.timestamp || '').toLocaleString()}</p>
+                  <p>
+                    Time:{' '}
+                    {new Date(verificationStatus.writtenPassword.timestamp || '').toLocaleString()}
+                  </p>
                 </div>
               )}
             </div>
           )}
         </div>
       </div>
-      
+
       {/* Current Signer Action */}
       {(!verificationStatus.sender.verified || !verificationStatus.receiver.verified) && (
         <div className="mb-6">
           <h3 className="text-md font-medium text-gray-900 mb-2">
             {currentRole === 'sender' ? 'Lender Verification' : 'Borrower Verification'}
           </h3>
-          
+
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
             <p className="text-sm text-blue-800">
               {currentRole === 'sender'
-                ? "As the lender, please verify and approve this transaction by signing with your quantum-resistant key."
-                : "As the borrower, please verify and approve this transaction by signing with your quantum-resistant key."}
+                ? 'As the lender, please verify and approve this transaction by signing with your quantum-resistant key.'
+                : 'As the borrower, please verify and approve this transaction by signing with your quantum-resistant key.'}
             </p>
           </div>
-          
+
           <div className="mb-4">
             <label htmlFor="passphrase" className="block text-sm font-medium text-gray-700 mb-1">
               Verification Passphrase
@@ -426,7 +468,7 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
               id="passphrase"
               type="password"
               value={passphrase}
-              onChange={(e) => setPassphrase(e.target.value)}
+              onChange={e => setPassphrase(e.target.value)}
               placeholder="Enter 'quantum' for this demo"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
             />
@@ -434,7 +476,7 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
               In a real app, this would use your hardware security module or secure wallet
             </p>
           </div>
-          
+
           <button
             onClick={handleSignTransaction}
             disabled={loading || !passphrase}
@@ -451,7 +493,7 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
           </button>
         </div>
       )}
-      
+
       <div className="flex justify-between">
         <button
           onClick={onCancel}
@@ -459,26 +501,31 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
         >
           Cancel
         </button>
-        
-        {verificationStatus.sender.verified && verificationStatus.receiver.verified && !isHighValueTransaction && (
-          <button
-            onClick={completeVerification}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-          >
-            Submit to Blockchain
-          </button>
-        )}
-        
-        {verificationStatus.sender.verified && verificationStatus.receiver.verified && isHighValueTransaction && !verificationStatus.writtenPassword?.verified && (
-          <button
-            onClick={() => setShowWrittenPasswordVerification(true)}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-          >
-            Continue to Password Verification
-          </button>
-        )}
+
+        {verificationStatus.sender.verified &&
+          verificationStatus.receiver.verified &&
+          !isHighValueTransaction && (
+            <button
+              onClick={completeVerification}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              Submit to Blockchain
+            </button>
+          )}
+
+        {verificationStatus.sender.verified &&
+          verificationStatus.receiver.verified &&
+          isHighValueTransaction &&
+          !verificationStatus.writtenPassword?.verified && (
+            <button
+              onClick={() => setShowWrittenPasswordVerification(true)}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            >
+              Continue to Password Verification
+            </button>
+          )}
       </div>
-      
+
       <div className="mt-6 text-center text-xs text-gray-500">
         <p>
           This transaction is secured with post-quantum cryptography.
@@ -490,4 +537,4 @@ const PQCTransactionVerification: React.FC<PQCTransactionVerificationProps> = ({
   );
 };
 
-export default PQCTransactionVerification; 
+export default PQCTransactionVerification;

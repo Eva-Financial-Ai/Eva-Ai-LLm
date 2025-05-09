@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Set a slightly larger base font size on the html element */
+html {
+  font-size: 18px; /* Or 112.5% if you prefer percentage for 18px from 16px base */
+}
+
 /* Add these dark mode styles to the existing CSS file */
 
 /* Dark mode theme */
@@ -18,7 +23,7 @@
 :root {
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f9fafb;
-  --color-text-primary: #111827;
+  --color-text-primary: #111827; /* Consider a slightly lighter dark gray for better contrast with larger text */
   --color-text-secondary: #6b7280;
   --color-border: #e5e7eb;
 }
@@ -89,7 +94,7 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
-  
+
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -99,19 +104,19 @@
   .responsive-table {
     @apply w-full overflow-x-auto;
   }
-  
+
   /* Ensure text doesn't overflow on small screens */
   .text-truncate {
     @apply truncate;
     max-width: 200px;
   }
-  
+
   @screen sm {
     .text-truncate {
       max-width: 300px;
     }
   }
-  
+
   @screen md {
     .text-truncate {
       max-width: 500px;
@@ -162,30 +167,32 @@
 
 body {
   margin: 0;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* Ensure body inherits the new base font size */
+  font-family:
+    'Helvetica Neue', Helvetica, Arial, sans-serif; /* Fallback to tokens.typography.fontFamily.sans if imported */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #F8F9FA; /* Use light-bg */
-  color: #495057; /* Use light-text */
+  background-color: var(--color-bg-primary); /* Use light-bg equivalent from tokens */
+  color: var(--color-text-primary); /* Use light-text equivalent from tokens */
+  line-height: 1.6; /* Increase base line-height for better readability with larger text */
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 /* Example of using risk-red */
 .error-message {
-  color: #D32F2F; /* risk-red */
-  background-color: #FFEBEE; /* Lighter red background */
-  border: 1px solid #EF9A9A; /* Light red border */
+  color: #d32f2f; /* risk-red */
+  background-color: #ffebee; /* Lighter red background */
+  border: 1px solid #ef9a9a; /* Light red border */
   padding: 0.75rem;
   border-radius: 0.375rem; /* Equivalent to rounded-md */
 }
 
 /* Example of adjusting primary button */
 .button-primary {
-  background-color: #2563EB; /* primary-600 */
+  background-color: #2563eb; /* primary-600 */
   color: white;
   padding: 0.5rem 1rem; /* Equivalent to px-4 py-2 */
   border-radius: 0.375rem; /* Equivalent to rounded-md */
@@ -193,5 +200,5 @@ code {
 }
 
 .button-primary:hover {
-  background-color: #1D4ED8; /* primary-700 */
+  background-color: #1d4ed8; /* primary-700 */
 }

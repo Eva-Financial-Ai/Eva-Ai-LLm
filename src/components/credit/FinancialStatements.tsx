@@ -12,42 +12,42 @@ const FinancialStatements: React.FC<FinancialStatementsProps> = ({ userType }) =
       name: 'Profit & Loss Statement',
       description: 'Most recent financial year',
       required: true,
-      fileType: 'pdf'
+      fileType: 'pdf',
     },
     {
       id: 'fs-2',
       name: 'Balance Sheet',
       description: 'As of last quarter',
       required: true,
-      fileType: 'pdf'
+      fileType: 'pdf',
     },
     {
       id: 'fs-3',
       name: 'Cash Flow Statement',
       description: 'Last 12 months',
       required: false,
-      fileType: 'pdf'
+      fileType: 'pdf',
     },
     {
       id: 'fs-4',
       name: 'Business Bank Statements',
       description: 'Last 3 months',
       required: true,
-      fileType: 'pdf'
-    }
+      fileType: 'pdf',
+    },
   ];
 
   return (
     <div className="financial-statements">
       <h3 className="text-lg font-medium text-gray-900 mb-4">Financial Statements</h3>
-      
+
       {userType === 'borrower' ? (
         <div className="mb-4">
           <p className="text-sm text-gray-700 mb-4">
-            Please upload the following financial statements to support your application.
-            Documents marked as required must be provided to complete your application.
+            Please upload the following financial statements to support your application. Documents
+            marked as required must be provided to complete your application.
           </p>
-          
+
           <div className="financial-statements-list">
             {financialStatements.map(statement => (
               <div key={statement.id} className="p-4 border rounded-md mb-4">
@@ -76,7 +76,7 @@ const FinancialStatements: React.FC<FinancialStatementsProps> = ({ userType }) =
           <p className="text-sm text-gray-700 mb-4">
             View and manage financial statements submitted by the borrower.
           </p>
-          
+
           <div className="financial-statements-list">
             {financialStatements.map(statement => (
               <div key={statement.id} className="p-4 border rounded-md mb-4">
@@ -110,4 +110,4 @@ const FinancialStatements: React.FC<FinancialStatementsProps> = ({ userType }) =
   );
 };
 
-export default FinancialStatements; 
+export default FinancialStatements;

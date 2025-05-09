@@ -11,6 +11,6 @@ declare module 'lodash.debounce' {
     cancel(): void;
     flush(): ReturnType<T>;
   };
-  
+
   export default debounce;
-} 
+}

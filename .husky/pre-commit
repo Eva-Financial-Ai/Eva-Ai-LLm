@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged to format and lint staged files
+npx lint-staged
+
+# Run type checking on staged files
+echo "Running TypeScript type check..."
+npx tsc --noEmit

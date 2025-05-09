@@ -13,29 +13,29 @@ const SafeForms: React.FC<SafeFormsProps> = ({ userType, requestMode }) => {
       name: 'Equipment Finance Application',
       description: 'Standard application for equipment financing',
       requiredFor: ['equipment_finance', 'equipment_lease'],
-      fileType: 'pdf'
+      fileType: 'pdf',
     },
     {
       id: 'form-2',
       name: 'Working Capital Application',
       description: 'Application for short-term working capital',
       requiredFor: ['working_capital', 'line_of_credit'],
-      fileType: 'pdf'
+      fileType: 'pdf',
     },
     {
       id: 'form-3',
       name: 'Commercial Real Estate Form',
       description: 'Commercial real estate loan application',
       requiredFor: ['commercial_real_estate'],
-      fileType: 'pdf'
+      fileType: 'pdf',
     },
     {
       id: 'form-4',
       name: 'Business Information Form',
       description: 'General business information collection',
       requiredFor: ['all'],
-      fileType: 'pdf'
-    }
+      fileType: 'pdf',
+    },
   ];
 
   return (
@@ -53,15 +53,11 @@ const SafeForms: React.FC<SafeFormsProps> = ({ userType, requestMode }) => {
                 <p className="text-sm text-gray-600">{template.description}</p>
               </div>
               {requestMode ? (
-                <button 
-                  className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm"
-                >
+                <button className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm">
                   Request
                 </button>
               ) : (
-                <button 
-                  className="px-3 py-1 bg-green-600 text-white rounded-md text-sm"
-                >
+                <button className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">
                   Fill Form
                 </button>
               )}
@@ -73,4 +69,4 @@ const SafeForms: React.FC<SafeFormsProps> = ({ userType, requestMode }) => {
   );
 };
 
-export default SafeForms; 
+export default SafeForms;

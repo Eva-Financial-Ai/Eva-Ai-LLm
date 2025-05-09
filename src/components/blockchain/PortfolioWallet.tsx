@@ -6,7 +6,14 @@ interface Asset {
   id: string;
   tokenId: string;
   name: string;
-  type: 'real_estate' | 'equipment' | 'vehicle' | 'intellectual_property' | 'account_receivable' | 'inventory' | 'other';
+  type:
+    | 'real_estate'
+    | 'equipment'
+    | 'vehicle'
+    | 'intellectual_property'
+    | 'account_receivable'
+    | 'inventory'
+    | 'other';
   value: number;
   description: string;
   acquisitionDate: Date;
@@ -53,8 +60,10 @@ interface PortfolioWalletProps {
 
 // Component
 const PortfolioWallet: React.FC<PortfolioWalletProps> = ({ userId, isOpen = false, onClose }) => {
-  const [balance, setBalance] = useState<string>("0.00");
-  const [assets, setAssets] = useState<Array<{id: string, name: string, amount: string, value: string}>>([]);
+  const [balance, setBalance] = useState<string>('0.00');
+  const [assets, setAssets] = useState<
+    Array<{ id: string; name: string; amount: string; value: string }>
+  >([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Placeholder for future blockchain integration
@@ -62,10 +71,10 @@ const PortfolioWallet: React.FC<PortfolioWalletProps> = ({ userId, isOpen = fals
     setIsLoading(true);
     // Mock loading state
     setTimeout(() => {
-      setBalance("125,000.00");
+      setBalance('125,000.00');
       setAssets([
-        { id: "asset-1", name: "Commercial Paper A", amount: "50,000", value: "50,000.00" },
-        { id: "asset-2", name: "Equipment Loan B", amount: "75,000", value: "75,000.00" }
+        { id: 'asset-1', name: 'Commercial Paper A', amount: '50,000', value: '50,000.00' },
+        { id: 'asset-2', name: 'Equipment Loan B', amount: '75,000', value: '75,000.00' },
       ]);
       setIsLoading(false);
     }, 1500);
@@ -79,13 +88,15 @@ const PortfolioWallet: React.FC<PortfolioWalletProps> = ({ userId, isOpen = fals
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Portfolio Wallet</h2>
           {onClose && (
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
               <span className="sr-only">Close</span>
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           )}
@@ -140,4 +151,4 @@ const PortfolioWallet: React.FC<PortfolioWalletProps> = ({ userId, isOpen = fals
   );
 };
 
-export default PortfolioWallet; 
+export default PortfolioWallet;

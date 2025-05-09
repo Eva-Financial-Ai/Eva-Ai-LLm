@@ -24,16 +24,16 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
   transactions,
   activities,
   dueDiligence,
-  trends
+  trends,
 }) => {
   const { userType } = useUserType();
-  
+
   // Handler for view transaction clicks
   const handleViewTransaction = (id: string) => {
     console.log(`View transaction ${id}`);
     // In a real app, this would navigate to the transaction detail page
   };
-  
+
   if (!userType) {
     return (
       <div className="animate-pulse bg-gray-100 rounded-lg p-6">
@@ -48,12 +48,12 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
       </div>
     );
   }
-  
+
   const dashboardConfig = getDashboardConfig(userType);
-  
+
   // Sort widgets by priority
   const sortedWidgets = [...dashboardConfig.widgets].sort((a, b) => a.priority - b.priority);
-  
+
   // Render a specific widget based on its type
   const renderWidget = (widget: any) => {
     switch (widget.type) {
@@ -68,7 +68,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
             color="blue"
           />
         );
-        
+
       case DashboardWidgetType.DEAL_VOLUME:
         return (
           <MetricCard
@@ -80,7 +80,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
             color="green"
           />
         );
-        
+
       case DashboardWidgetType.PROCESSING_TIME:
         return (
           <MetricCard
@@ -92,7 +92,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
             color="indigo"
           />
         );
-        
+
       case DashboardWidgetType.COMPLETED_DEALS:
         return (
           <MetricCard
@@ -104,28 +104,30 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
             color="purple"
           />
         );
-        
+
       case DashboardWidgetType.DEAL_PROGRESS:
         return <DealProgressCard />;
-        
+
       case DashboardWidgetType.DEAL_TABLE:
-        return <DealsTable 
-          transactions={transactions} 
-          title={widget.title || "Active Deals"} 
-          onViewTransaction={handleViewTransaction}
-        />;
-        
+        return (
+          <DealsTable
+            transactions={transactions}
+            title={widget.title || 'Active Deals'}
+            onViewTransaction={handleViewTransaction}
+          />
+        );
+
       case DashboardWidgetType.DUE_DILIGENCE:
         return dueDiligence ? (
-          <DueDiligenceProgress 
-            categories={dueDiligence} 
-            title={widget.title || "Due Diligence Status"} 
+          <DueDiligenceProgress
+            categories={dueDiligence}
+            title={widget.title || 'Due Diligence Status'}
           />
         ) : null;
-        
+
       case DashboardWidgetType.RECENT_ACTIVITIES:
         return <RecentActivities activities={activities} />;
-        
+
       case DashboardWidgetType.DOCUMENT_STATUS:
         return (
           <div className="bg-white rounded-lg shadow p-6">
@@ -133,20 +135,24 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Business Registration</span>
-                <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800">Completed</span>
+                <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800">
+                  Completed
+                </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Financial Statements</span>
-                <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800">In Progress</span>
+                <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800">
+                  In Progress
+                </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '60%' }}></div>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Bank Statements</span>
                 <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-800">Required</span>
@@ -154,7 +160,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div className="bg-red-500 h-2 rounded-full" style={{ width: '0%' }}></div>
               </div>
-              
+
               <div className="mt-4 text-right">
                 <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
                   Upload Documents →
@@ -163,7 +169,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
             </div>
           </div>
         );
-        
+
       case DashboardWidgetType.ESTIMATED_COMPLETION:
         return (
           <MetricCard
@@ -175,7 +181,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
             color="green"
           />
         );
-        
+
       case DashboardWidgetType.VENDOR_INVENTORY:
         return (
           <div className="bg-white rounded-lg shadow p-6">
@@ -184,19 +190,34 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       Equipment
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       Category
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       Price
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       Status
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       Interest
                     </th>
                   </tr>
@@ -204,7 +225,9 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
                 <tbody className="bg-white divide-y divide-gray-200">
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">CNC Milling Machine Model X500</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        CNC Milling Machine Model X500
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">Manufacturing</div>
@@ -223,7 +246,9 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
                   </tr>
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">Industrial Conveyor System</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        Industrial Conveyor System
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">Logistics</div>
@@ -245,7 +270,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
             </div>
           </div>
         );
-      
+
       case DashboardWidgetType.FINANCING_OPTIONS:
         return (
           <div className="bg-white rounded-lg shadow p-6">
@@ -265,7 +290,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
                   </button>
                 </div>
               </div>
-              
+
               <div className="p-4 border border-gray-200 rounded-lg">
                 <div className="flex justify-between items-center">
                   <h4 className="text-md font-medium">Equipment Financing</h4>
@@ -283,7 +308,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
             </div>
           </div>
         );
-      
+
       case DashboardWidgetType.COMMISSION_FORECAST:
         return (
           <div className="bg-white rounded-lg shadow p-6">
@@ -313,7 +338,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
             </div>
           </div>
         );
-      
+
       case DashboardWidgetType.CLIENT_PIPELINE:
         return (
           <div className="bg-white rounded-lg shadow p-6">
@@ -350,12 +375,12 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
             </div>
           </div>
         );
-      
+
       default:
         return null;
     }
   };
-  
+
   // Get column class based on widget width
   const getWidgetColumnClass = (width: string): string => {
     switch (width) {
@@ -371,7 +396,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
         return 'lg:col-span-6';
     }
   };
-  
+
   // Get height class based on widget height
   const getWidgetHeightClass = (height: string): string => {
     switch (height) {
@@ -385,7 +410,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
         return 'h-auto';
     }
   };
-  
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
@@ -404,10 +429,10 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
           ))}
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
         {sortedWidgets.map((widget, index) => (
-          <div 
+          <div
             key={index}
             className={`${getWidgetColumnClass(widget.width)} ${getWidgetHeightClass(widget.height)}`}
           >
@@ -424,7 +449,7 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
           </div>
         ))}
       </div>
-      
+
       {dashboardConfig.secondaryActions.length > 0 && (
         <div className="mt-8 border-t border-gray-200 pt-4">
           <div className="flex flex-wrap gap-2">
@@ -443,4 +468,4 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
   );
 };
 
-export default DynamicDashboard; 
+export default DynamicDashboard;

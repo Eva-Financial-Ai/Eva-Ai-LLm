@@ -9,8 +9,8 @@ export const mockLoginResponse = {
     id: 'user-123',
     name: 'Test User',
     email: 'test@example.com',
-    role: 'admin'
-  }
+    role: 'admin',
+  },
 };
 
 export interface MockTransaction {
@@ -53,16 +53,16 @@ export const mockTransactions: MockTransaction[] = [
       id: 'APP-123456',
       name: 'QRS Manufacturing',
       entityType: 'Corporation',
-      industryCode: 'MANUFACTURING'
+      industryCode: 'MANUFACTURING',
     },
     type: 'Equipment Financing',
     amount: 250000,
     details: {
       equipmentType: 'CNC Machine',
       term: 60,
-      interestRate: 5.75
+      interestRate: 5.75,
     },
-    currentStage: 'document_collection'
+    currentStage: 'document_collection',
   },
   {
     id: 'TX-12346',
@@ -70,35 +70,40 @@ export const mockTransactions: MockTransaction[] = [
       id: 'APP-123457',
       name: 'ABC Corp',
       entityType: 'LLC',
-      industryCode: 'TECHNOLOGY'
+      industryCode: 'TECHNOLOGY',
     },
     type: 'Working Capital',
     amount: 100000,
     details: {
       purpose: 'Expansion',
       term: 36,
-      interestRate: 7.25
+      interestRate: 7.25,
     },
     currentStage: 'risk_assessment',
     riskProfile: {
       overallScore: 75,
       creditScore: {
         business: 82,
-        personal: 710
+        personal: 710,
       },
       financialRatios: [
         { name: 'Debt to Income', value: 0.38, benchmark: '< 0.4', status: 'warning' },
         { name: 'Current Ratio', value: 1.75, benchmark: '> 1.5', status: 'good' },
         { name: 'Quick Ratio', value: 1.2, benchmark: '> 1.0', status: 'good' },
-        { name: 'Operating Margin', value: 0.15, benchmark: '> 0.2', status: 'warning' }
+        { name: 'Operating Margin', value: 0.15, benchmark: '> 0.2', status: 'warning' },
       ],
       riskFactors: [
         { category: 'Business', name: 'Time in Business', value: '4 years', impact: 'neutral' },
         { category: 'Financial', name: 'Cash Reserves', value: '$65,000', impact: 'positive' },
-        { category: 'Industry', name: 'Technology Sector Growth', value: 'Strong', impact: 'positive' },
-        { category: 'Market', name: 'Competition Intensity', value: 'High', impact: 'negative' }
-      ]
-    }
+        {
+          category: 'Industry',
+          name: 'Technology Sector Growth',
+          value: 'Strong',
+          impact: 'positive',
+        },
+        { category: 'Market', name: 'Competition Intensity', value: 'High', impact: 'negative' },
+      ],
+    },
   },
   {
     id: 'TX-12347',
@@ -106,16 +111,16 @@ export const mockTransactions: MockTransaction[] = [
       id: 'APP-123458',
       name: 'XYZ Properties',
       entityType: 'Partnership',
-      industryCode: 'REAL_ESTATE'
+      industryCode: 'REAL_ESTATE',
     },
     type: 'Real Estate',
     amount: 750000,
     details: {
       propertyType: 'Commercial',
       term: 240,
-      interestRate: 4.5
+      interestRate: 4.5,
     },
-    currentStage: 'deal_structuring'
+    currentStage: 'deal_structuring',
   },
   {
     id: 'TX-12348',
@@ -123,16 +128,16 @@ export const mockTransactions: MockTransaction[] = [
       id: 'APP-123459',
       name: 'LMN Enterprises',
       entityType: 'Corporation',
-      industryCode: 'RETAIL'
+      industryCode: 'RETAIL',
     },
     type: 'Expansion Loan',
     amount: 500000,
     details: {
       purpose: 'New Location',
       term: 84,
-      interestRate: 6.0
+      interestRate: 6.0,
     },
-    currentStage: 'document_execution'
+    currentStage: 'document_execution',
   },
   {
     id: 'TX-12349',
@@ -140,41 +145,44 @@ export const mockTransactions: MockTransaction[] = [
       id: 'APP-123460',
       name: 'EFG Retail',
       entityType: 'LLC',
-      industryCode: 'RETAIL'
+      industryCode: 'RETAIL',
     },
     type: 'Inventory Financing',
     amount: 175000,
     details: {
       inventoryType: 'Seasonal',
       term: 12,
-      interestRate: 8.5
+      interestRate: 8.5,
     },
-    currentStage: 'post_closing'
-  }
+    currentStage: 'post_closing',
+  },
 ];
 
 export const mockInsights = [
   {
     category: 'critical' as 'critical',
     title: 'High Debt to Equity Ratio',
-    description: 'Your debt to equity ratio is above industry benchmarks, indicating higher financial risk.',
+    description:
+      'Your debt to equity ratio is above industry benchmarks, indicating higher financial risk.',
     ratios: ['Debt to Equity'],
-    recommendation: 'Consider reducing debt or increasing equity to improve financial stability.'
+    recommendation: 'Consider reducing debt or increasing equity to improve financial stability.',
   },
   {
     category: 'warning' as 'warning',
     title: 'Below Average Profit Margin',
-    description: 'Your profit margin is slightly below industry benchmarks, which may impact long-term profitability.',
+    description:
+      'Your profit margin is slightly below industry benchmarks, which may impact long-term profitability.',
     ratios: ['Profit Margin'],
-    recommendation: 'Focus on cost reduction strategies or pricing adjustments to improve margins.'
+    recommendation: 'Focus on cost reduction strategies or pricing adjustments to improve margins.',
   },
   {
     category: 'positive' as 'positive',
     title: 'Strong Liquidity Position',
-    description: 'Your quick ratio exceeds industry benchmarks, indicating good short-term financial health.',
+    description:
+      'Your quick ratio exceeds industry benchmarks, indicating good short-term financial health.',
     ratios: ['Quick Ratio', 'Cash Ratio'],
-    recommendation: 'Maintain current liquidity management practices.'
-  }
+    recommendation: 'Maintain current liquidity management practices.',
+  },
 ];
 
 export interface Activity {
@@ -198,8 +206,8 @@ export const mockActivities: Activity[] = [
     userType: UserType.BUSINESS,
     user: {
       name: 'Jamie Smith',
-      avatar: '/avatars/user2.jpg'
-    }
+      avatar: '/avatars/user2.jpg',
+    },
   },
   {
     id: 2,
@@ -209,8 +217,8 @@ export const mockActivities: Activity[] = [
     userType: UserType.LENDER,
     user: {
       name: 'Alex Morgan',
-      avatar: '/avatars/user1.jpg'
-    }
+      avatar: '/avatars/user1.jpg',
+    },
   },
   {
     id: 3,
@@ -220,8 +228,8 @@ export const mockActivities: Activity[] = [
     userType: UserType.BROKERAGE,
     user: {
       name: 'Taylor Jones',
-      avatar: '/avatars/user3.jpg'
-    }
+      avatar: '/avatars/user3.jpg',
+    },
   },
   {
     id: 4,
@@ -231,8 +239,8 @@ export const mockActivities: Activity[] = [
     userType: UserType.BUSINESS,
     user: {
       name: 'Casey Wilson',
-      avatar: '/avatars/user5.jpg'
-    }
+      avatar: '/avatars/user5.jpg',
+    },
   },
   {
     id: 5,
@@ -242,8 +250,8 @@ export const mockActivities: Activity[] = [
     userType: UserType.VENDOR,
     user: {
       name: 'Morgan Davis',
-      avatar: '/avatars/user4.jpg'
-    }
+      avatar: '/avatars/user4.jpg',
+    },
   },
   {
     id: 6,
@@ -253,8 +261,8 @@ export const mockActivities: Activity[] = [
     userType: UserType.BROKERAGE,
     user: {
       name: 'Jamie Rodriguez',
-      avatar: '/avatars/user6.jpg'
-    }
+      avatar: '/avatars/user6.jpg',
+    },
   },
   {
     id: 7,
@@ -264,8 +272,8 @@ export const mockActivities: Activity[] = [
     userType: UserType.LENDER,
     user: {
       name: 'Riley Johnson',
-      avatar: '/avatars/user4.jpg'
-    }
+      avatar: '/avatars/user4.jpg',
+    },
   },
   {
     id: 8,
@@ -275,7 +283,7 @@ export const mockActivities: Activity[] = [
     userType: UserType.VENDOR,
     user: {
       name: 'Morgan Davis',
-      avatar: '/avatars/user4.jpg'
-    }
-  }
-]; 
+      avatar: '/avatars/user4.jpg',
+    },
+  },
+];

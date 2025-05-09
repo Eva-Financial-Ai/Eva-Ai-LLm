@@ -12,7 +12,7 @@ const mockChartDataByMonth = {
       backgroundColor: 'rgba(16, 185, 129, 0.2)', // green
       borderColor: 'rgba(16, 185, 129, 1)',
       borderWidth: 2,
-      tension: 0.4
+      tension: 0.4,
     },
     {
       label: 'Real Estate',
@@ -20,7 +20,7 @@ const mockChartDataByMonth = {
       backgroundColor: 'rgba(79, 70, 229, 0.2)', // indigo
       borderColor: 'rgba(79, 70, 229, 1)',
       borderWidth: 2,
-      tension: 0.4
+      tension: 0.4,
     },
     {
       label: 'General Funding',
@@ -28,9 +28,9 @@ const mockChartDataByMonth = {
       backgroundColor: 'rgba(245, 158, 11, 0.2)', // amber
       borderColor: 'rgba(245, 158, 11, 1)',
       borderWidth: 2,
-      tension: 0.4
-    }
-  ]
+      tension: 0.4,
+    },
+  ],
 };
 
 // Mock chart data by quarters
@@ -43,7 +43,7 @@ const mockChartDataByQuarter = {
       backgroundColor: 'rgba(16, 185, 129, 0.2)', // green
       borderColor: 'rgba(16, 185, 129, 1)',
       borderWidth: 2,
-      tension: 0.4
+      tension: 0.4,
     },
     {
       label: 'Real Estate',
@@ -51,7 +51,7 @@ const mockChartDataByQuarter = {
       backgroundColor: 'rgba(79, 70, 229, 0.2)', // indigo
       borderColor: 'rgba(79, 70, 229, 1)',
       borderWidth: 2,
-      tension: 0.4
+      tension: 0.4,
     },
     {
       label: 'General Funding',
@@ -59,9 +59,9 @@ const mockChartDataByQuarter = {
       backgroundColor: 'rgba(245, 158, 11, 0.2)', // amber
       borderColor: 'rgba(245, 158, 11, 1)',
       borderWidth: 2,
-      tension: 0.4
-    }
-  ]
+      tension: 0.4,
+    },
+  ],
 };
 
 // Mock chart data by year
@@ -74,7 +74,7 @@ const mockChartDataByYear = {
       backgroundColor: 'rgba(16, 185, 129, 0.2)', // green
       borderColor: 'rgba(16, 185, 129, 1)',
       borderWidth: 2,
-      tension: 0.4
+      tension: 0.4,
     },
     {
       label: 'Real Estate',
@@ -82,7 +82,7 @@ const mockChartDataByYear = {
       backgroundColor: 'rgba(79, 70, 229, 0.2)', // indigo
       borderColor: 'rgba(79, 70, 229, 1)',
       borderWidth: 2,
-      tension: 0.4
+      tension: 0.4,
     },
     {
       label: 'General Funding',
@@ -90,14 +90,14 @@ const mockChartDataByYear = {
       backgroundColor: 'rgba(245, 158, 11, 0.2)', // amber
       borderColor: 'rgba(245, 158, 11, 1)',
       borderWidth: 2,
-      tension: 0.4
-    }
-  ]
+      tension: 0.4,
+    },
+  ],
 };
 
 export const FundingTrendsChart: React.FC = () => {
   const [timeframe, setTimeframe] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
-  
+
   // Select the data based on the timeframe
   const chartData = () => {
     switch (timeframe) {
@@ -111,7 +111,7 @@ export const FundingTrendsChart: React.FC = () => {
         return mockChartDataByMonth;
     }
   };
-  
+
   // Chart options
   const options = {
     responsive: true,
@@ -120,45 +120,45 @@ export const FundingTrendsChart: React.FC = () => {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: function(tickValue: string | number, index: number, ticks: Tick[]) {
+          callback: function (tickValue: string | number, index: number, ticks: Tick[]) {
             if (typeof tickValue === 'number') {
               return `$${tickValue / 1000}k`;
             }
             return tickValue;
-          }
-        }
-      }
+          },
+        },
+      },
     },
     plugins: {
       legend: {
         position: 'top' as const,
         labels: {
           boxWidth: 12,
-          padding: 15
-        }
+          padding: 15,
+        },
       },
       tooltip: {
         callbacks: {
-          label: function(context: any) {
+          label: function (context: any) {
             let label = context.dataset.label || '';
             if (label) {
               label += ': ';
             }
             if (context.parsed.y !== null) {
-              label += new Intl.NumberFormat('en-US', { 
-                style: 'currency', 
+              label += new Intl.NumberFormat('en-US', {
+                style: 'currency',
                 currency: 'USD',
                 minimumFractionDigits: 0,
-                maximumFractionDigits: 0
+                maximumFractionDigits: 0,
               }).format(context.parsed.y);
             }
             return label;
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   };
-  
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-center mb-6">
@@ -167,8 +167,8 @@ export const FundingTrendsChart: React.FC = () => {
           <button
             type="button"
             className={`relative inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-l-md ${
-              timeframe === 'monthly' 
-                ? 'bg-primary-100 text-primary-700 border border-primary-300' 
+              timeframe === 'monthly'
+                ? 'bg-primary-100 text-primary-700 border border-primary-300'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
             onClick={() => setTimeframe('monthly')}
@@ -178,8 +178,8 @@ export const FundingTrendsChart: React.FC = () => {
           <button
             type="button"
             className={`relative inline-flex items-center px-3 py-1.5 text-sm font-medium ${
-              timeframe === 'quarterly' 
-                ? 'bg-primary-100 text-primary-700 border border-primary-300' 
+              timeframe === 'quarterly'
+                ? 'bg-primary-100 text-primary-700 border border-primary-300'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
             onClick={() => setTimeframe('quarterly')}
@@ -189,8 +189,8 @@ export const FundingTrendsChart: React.FC = () => {
           <button
             type="button"
             className={`relative inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-r-md ${
-              timeframe === 'yearly' 
-                ? 'bg-primary-100 text-primary-700 border border-primary-300' 
+              timeframe === 'yearly'
+                ? 'bg-primary-100 text-primary-700 border border-primary-300'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
             onClick={() => setTimeframe('yearly')}
@@ -206,4 +206,4 @@ export const FundingTrendsChart: React.FC = () => {
   );
 };
 
-export default FundingTrendsChart; 
+export default FundingTrendsChart;

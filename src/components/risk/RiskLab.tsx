@@ -50,4 +50,4 @@ const RiskLab: React.FC = () => {
   );
 };
 
-export default RiskLab; 
+export default RiskLab;

@@ -1,6 +1,6 @@
 declare module 'react-signature-canvas' {
   import * as React from 'react';
-  
+
   export interface SignatureCanvasProps extends React.CanvasHTMLAttributes<HTMLCanvasElement> {
     canvasProps?: React.CanvasHTMLAttributes<HTMLCanvasElement>;
     clearOnResize?: boolean;
@@ -11,7 +11,7 @@ declare module 'react-signature-canvas' {
     backgroundColor?: string;
     onEnd?: () => void;
   }
-  
+
   export default class SignatureCanvas extends React.Component<SignatureCanvasProps> {
     clear(): void;
     isEmpty(): boolean;
@@ -22,4 +22,4 @@ declare module 'react-signature-canvas' {
     fromData(data: Array<any>): void;
     toData(): Array<any>;
   }
-} 
+}

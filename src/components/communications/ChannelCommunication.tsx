@@ -42,12 +42,12 @@ const Modal: React.FC<{
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    
+
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
     }
-    
+
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
@@ -59,14 +59,16 @@ const Modal: React.FC<{
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div 
-          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" 
+        <div
+          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
           onClick={onClose}
           aria-hidden="true"
         ></div>
-        
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        
+
+        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+          &#8203;
+        </span>
+
         <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full p-6">
           <div className="flex justify-between items-center pb-3 border-b border-gray-200 mb-4">
             <h3 className="text-lg font-medium text-gray-900">{title}</h3>
@@ -76,14 +78,23 @@ const Modal: React.FC<{
               onClick={onClose}
             >
               <span className="sr-only">Close</span>
-              <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="h-6 w-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
-          <div className="mt-2">
-            {children}
-          </div>
+          <div className="mt-2">{children}</div>
         </div>
       </div>
     </div>
@@ -95,7 +106,7 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
   onClose,
   channelType,
   contact,
-  onSendCommunication
+  onSendCommunication,
 }) => {
   // State for form fields
   const [message, setMessage] = useState('');
@@ -106,35 +117,35 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
   const [meetingDate, setMeetingDate] = useState('');
   const [meetingTime, setMeetingTime] = useState('');
   const [meetingDuration, setMeetingDuration] = useState(30);
-  
+
   // State for data loading
   const [loading, setLoading] = useState(false);
   const [templates, setTemplates] = useState<CommunicationTemplate[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
-  
+
   // Fetch templates based on channel type
   const fetchTemplates = useCallback(async () => {
     if (!channelType || !contact) return;
-    
+
     setLoading(true);
     setLoadError(null);
-    
+
     try {
       // Use optimized data service for template loading
       const data = await optimizedDataService.fetchData<CommunicationTemplate[]>(
         '/api/communication-templates',
-        { 
-          channelType, 
-          contactType: contact.type 
+        {
+          channelType,
+          contactType: contact.type,
         },
         {
           priority: 'high',
-          onProgress: (progress) => {
+          onProgress: progress => {
             console.log(`Loading templates: ${progress}%`);
-          }
+          },
         }
       );
-      
+
       setTemplates(data || []);
     } catch (error) {
       console.error('Error loading communication templates:', error);
@@ -143,23 +154,26 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
       setLoading(false);
     }
   }, [channelType, contact]);
-  
+
   // Load templates when contact or channel type changes
   useEffect(() => {
     if (isOpen && contact) {
       fetchTemplates();
     }
   }, [isOpen, contact, channelType, fetchTemplates]);
-  
+
   // Apply template to current message
-  const applyTemplate = useCallback((templateId: string) => {
-    const template = templates.find(t => t.id === templateId);
-    if (!template) return;
-    
-    setSubject(template.title);
-    setMessage(template.body.replace(/{name}/g, contact?.name || ''));
-  }, [templates, contact]);
-  
+  const applyTemplate = useCallback(
+    (templateId: string) => {
+      const template = templates.find(t => t.id === templateId);
+      if (!template) return;
+
+      setSubject(template.title);
+      setMessage(template.body.replace(/{name}/g, contact?.name || ''));
+    },
+    [templates, contact]
+  );
+
   // Reset form fields when modal opens with new contact
   useEffect(() => {
     if (isOpen) {
@@ -175,16 +189,16 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
 
   const handleSendEmail = async () => {
     if (!contact) return;
-    
+
     try {
       // In a real app, send using the optimized data service
       await optimizedDataService.uploadData('/api/send-email', {
         recipient: contact.email,
         subject,
         message,
-        contactId: contact.id
+        contactId: contact.id,
       });
-      
+
       // If onSendCommunication is provided, use it to send the communication
       if (onSendCommunication) {
         const fullMessage = `Subject: ${subject}\n\n${message}`;
@@ -202,7 +216,7 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
   const handleSendSMS = () => {
     // In a real app, this would connect to an SMS API
     console.log('Sending SMS:', { to: contact?.phone, message });
-    
+
     // If onSendCommunication is provided, use it to send the communication
     if (onSendCommunication) {
       onSendCommunication(message);
@@ -220,7 +234,7 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
     const timer = setInterval(() => {
       setCallDuration(Math.floor((Date.now() - startTime) / 1000));
     }, 1000);
-    
+
     // Store timer ID in a ref or state to clear it later
     return () => clearInterval(timer);
   };
@@ -229,7 +243,7 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
     // In a real app, this would end the call
     setIsCallInProgress(false);
     console.log(`Call ended after ${callDuration} seconds`);
-    
+
     // If onSendCommunication is provided, use it to send the communication record
     if (onSendCommunication) {
       const callSummary = `Call with ${contact?.name} lasted ${formatTime(callDuration)}`;
@@ -242,14 +256,14 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
 
   const handleScheduleMeeting = () => {
     // In a real app, this would schedule a meeting in a calendar system
-    console.log('Scheduling meeting:', { 
-      with: contact?.name, 
-      date: meetingDate, 
-      time: meetingTime, 
-      durationMinutes: meetingDuration 
+    console.log('Scheduling meeting:', {
+      with: contact?.name,
+      date: meetingDate,
+      time: meetingTime,
+      durationMinutes: meetingDuration,
     });
     setIsMeetingScheduled(true);
-    
+
     // If onSendCommunication is provided, use it to send the communication
     if (onSendCommunication) {
       const meetingDetails = `Meeting scheduled with ${contact?.name} on ${meetingDate} at ${meetingTime} for ${meetingDuration} minutes. Agenda: ${message}`;
@@ -273,18 +287,18 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
   // Memoized function to render the template selector
   const renderTemplateSelector = useMemo(() => {
     if (templates.length === 0) return null;
-    
+
     return (
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Choose a template
-        </label>
-        <select 
+        <label className="block text-sm font-medium text-gray-700 mb-1">Choose a template</label>
+        <select
           className="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-          onChange={(e) => applyTemplate(e.target.value)}
+          onChange={e => applyTemplate(e.target.value)}
           defaultValue=""
         >
-          <option value="" disabled>Select a template</option>
+          <option value="" disabled>
+            Select a template
+          </option>
           {templates.map(template => (
             <option key={template.id} value={template.id}>
               {template.title}
@@ -315,7 +329,9 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
   const renderEmailForm = () => (
     <div className="space-y-4">
       <div>
-        <label htmlFor="email-to" className="block text-sm font-medium text-gray-700">To</label>
+        <label htmlFor="email-to" className="block text-sm font-medium text-gray-700">
+          To
+        </label>
         <input
           type="text"
           id="email-to"
@@ -325,24 +341,28 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
         />
       </div>
       <div>
-        <label htmlFor="email-subject" className="block text-sm font-medium text-gray-700">Subject</label>
+        <label htmlFor="email-subject" className="block text-sm font-medium text-gray-700">
+          Subject
+        </label>
         <input
           type="text"
           id="email-subject"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           value={subject}
-          onChange={(e) => setSubject(e.target.value)}
+          onChange={e => setSubject(e.target.value)}
           placeholder="Enter subject"
         />
       </div>
       <div>
-        <label htmlFor="email-message" className="block text-sm font-medium text-gray-700">Message</label>
+        <label htmlFor="email-message" className="block text-sm font-medium text-gray-700">
+          Message
+        </label>
         <textarea
           id="email-message"
           rows={5}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={e => setMessage(e.target.value)}
           placeholder="Type your message here"
         />
       </div>
@@ -368,7 +388,9 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
   const renderSMSForm = () => (
     <div className="space-y-4">
       <div>
-        <label htmlFor="sms-to" className="block text-sm font-medium text-gray-700">To</label>
+        <label htmlFor="sms-to" className="block text-sm font-medium text-gray-700">
+          To
+        </label>
         <input
           type="text"
           id="sms-to"
@@ -378,13 +400,15 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
         />
       </div>
       <div>
-        <label htmlFor="sms-message" className="block text-sm font-medium text-gray-700">Message</label>
+        <label htmlFor="sms-message" className="block text-sm font-medium text-gray-700">
+          Message
+        </label>
         <textarea
           id="sms-message"
           rows={3}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={e => setMessage(e.target.value)}
           placeholder="Type your message here"
           maxLength={160}
         />
@@ -422,7 +446,7 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
         <h3 className="text-lg font-medium">{contact?.name}</h3>
         <p className="text-gray-500">{contact?.phone || 'No phone number available'}</p>
       </div>
-      
+
       {isCallInProgress ? (
         <div className="space-y-4">
           <div className="text-2xl font-mono">{formatTime(callDuration)}</div>
@@ -432,8 +456,19 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
               className="bg-gray-200 p-4 rounded-full hover:bg-gray-300"
               title="Mute"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                />
               </svg>
             </button>
             <button
@@ -442,8 +477,19 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
               onClick={handleEndCall}
               title="End Call"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z"
+                />
               </svg>
             </button>
             <button
@@ -451,8 +497,19 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
               className="bg-gray-200 p-4 rounded-full hover:bg-gray-300"
               title="Speaker"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                />
               </svg>
             </button>
           </div>
@@ -465,8 +522,19 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
             onClick={handleStartCall}
             disabled={!contact?.phone}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+              />
             </svg>
           </button>
         </div>
@@ -487,7 +555,9 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
   const renderMeetingScheduler = () => (
     <div className="space-y-4">
       <div>
-        <label htmlFor="meeting-with" className="block text-sm font-medium text-gray-700">Meeting with</label>
+        <label htmlFor="meeting-with" className="block text-sm font-medium text-gray-700">
+          Meeting with
+        </label>
         <input
           type="text"
           id="meeting-with"
@@ -498,34 +568,40 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="meeting-date" className="block text-sm font-medium text-gray-700">Date</label>
+          <label htmlFor="meeting-date" className="block text-sm font-medium text-gray-700">
+            Date
+          </label>
           <input
             type="date"
             id="meeting-date"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
             value={meetingDate}
-            onChange={(e) => setMeetingDate(e.target.value)}
+            onChange={e => setMeetingDate(e.target.value)}
             min={new Date().toISOString().split('T')[0]}
           />
         </div>
         <div>
-          <label htmlFor="meeting-time" className="block text-sm font-medium text-gray-700">Time</label>
+          <label htmlFor="meeting-time" className="block text-sm font-medium text-gray-700">
+            Time
+          </label>
           <input
             type="time"
             id="meeting-time"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
             value={meetingTime}
-            onChange={(e) => setMeetingTime(e.target.value)}
+            onChange={e => setMeetingTime(e.target.value)}
           />
         </div>
       </div>
       <div>
-        <label htmlFor="meeting-duration" className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
+        <label htmlFor="meeting-duration" className="block text-sm font-medium text-gray-700">
+          Duration (minutes)
+        </label>
         <select
           id="meeting-duration"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           value={meetingDuration}
-          onChange={(e) => setMeetingDuration(parseInt(e.target.value))}
+          onChange={e => setMeetingDuration(parseInt(e.target.value))}
         >
           <option value={15}>15</option>
           <option value={30}>30</option>
@@ -534,13 +610,15 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
         </select>
       </div>
       <div>
-        <label htmlFor="meeting-agenda" className="block text-sm font-medium text-gray-700">Agenda</label>
+        <label htmlFor="meeting-agenda" className="block text-sm font-medium text-gray-700">
+          Agenda
+        </label>
         <textarea
           id="meeting-agenda"
           rows={3}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={e => setMessage(e.target.value)}
           placeholder="Meeting agenda"
         />
       </div>
@@ -567,13 +645,15 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
   const renderPortalMessage = () => (
     <div className="space-y-4">
       <div>
-        <label htmlFor="portal-message" className="block text-sm font-medium text-gray-700">Portal Message</label>
+        <label htmlFor="portal-message" className="block text-sm font-medium text-gray-700">
+          Portal Message
+        </label>
         <textarea
           id="portal-message"
           rows={4}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={e => setMessage(e.target.value)}
           placeholder="Type your portal message here"
         />
       </div>
@@ -609,7 +689,7 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
     call: 'Phone Call',
     sms: 'Send SMS',
     meeting: 'Schedule Meeting',
-    portal: 'Portal Message'
+    portal: 'Portal Message',
   };
 
   // Render appropriate form based on channel type
@@ -617,7 +697,7 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
     if (!contact) {
       return <div className="text-center py-4">No contact selected</div>;
     }
-    
+
     switch (channelType) {
       case 'email':
         return renderEmailForm();
@@ -645,4 +725,4 @@ const ChannelCommunication: React.FC<ChannelCommunicationProps> = ({
   );
 };
 
-export default ChannelCommunication; 
+export default ChannelCommunication;

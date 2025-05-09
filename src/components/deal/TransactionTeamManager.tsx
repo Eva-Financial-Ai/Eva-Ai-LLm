@@ -26,7 +26,7 @@ const roleOptions = {
   lender: ['Account Manager', 'Underwriter', 'Credit Officer', 'Relationship Manager', 'Auditor'],
   broker: ['Deal Owner', 'Originator', 'Processor', 'Administrator'],
   vendor: ['Sales Representative', 'Finance Manager', 'Technical Support'],
-  other: ['Observer', 'Consultant', 'Third-Party Service Provider']
+  other: ['Observer', 'Consultant', 'Third-Party Service Provider'],
 };
 
 // Pre-defined permission sets
@@ -35,41 +35,74 @@ const permissionSets = {
   editAccess: ['view', 'edit'],
   viewOnly: ['view'],
   approver: ['view', 'approve'],
-  signer: ['view', 'sign']
+  signer: ['view', 'sign'],
 };
 
-const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({ 
-  dealId, 
-  onSave, 
+const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
+  dealId,
+  onSave,
   onCancel,
-  isOpen
+  isOpen,
 }) => {
   // State for team members
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedContact, setSelectedContact] = useState<any | null>(null);
-  const [selectedRoleType, setSelectedRoleType] = useState<'borrower' | 'lender' | 'broker' | 'vendor' | 'other'>('borrower');
+  const [selectedRoleType, setSelectedRoleType] = useState<
+    'borrower' | 'lender' | 'broker' | 'vendor' | 'other'
+  >('borrower');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedPermissionSet, setSelectedPermissionSet] = useState('viewOnly');
-  
+
   // Mock function to search contacts
   const searchContacts = (query: string) => {
     // In a real app, this would call an API
     const mockResults = [
-      { id: '1', name: 'John Smith', email: 'john@example.com', organization: 'ABC Corp', type: 'borrower' },
-      { id: '2', name: 'Sarah Johnson', email: 'sarah@example.com', organization: 'First Capital Bank', type: 'lender' },
-      { id: '3', name: 'Robert Williams', email: 'robert@example.com', organization: 'Broker Associates', type: 'broker' },
-      { id: '4', name: 'Emily Davis', email: 'emily@example.com', organization: 'Equipment Suppliers Inc', type: 'vendor' },
-      { id: '5', name: 'Michael Brown', email: 'michael@example.com', organization: 'Legal Services LLC', type: 'other' }
+      {
+        id: '1',
+        name: 'John Smith',
+        email: 'john@example.com',
+        organization: 'ABC Corp',
+        type: 'borrower',
+      },
+      {
+        id: '2',
+        name: 'Sarah Johnson',
+        email: 'sarah@example.com',
+        organization: 'First Capital Bank',
+        type: 'lender',
+      },
+      {
+        id: '3',
+        name: 'Robert Williams',
+        email: 'robert@example.com',
+        organization: 'Broker Associates',
+        type: 'broker',
+      },
+      {
+        id: '4',
+        name: 'Emily Davis',
+        email: 'emily@example.com',
+        organization: 'Equipment Suppliers Inc',
+        type: 'vendor',
+      },
+      {
+        id: '5',
+        name: 'Michael Brown',
+        email: 'michael@example.com',
+        organization: 'Legal Services LLC',
+        type: 'other',
+      },
     ];
-    
-    return mockResults.filter(contact => 
-      contact.name.toLowerCase().includes(query.toLowerCase()) ||
-      contact.email.toLowerCase().includes(query.toLowerCase())
+
+    return mockResults.filter(
+      contact =>
+        contact.name.toLowerCase().includes(query.toLowerCase()) ||
+        contact.email.toLowerCase().includes(query.toLowerCase())
     );
   };
-  
+
   // Update search results when search term changes
   useEffect(() => {
     if (searchTerm.length > 2) {
@@ -79,11 +112,11 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
       setSearchResults([]);
     }
   }, [searchTerm]);
-  
+
   // Handle adding a new team member
   const handleAddTeamMember = () => {
     if (!selectedContact || !selectedRole) return;
-    
+
     const newMember: TeamMember = {
       id: selectedContact.id,
       name: selectedContact.name,
@@ -92,23 +125,23 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
       organization: selectedContact.organization,
       type: selectedContact.type,
       inviteStatus: 'pending',
-      permissions: permissionSets[selectedPermissionSet as keyof typeof permissionSets]
+      permissions: permissionSets[selectedPermissionSet as keyof typeof permissionSets],
     };
-    
+
     setTeamMembers([...teamMembers, newMember]);
-    
+
     // Reset form
     setSelectedContact(null);
     setSearchTerm('');
     setSearchResults([]);
     setSelectedRole('');
   };
-  
+
   // Handle removing a team member
   const handleRemoveTeamMember = (id: string) => {
     setTeamMembers(teamMembers.filter(member => member.id !== id));
   };
-  
+
   // Handle saving the team
   const handleSave = () => {
     if (onSave) {
@@ -117,22 +150,27 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
   };
 
   if (!isOpen) return null;
-  
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-lg max-w-4xl w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-900">Transaction Team</h2>
-          <button 
+          <button
             onClick={onCancel}
             className="text-gray-400 hover:text-gray-500 focus:outline-none"
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
-        
+
         {/* Current team members */}
         <div className="mb-8">
           <h3 className="text-lg font-medium text-gray-900 mb-3">Current Team Members</h3>
@@ -142,11 +180,18 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
             <div className="bg-gray-50 rounded-md p-4">
               <div className="space-y-3">
                 {teamMembers.map(member => (
-                  <div key={member.id} className="flex items-center justify-between p-3 bg-white rounded-md shadow-sm border border-gray-200">
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between p-3 bg-white rounded-md shadow-sm border border-gray-200"
+                  >
                     <div className="flex items-center">
                       <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
                         {member.profileImage ? (
-                          <img src={member.profileImage} alt={member.name} className="w-10 h-10 rounded-full" />
+                          <img
+                            src={member.profileImage}
+                            alt={member.name}
+                            className="w-10 h-10 rounded-full"
+                          />
                         ) : (
                           <span className="text-lg text-gray-600">{member.name.charAt(0)}</span>
                         )}
@@ -158,17 +203,23 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={`text-xs font-medium ${
-                        member.inviteStatus === 'active' ? 'text-green-600' :
-                        member.inviteStatus === 'pending' ? 'text-yellow-600' : 
-                        member.inviteStatus === 'declined' ? 'text-red-600' : ''
-                      }`}>
+                      <div
+                        className={`text-xs font-medium ${
+                          member.inviteStatus === 'active'
+                            ? 'text-green-600'
+                            : member.inviteStatus === 'pending'
+                              ? 'text-yellow-600'
+                              : member.inviteStatus === 'declined'
+                                ? 'text-red-600'
+                                : ''
+                        }`}
+                      >
                         {member.inviteStatus.charAt(0).toUpperCase() + member.inviteStatus.slice(1)}
                       </div>
                       <div className="text-sm font-medium text-gray-900">{member.role}</div>
                       <div className="flex mt-1">
                         <button className="text-xs text-primary-600 mr-2">Edit</button>
-                        <button 
+                        <button
                           className="text-xs text-red-600"
                           onClick={() => handleRemoveTeamMember(member.id)}
                         >
@@ -182,14 +233,17 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
             </div>
           )}
         </div>
-        
+
         {/* Add new team member */}
         <div className="bg-gray-50 rounded-md p-4 mb-6">
           <h3 className="text-lg font-medium text-gray-900 mb-3">Add Team Member</h3>
-          
+
           {/* Search contacts */}
           <div className="mb-4">
-            <label htmlFor="search-contacts" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="search-contacts"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Search Contacts
             </label>
             <input
@@ -200,13 +254,13 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
-            
+
             {/* Search results dropdown */}
             {searchResults.length > 0 && (
               <div className="mt-1 rounded-md bg-white shadow-lg border border-gray-300 max-h-60 overflow-y-auto z-10">
                 <ul className="py-1">
                   {searchResults.map(contact => (
-                    <li 
+                    <li
                       key={contact.id}
                       className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => {
@@ -232,7 +286,7 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
               </div>
             )}
           </div>
-          
+
           {/* Selected contact */}
           {selectedContact && (
             <div className="bg-white rounded-md p-3 border border-gray-200 mb-4">
@@ -247,16 +301,13 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
                     <div className="text-xs text-gray-500">{selectedContact.organization}</div>
                   </div>
                 </div>
-                <button
-                  className="text-xs text-gray-500"
-                  onClick={() => setSelectedContact(null)}
-                >
+                <button className="text-xs text-gray-500" onClick={() => setSelectedContact(null)}>
                   Change
                 </button>
               </div>
             </div>
           )}
-          
+
           {/* Role and permissions */}
           {selectedContact && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -280,7 +331,7 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
                   <option value="other">Other</option>
                 </select>
               </div>
-              
+
               <div>
                 <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
                   Role
@@ -293,13 +344,18 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
                 >
                   <option value="">Select a role</option>
                   {roleOptions[selectedRoleType].map(role => (
-                    <option key={role} value={role}>{role}</option>
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
                   ))}
                 </select>
               </div>
-              
+
               <div className="md:col-span-2">
-                <label htmlFor="permissions" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="permissions"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Permissions
                 </label>
                 <select
@@ -315,7 +371,7 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
                   <option value="signer">Signer (view, sign)</option>
                 </select>
               </div>
-              
+
               <div className="md:col-span-2 text-right">
                 <button
                   onClick={handleAddTeamMember}
@@ -328,7 +384,7 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
             </div>
           )}
         </div>
-        
+
         {/* Actions */}
         <div className="flex justify-end space-x-3">
           <button
@@ -349,4 +405,4 @@ const TransactionTeamManager: React.FC<TransactionTeamManagerProps> = ({
   );
 };
 
-export default TransactionTeamManager; 
+export default TransactionTeamManager;

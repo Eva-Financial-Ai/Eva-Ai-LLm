@@ -50,24 +50,26 @@ class DiagnosticService {
       // Get transactions from localStorage
       const storedTransactions = localStorage.getItem('transactions');
       let transactions: Transaction[] = storedTransactions ? JSON.parse(storedTransactions) : [];
-      
+
       // Check if there are any transactions in the risk_assessment stage
       const riskTransactions = transactions.filter(t => t.currentStage === 'risk_assessment');
-      
+
       if (riskTransactions.length === 0) {
         console.log('No risk assessment transactions found, adding mock data...');
-        
+
         // Add the mock transactions that are in risk_assessment stage
-        const riskMockTransactions = mockTransactions.filter(t => t.currentStage === 'risk_assessment');
-        
+        const riskMockTransactions = mockTransactions.filter(
+          t => t.currentStage === 'risk_assessment'
+        );
+
         if (riskMockTransactions.length > 0) {
           // Add the risk transactions to the stored transactions
           const updatedTransactions = [...transactions, ...riskMockTransactions];
-          
+
           // Save back to localStorage
           localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
           this.hasFixedData = true;
-          
+
           console.log(`Added ${riskMockTransactions.length} risk assessment transactions`);
           return true;
         }
@@ -79,7 +81,7 @@ class DiagnosticService {
     } catch (error) {
       console.error('Error ensuring risk transaction data:', error);
     }
-    
+
     return false;
   }
 
@@ -94,32 +96,34 @@ class DiagnosticService {
 
     try {
       const results: DiagnosticResult[] = [];
-      
+
       // Check for risk assessment transactions
       const fixedData = this.ensureRiskTransactionData();
-      
+
       results.push({
         component: 'RiskMapNavigator',
         status: fixedData ? 'warning' : 'ok',
-        message: fixedData 
+        message: fixedData
           ? 'Added missing risk assessment transaction data automatically'
           : 'Risk assessment transaction data available',
-        autoFixed: fixedData
+        autoFixed: fixedData,
       });
-      
+
       // Check for other potential issues
       // In the future, additional diagnostic checks could be added here
-      
+
       this.lastResults = results;
-      
+
       // Log results to console
       const successCount = results.filter(r => r.status === 'ok').length;
       const warningCount = results.filter(r => r.status === 'warning').length;
       const errorCount = results.filter(r => r.status === 'error').length;
-      
-      console.log(`Diagnostics completed: ${successCount} ok, ${warningCount} warnings, ${errorCount} errors`);
+
+      console.log(
+        `Diagnostics completed: ${successCount} ok, ${warningCount} warnings, ${errorCount} errors`
+      );
       console.log(`Auto-fixed ${results.filter(r => r.autoFixed).length} issues`);
-      
+
       // Call the result callback if provided
       if (this.resultCallback) {
         this.resultCallback(results);
@@ -128,12 +132,12 @@ class DiagnosticService {
       return results;
     } catch (error) {
       console.error('Error running automated diagnostics:', error);
-      
+
       // Call the error callback if provided
       if (this.errorCallback && error instanceof Error) {
         this.errorCallback(error);
       }
-      
+
       throw error;
     } finally {
       this.isRunning = false;
@@ -147,8 +151,10 @@ export default DiagnosticService.getInstance();
 // Initialize automated diagnostics on module load if in development
 if (process.env.NODE_ENV === 'development') {
   setTimeout(() => {
-    DiagnosticService.getInstance().runDiagnostics().catch(error => {
-      console.error('Automated diagnostics initialization failed:', error);
-    });
+    DiagnosticService.getInstance()
+      .runDiagnostics()
+      .catch(error => {
+        console.error('Automated diagnostics initialization failed:', error);
+      });
   }, 3000); // Delay 3 seconds to allow app to load first
-} 
+}

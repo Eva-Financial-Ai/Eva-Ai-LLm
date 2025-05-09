@@ -27,7 +27,7 @@ const blockchainOptions: BlockchainOption[] = [
     description: 'Public blockchain with smart contracts and strong security',
     transactionCost: '$25-45',
     confirmationTime: '30-60 seconds',
-    securityLevel: 'high'
+    securityLevel: 'high',
   },
   {
     id: 'polygon',
@@ -37,7 +37,7 @@ const blockchainOptions: BlockchainOption[] = [
     description: 'Ethereum sidechain optimized for lower fees and faster transactions',
     transactionCost: '$0.05-0.10',
     confirmationTime: '5-10 seconds',
-    securityLevel: 'medium'
+    securityLevel: 'medium',
   },
   {
     id: 'avalanche',
@@ -47,7 +47,7 @@ const blockchainOptions: BlockchainOption[] = [
     description: 'High-throughput blockchain with low latency',
     transactionCost: '$0.50-1.00',
     confirmationTime: '1-2 seconds',
-    securityLevel: 'high'
+    securityLevel: 'high',
   },
   {
     id: 'solana',
@@ -57,7 +57,7 @@ const blockchainOptions: BlockchainOption[] = [
     description: 'High-performance blockchain with extremely low fees',
     transactionCost: '$0.01-0.02',
     confirmationTime: '<1 second',
-    securityLevel: 'medium'
+    securityLevel: 'medium',
   },
   {
     id: 'hedera',
@@ -67,7 +67,7 @@ const blockchainOptions: BlockchainOption[] = [
     description: 'Enterprise-grade public network with governance',
     transactionCost: '$0.01',
     confirmationTime: '3-5 seconds',
-    securityLevel: 'high'
+    securityLevel: 'high',
   },
   {
     id: 'eva_ledger',
@@ -77,8 +77,8 @@ const blockchainOptions: BlockchainOption[] = [
     description: 'Private ledger optimized for enterprise asset management',
     transactionCost: 'Free',
     confirmationTime: '<1 second',
-    securityLevel: 'standard'
-  }
+    securityLevel: 'standard',
+  },
 ];
 
 // Asset class recommendations for blockchain networks
@@ -103,9 +103,9 @@ const blockchainRecommendations: Record<AssetClass, string[]> = {
   [AssetClass.OTHER]: ['eva_ledger', 'polygon', 'ethereum'],
 };
 
-const BlockchainVerificationOptions: React.FC<BlockchainVerificationProps> = ({ 
-  assetType, 
-  onChange 
+const BlockchainVerificationOptions: React.FC<BlockchainVerificationProps> = ({
+  assetType,
+  onChange,
 }) => {
   const [selectedBlockchain, setSelectedBlockchain] = useState('eva_ledger');
   const [verificationFeatures, setVerificationFeatures] = useState({
@@ -113,7 +113,7 @@ const BlockchainVerificationOptions: React.FC<BlockchainVerificationProps> = ({
     enableUccLienTracking: false,
     enableSmartContracts: false,
     enableAutomaticDepreciation: false,
-    enablePublicDisclosure: false
+    enablePublicDisclosure: false,
   });
 
   // Find recommended blockchains for this asset type
@@ -127,9 +127,9 @@ const BlockchainVerificationOptions: React.FC<BlockchainVerificationProps> = ({
   const handleFeatureToggle = (feature: string) => {
     setVerificationFeatures(prev => {
       const newFeatures = { ...prev, [feature]: !prev[feature as keyof typeof prev] };
-      onChange({ 
+      onChange({
         verificationFeatures: newFeatures,
-        verificationLevel: Object.values(newFeatures).filter(Boolean).length
+        verificationLevel: Object.values(newFeatures).filter(Boolean).length,
       });
       return newFeatures;
     });
@@ -144,16 +144,18 @@ const BlockchainVerificationOptions: React.FC<BlockchainVerificationProps> = ({
           {recommendations.length > 0 && (
             <span className="block mt-1">
               <span className="font-medium">Recommended for this asset type:</span>{' '}
-              {recommendations.map(r => {
-                const option = blockchainOptions.find(o => o.id === r);
-                return option ? option.name : r;
-              }).join(', ')}
+              {recommendations
+                .map(r => {
+                  const option = blockchainOptions.find(o => o.id === r);
+                  return option ? option.name : r;
+                })
+                .join(', ')}
             </span>
           )}
         </p>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {blockchainOptions.map((option) => (
+          {blockchainOptions.map(option => (
             <div
               key={option.id}
               onClick={() => handleBlockchainSelect(option.id)}
@@ -164,7 +166,9 @@ const BlockchainVerificationOptions: React.FC<BlockchainVerificationProps> = ({
               }`}
             >
               <div className="flex items-center space-x-3">
-                <div className={`h-8 w-8 flex items-center justify-center rounded-full ${option.color.split(' ')[0]}`}>
+                <div
+                  className={`h-8 w-8 flex items-center justify-center rounded-full ${option.color.split(' ')[0]}`}
+                >
                   <span className="text-lg">{option.icon}</span>
                 </div>
                 <div>
@@ -183,10 +187,15 @@ const BlockchainVerificationOptions: React.FC<BlockchainVerificationProps> = ({
                 </div>
                 <div className="col-span-2">
                   <span className="text-gray-500">Security:</span>{' '}
-                  <span className={`font-medium ${
-                    option.securityLevel === 'high' ? 'text-green-600' : 
-                    option.securityLevel === 'medium' ? 'text-yellow-600' : 'text-gray-600'
-                  }`}>
+                  <span
+                    className={`font-medium ${
+                      option.securityLevel === 'high'
+                        ? 'text-green-600'
+                        : option.securityLevel === 'medium'
+                          ? 'text-yellow-600'
+                          : 'text-gray-600'
+                    }`}
+                  >
                     {option.securityLevel.charAt(0).toUpperCase() + option.securityLevel.slice(1)}
                   </span>
                 </div>
@@ -287,7 +296,9 @@ const BlockchainVerificationOptions: React.FC<BlockchainVerificationProps> = ({
           <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
             <div>
               <h4 className="font-medium text-gray-900">Automatic Depreciation</h4>
-              <p className="text-xs text-gray-500">Time-based value adjustment for applicable assets</p>
+              <p className="text-xs text-gray-500">
+                Time-based value adjustment for applicable assets
+              </p>
             </div>
             <div className="flex items-center">
               <button
@@ -314,7 +325,9 @@ const BlockchainVerificationOptions: React.FC<BlockchainVerificationProps> = ({
           <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
             <div>
               <h4 className="font-medium text-gray-900">Public Disclosure</h4>
-              <p className="text-xs text-gray-500">Make asset visible on public blockchain explorers</p>
+              <p className="text-xs text-gray-500">
+                Make asset visible on public blockchain explorers
+              </p>
             </div>
             <div className="flex items-center">
               <button
@@ -343,4 +356,4 @@ const BlockchainVerificationOptions: React.FC<BlockchainVerificationProps> = ({
   );
 };
 
-export default BlockchainVerificationOptions; 
+export default BlockchainVerificationOptions;

@@ -38,32 +38,32 @@ const defaultRiskFactors: RiskFactorWeight[] = [
     id: 'creditWorthiness',
     name: 'Credit Worthiness',
     weight: 30,
-    description: 'Credit history and payment performance of the borrower'
+    description: 'Credit history and payment performance of the borrower',
   },
   {
     id: 'assetsValue',
     name: 'Assets Value',
     weight: 25,
-    description: 'Value and quality of underlying collateral assets'
+    description: 'Value and quality of underlying collateral assets',
   },
   {
     id: 'cashFlowStrength',
     name: 'Cash Flow Strength',
     weight: 20,
-    description: 'Operational cash flow stability and debt service capability'
+    description: 'Operational cash flow stability and debt service capability',
   },
   {
     id: 'industryOutlook',
     name: 'Industry Outlook',
     weight: 15,
-    description: 'Current and projected market conditions for the industry'
+    description: 'Current and projected market conditions for the industry',
   },
   {
     id: 'managementExperience',
     name: 'Management Experience',
     weight: 10,
-    description: 'Experience and track record of the management team'
-  }
+    description: 'Experience and track record of the management team',
+  },
 ];
 
 // Default risk levels
@@ -71,33 +71,38 @@ const defaultRiskAppetiteLevels: RiskLevel[] = [
   {
     id: 'conservative',
     level: 'Conservative',
-    description: 'Prioritizes capital preservation. Seek deals with strong collateral, excellent credit profiles, and stable industries. Minimize potential for loss at the expense of higher returns.',
-    color: 'bg-blue-500'
+    description:
+      'Prioritizes capital preservation. Seek deals with strong collateral, excellent credit profiles, and stable industries. Minimize potential for loss at the expense of higher returns.',
+    color: 'bg-blue-500',
   },
   {
     id: 'moderate',
     level: 'Moderate',
-    description: 'Balanced approach to risk and return. Accept moderate credit risk with adequate collateral. Will consider growing industries with some volatility if compensated by higher returns.',
-    color: 'bg-green-500'
+    description:
+      'Balanced approach to risk and return. Accept moderate credit risk with adequate collateral. Will consider growing industries with some volatility if compensated by higher returns.',
+    color: 'bg-green-500',
   },
   {
     id: 'balanced',
     level: 'Balanced-Plus',
-    description: 'Slightly higher risk tolerance with emphasis on optimizing portfolio returns. Consider deals with good but not perfect credit and growth-oriented businesses.',
-    color: 'bg-yellow-500'
+    description:
+      'Slightly higher risk tolerance with emphasis on optimizing portfolio returns. Consider deals with good but not perfect credit and growth-oriented businesses.',
+    color: 'bg-yellow-500',
   },
   {
     id: 'aggressive',
     level: 'Aggressive',
-    description: 'Emphasizes growth and higher returns. Willing to accept elevated credit risk, less stable cash flows, and higher concentrations for opportunity of enhanced returns.',
-    color: 'bg-orange-500'
+    description:
+      'Emphasizes growth and higher returns. Willing to accept elevated credit risk, less stable cash flows, and higher concentrations for opportunity of enhanced returns.',
+    color: 'bg-orange-500',
   },
   {
     id: 'veryAggressive',
     level: 'Very Aggressive',
-    description: 'Maximizes return potential. Open to early-stage ventures, turnaround situations, and emerging markets. Accepts higher default probability for potential of significant upside.',
-    color: 'bg-red-500'
-  }
+    description:
+      'Maximizes return potential. Open to early-stage ventures, turnaround situations, and emerging markets. Accepts higher default probability for potential of significant upside.',
+    color: 'bg-red-500',
+  },
 ];
 
 // Provider component
@@ -114,13 +119,13 @@ export const RiskConfigProvider: React.FC<{ children: ReactNode }> = ({ children
       // In a real app, this would be an API call to save the configuration
       // For now, we'll just simulate an API call with a timeout
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Store in localStorage for persistence between sessions
       localStorage.setItem('eva_risk_factors', JSON.stringify(riskFactors));
       localStorage.setItem('eva_collateral_coverage', JSON.stringify(collateralCoverage));
       localStorage.setItem('eva_guarantor_strength', JSON.stringify(guarantorStrength));
       localStorage.setItem('eva_risk_appetite', JSON.stringify(riskAppetite));
-      
+
       return true;
     } catch (error) {
       console.error('Failed to save risk configuration:', error);
@@ -134,7 +139,7 @@ export const RiskConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     setCollateralCoverage(120);
     setGuarantorStrength(50);
     setRiskAppetite(50);
-    
+
     // Clear stored values
     localStorage.removeItem('eva_risk_factors');
     localStorage.removeItem('eva_collateral_coverage');
@@ -150,7 +155,7 @@ export const RiskConfigProvider: React.FC<{ children: ReactNode }> = ({ children
         const savedCoverage = localStorage.getItem('eva_collateral_coverage');
         const savedGuarantorStrength = localStorage.getItem('eva_guarantor_strength');
         const savedAppetite = localStorage.getItem('eva_risk_appetite');
-        
+
         if (savedFactors) setRiskFactors(JSON.parse(savedFactors));
         if (savedCoverage) setCollateralCoverage(JSON.parse(savedCoverage));
         if (savedGuarantorStrength) setGuarantorStrength(JSON.parse(savedGuarantorStrength));
@@ -161,7 +166,7 @@ export const RiskConfigProvider: React.FC<{ children: ReactNode }> = ({ children
         resetToDefaults();
       }
     };
-    
+
     loadSavedConfig();
   }, []);
 
@@ -178,7 +183,7 @@ export const RiskConfigProvider: React.FC<{ children: ReactNode }> = ({ children
         setRiskAppetite,
         riskAppetiteLevels,
         saveRiskConfiguration,
-        resetToDefaults
+        resetToDefaults,
       }}
     >
       {children}
@@ -195,4 +200,4 @@ export const useRiskConfig = () => {
   return context;
 };
 
-export default RiskConfigContext; 
+export default RiskConfigContext;

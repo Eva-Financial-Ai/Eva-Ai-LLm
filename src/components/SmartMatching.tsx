@@ -45,7 +45,7 @@ const COMPATIBLE_ROLES: Record<UserRole, UserRole[]> = {
   lender: ['borrower', 'broker'],
   borrower: ['lender', 'broker'],
   broker: ['borrower', 'lender'],
-  vendor: ['borrower', 'broker', 'lender'] // Assuming vendors can match with all
+  vendor: ['borrower', 'broker', 'lender'], // Assuming vendors can match with all
 };
 
 // Mock data based on user role
@@ -67,8 +67,8 @@ const MOCK_PROFILES: Record<UserRole, MatchProfile[]> = {
       dealVolume: '$250M+ annually',
       contactInfo: {
         email: 'deals@northeastcapital.com',
-        phone: '(617) 555-1234'
-      }
+        phone: '(617) 555-1234',
+      },
     },
     {
       id: 'lender-2',
@@ -86,8 +86,8 @@ const MOCK_PROFILES: Record<UserRole, MatchProfile[]> = {
       dealVolume: '$150M+ annually',
       contactInfo: {
         email: 'funding@acceleratedfunding.com',
-        phone: '(312) 555-6789'
-      }
+        phone: '(312) 555-6789',
+      },
     },
     {
       id: 'broker-1',
@@ -103,9 +103,9 @@ const MOCK_PROFILES: Record<UserRole, MatchProfile[]> = {
       dealVolume: '$75M+ annually',
       contactInfo: {
         email: 'brokers@premiumfinance.com',
-        phone: '(212) 555-9876'
-      }
-    }
+        phone: '(212) 555-9876',
+      },
+    },
   ],
   broker: [
     {
@@ -123,8 +123,8 @@ const MOCK_PROFILES: Record<UserRole, MatchProfile[]> = {
       matchScore: 95,
       contactInfo: {
         email: 'finance@innovativemfg.com',
-        phone: '(313) 555-4321'
-      }
+        phone: '(313) 555-4321',
+      },
     },
     {
       id: 'lender-1',
@@ -141,9 +141,9 @@ const MOCK_PROFILES: Record<UserRole, MatchProfile[]> = {
       dealVolume: '$120M+ annually',
       contactInfo: {
         email: 'partners@capitalexpress.com',
-        phone: '(720) 555-2468'
-      }
-    }
+        phone: '(720) 555-2468',
+      },
+    },
   ],
   lender: [
     {
@@ -162,8 +162,8 @@ const MOCK_PROFILES: Record<UserRole, MatchProfile[]> = {
       matchScore: 94,
       contactInfo: {
         email: 'refinance@summitproperties.com',
-        phone: '(206) 555-7890'
-      }
+        phone: '(206) 555-7890',
+      },
     },
     {
       id: 'broker-1',
@@ -179,9 +179,9 @@ const MOCK_PROFILES: Record<UserRole, MatchProfile[]> = {
       dealVolume: '$60M+ annually',
       contactInfo: {
         email: 'deals@elitefinancial.com',
-        phone: '(305) 555-1357'
-      }
-    }
+        phone: '(305) 555-1357',
+      },
+    },
   ],
   vendor: [
     {
@@ -192,7 +192,7 @@ const MOCK_PROFILES: Record<UserRole, MatchProfile[]> = {
       amount: 320000,
       industry: 'Technology',
       avatarUrl: 'https://randomuser.me/api/portraits/men/29.jpg',
-      matchScore: 91
+      matchScore: 91,
     },
     {
       id: 'lender-1',
@@ -203,7 +203,7 @@ const MOCK_PROFILES: Record<UserRole, MatchProfile[]> = {
       term: 48,
       industry: 'Finance',
       avatarUrl: 'https://randomuser.me/api/portraits/women/54.jpg',
-      matchScore: 89
+      matchScore: 89,
     },
     {
       id: 'broker-1',
@@ -212,9 +212,9 @@ const MOCK_PROFILES: Record<UserRole, MatchProfile[]> = {
       description: 'Connecting vendors with qualified buyers',
       industry: 'Finance',
       avatarUrl: 'https://randomuser.me/api/portraits/men/62.jpg',
-      matchScore: 83
-    }
-  ]
+      matchScore: 83,
+    },
+  ],
 };
 
 interface SmartMatchingProps {
@@ -223,7 +223,11 @@ interface SmartMatchingProps {
   userRole: UserRole;
 }
 
-const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole: initialUserRole }) => {
+const SmartMatching: React.FC<SmartMatchingProps> = ({
+  isOpen,
+  onClose,
+  userRole: initialUserRole,
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
   const [profiles, setProfiles] = useState<MatchProfile[]>([]);
@@ -234,7 +238,7 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
   const [showAllMatches, setShowAllMatches] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'swipe' | 'list'>('swipe');
   const [allMatches, setAllMatches] = useState<MatchProfile[]>([]);
-  
+
   const [stats, setStats] = useState<MatchStats>({
     totalSwipes: 0,
     rightSwipes: 0,
@@ -242,7 +246,7 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
     timeSpent: 0,
     startTime: Date.now(),
     mutualMatches: 0,
-    dealMatchRate: 0
+    dealMatchRate: 0,
   });
 
   const navigate = useNavigate();
@@ -251,37 +255,36 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
   useEffect(() => {
     const savedMatches = localStorage.getItem(`eva_matches_${userRole}`);
     const savedStats = localStorage.getItem(`eva_matchstats_${userRole}`);
-    
+
     if (savedMatches) {
       setMatches(JSON.parse(savedMatches));
     }
-    
+
     if (savedStats) {
       setStats({
         ...JSON.parse(savedStats),
-        startTime: Date.now()
+        startTime: Date.now(),
       });
     }
-    
-    // For demonstration purposes, immediately populate allMatches 
+
+    // For demonstration purposes, immediately populate allMatches
     // with some mock data that would normally be loaded from an API
     const mockAllMatches = [...MOCK_PROFILES[userRole]].filter((_, index) => index % 2 === 0);
     setAllMatches(mockAllMatches);
-    
   }, [userRole]);
 
   // Initialize profiles when component mounts or userRole changes
   useEffect(() => {
     // Find compatible roles for the current user
     const compatibleRoles = COMPATIBLE_ROLES[userRole];
-    
+
     if (!compatibleRoles) return;
-    
+
     // Update profiles based on userRole
     const newProfiles = MOCK_PROFILES[userRole] || [];
     setProfiles(newProfiles);
     setCurrentIndex(0);
-    
+
     // Reset stats for the new user role
     setStats({
       totalSwipes: 0,
@@ -290,24 +293,23 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
       timeSpent: 0,
       startTime: Date.now(),
       mutualMatches: 0,
-      dealMatchRate: 0
+      dealMatchRate: 0,
     });
-    
   }, [userRole]);
 
   // Track time spent
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
+
     if (isOpen) {
       interval = setInterval(() => {
         setStats(prev => ({
           ...prev,
-          timeSpent: Math.floor((Date.now() - prev.startTime) / 1000)
+          timeSpent: Math.floor((Date.now() - prev.startTime) / 1000),
         }));
       }, 1000);
     }
-    
+
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -322,7 +324,7 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
     y: 0,
     rotate: 0,
     scale: 1,
-    config: { tension: 300, friction: 30 }
+    config: { tension: 300, friction: 30 },
   }));
 
   // Function to save match data to localStorage
@@ -339,7 +341,7 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
   const handleSwitchRole = (newRole: UserRole) => {
     // Save current data before switching
     saveMatchData(matches, stats);
-    
+
     // Update role and reset view
     setUserRole(newRole);
     setViewMode('swipe');
@@ -349,52 +351,51 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
   // Handle swipe gesture
   const handleSwipe = (dir: 'left' | 'right') => {
     if (currentIndex >= profiles.length) return;
-    
+
     const profile = profiles[currentIndex];
-    
+
     // Update animation
     setDirection(dir);
-    
+
     const swipeDistance = window.innerWidth * 1.5;
     api.start({
       x: dir === 'right' ? swipeDistance : -swipeDistance,
       y: 0,
       rotate: dir === 'right' ? 45 : -45,
       scale: 0.8,
-      onRest: finishSwipe
+      onRest: finishSwipe,
     });
-    
+
     // Update stats
     const newStats = {
       ...stats,
       totalSwipes: stats.totalSwipes + 1,
       rightSwipes: stats.rightSwipes + (dir === 'right' ? 1 : 0),
-      leftSwipes: stats.leftSwipes + (dir === 'left' ? 1 : 0)
+      leftSwipes: stats.leftSwipes + (dir === 'left' ? 1 : 0),
     };
-    
+
     // If swiped right, add to matches
     if (dir === 'right') {
       const updatedMatches = [...matches, profile.id];
       setMatches(updatedMatches);
-      
+
       // Simulate a mutual match with 40% probability
       if (Math.random() < 0.4) {
         setTimeout(() => {
           setMatchedProfile(profile);
           setShowMatch(true);
-          
+
           // Update match stats
           const matchStats = {
             ...newStats,
             mutualMatches: newStats.mutualMatches + 1,
-            dealMatchRate: Math.round((newStats.mutualMatches + 1) / (newStats.rightSwipes) * 100)
+            dealMatchRate: Math.round(((newStats.mutualMatches + 1) / newStats.rightSwipes) * 100),
           };
           setStats(matchStats);
           saveMatchData(updatedMatches, matchStats);
-          
+
           // Add to allMatches for the list view
           setAllMatches([...allMatches, profile]);
-          
         }, 500);
       } else {
         setStats(newStats);
@@ -410,13 +411,13 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
   const finishSwipe = () => {
     setDirection(null);
     setCurrentIndex(prev => prev + 1);
-    
+
     api.start({
       x: 0,
       y: 0,
       rotate: 0,
       scale: 1,
-      immediate: true
+      immediate: true,
     });
   };
 
@@ -428,24 +429,31 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
 
   // Render detailed profile information
   const renderProfileDetails = (profile: MatchProfile) => {
-    const roleColor = profile.role === 'borrower' ? 'blue' : 
-                     profile.role === 'lender' ? 'green' : 
-                     profile.role === 'broker' ? 'purple' : 'gray';
-                     
+    const roleColor =
+      profile.role === 'borrower'
+        ? 'blue'
+        : profile.role === 'lender'
+          ? 'green'
+          : profile.role === 'broker'
+            ? 'purple'
+            : 'gray';
+
     return (
       <div className="p-4">
         <div className="flex items-center mb-3">
-          <span className={`px-2 py-1 text-xs rounded-full bg-${roleColor}-100 text-${roleColor}-800 mr-2`}>
+          <span
+            className={`px-2 py-1 text-xs rounded-full bg-${roleColor}-100 text-${roleColor}-800 mr-2`}
+          >
             {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
           </span>
           <span className="px-2 py-1 text-xs rounded-full bg-primary-100 text-primary-800">
             {profile.matchScore}% Match
           </span>
         </div>
-        
+
         <h3 className="text-xl font-bold text-gray-900 mb-2">{profile.name}</h3>
         <p className="text-gray-600 mb-4">{profile.description}</p>
-        
+
         <div className="space-y-3 mb-4">
           {profile.industry && (
             <div className="flex justify-between">
@@ -453,63 +461,65 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
               <span className="text-sm font-medium">{profile.industry}</span>
             </div>
           )}
-          
+
           {profile.location && (
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Location:</span>
               <span className="text-sm font-medium">{profile.location}</span>
             </div>
           )}
-          
+
           {profile.yearEstablished && (
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Established:</span>
               <span className="text-sm font-medium">{profile.yearEstablished}</span>
             </div>
           )}
-          
+
           {profile.amount && (
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Amount:</span>
               <span className="text-sm font-medium">${profile.amount.toLocaleString()}</span>
             </div>
           )}
-          
+
           {profile.rate && (
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Rate:</span>
               <span className="text-sm font-medium">{profile.rate}%</span>
             </div>
           )}
-          
+
           {profile.term && (
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Term:</span>
               <span className="text-sm font-medium">{profile.term} months</span>
             </div>
           )}
-          
+
           {profile.credit && (
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Credit:</span>
-              <span className="text-sm font-medium">{profile.credit.score} ({profile.credit.rating})</span>
+              <span className="text-sm font-medium">
+                {profile.credit.score} ({profile.credit.rating})
+              </span>
             </div>
           )}
-          
+
           {profile.projectType && (
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Project Type:</span>
               <span className="text-sm font-medium">{profile.projectType}</span>
             </div>
           )}
-          
+
           {profile.fundingSpeed && (
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Funding Speed:</span>
               <span className="text-sm font-medium">{profile.fundingSpeed}</span>
             </div>
           )}
-          
+
           {profile.dealVolume && (
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Deal Volume:</span>
@@ -530,17 +540,17 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
   // Format time for display
   const formatTime = (seconds: number): string => {
     if (seconds < 60) return `${seconds}s`;
-    
+
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    
+
     if (minutes < 60) {
       return `${minutes}m ${remainingSeconds}s`;
     }
-    
+
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    
+
     return `${hours}h ${remainingMinutes}m`;
   };
 
@@ -560,7 +570,7 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
     }
   };
 
-  // View all matches 
+  // View all matches
   const handleViewAllMatches = () => {
     setViewMode('list');
   };
@@ -574,15 +584,15 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
   const handleConnect = (match: MatchProfile) => {
     // Close the smart matching modal
     onClose();
-    
+
     // Navigate to deal structuring page with the match information
-    navigate('/deal-structuring', { 
-      state: { 
+    navigate('/deal-structuring', {
+      state: {
         propertyId: match.id,
         propertyName: match.name,
         matchScore: match.matchScore,
-        amount: match.amount
-      } 
+        amount: match.amount,
+      },
     });
   };
 
@@ -598,12 +608,12 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
             <h2 className="text-xl font-bold text-gray-900">Smart Matching</h2>
             <p className="text-sm text-gray-500 mt-0.5">Find your perfect match</p>
           </div>
-          
+
           {/* User role toggle */}
           <div className="flex items-center space-x-2">
             <select
               value={userRole}
-              onChange={(e) => handleSwitchRole(e.target.value as UserRole)}
+              onChange={e => handleSwitchRole(e.target.value as UserRole)}
               className="text-sm rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
             >
               <option value="borrower">As Borrower</option>
@@ -611,18 +621,20 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
               <option value="lender">As Lender</option>
               <option value="vendor">As Vendor</option>
             </select>
-            
-            <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
+
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
         </div>
-        
+
         {/* View Toggle */}
         <div className="px-6 py-2 flex justify-between items-center border-b border-gray-200 bg-gray-50">
           <div className="flex space-x-2">
@@ -639,9 +651,9 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
               Matches List
             </button>
           </div>
-          
+
           <div className="text-sm text-gray-600">
-            <button 
+            <button
               onClick={handleViewAllMatches}
               className="text-primary-600 hover:text-primary-800 font-medium"
             >
@@ -649,7 +661,7 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
             </button>
           </div>
         </div>
-        
+
         {/* Main content area */}
         <div className="flex-1 overflow-hidden bg-gray-50 relative">
           {/* Swipe View */}
@@ -665,40 +677,40 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
                       y,
                       rotate,
                       scale,
-                      touchAction: 'none'
+                      touchAction: 'none',
                     }}
                     className="absolute w-full max-w-sm bg-white rounded-xl shadow-lg overflow-hidden"
                   >
                     {/* Profile image */}
                     <div className="h-64 bg-gray-300 relative">
-                      <img 
-                        src={currentProfile.avatarUrl} 
+                      <img
+                        src={currentProfile.avatarUrl}
                         alt={currentProfile.name}
                         className="w-full h-full object-cover"
                       />
-                      
+
                       {/* Match score overlay */}
                       <div className="absolute top-3 right-3 bg-white bg-opacity-90 rounded-full px-3 py-1 text-sm font-bold text-primary-600">
                         {currentProfile.matchScore}% Match
                       </div>
-                      
+
                       {/* Role badge */}
                       <div className="absolute bottom-3 left-3 bg-primary-600 text-white text-xs px-2 py-1 rounded-md uppercase tracking-wider">
                         {currentProfile.role}
                       </div>
                     </div>
-                    
+
                     {/* Profile details */}
                     {renderProfileDetails(currentProfile)}
                   </animated.div>
-                  
+
                   {/* Swipe direction indicators */}
                   {direction === 'left' && (
                     <div className="absolute top-5 left-5 bg-red-500 text-white px-4 py-2 rounded-lg transform -rotate-12 text-xl font-bold">
                       PASS
                     </div>
                   )}
-                  
+
                   {direction === 'right' && (
                     <div className="absolute top-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg transform rotate-12 text-xl font-bold">
                       MATCH
@@ -708,12 +720,23 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
               ) : (
                 <div className="flex-1 flex items-center justify-center p-8">
                   <div className="text-center">
-                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    <svg
+                      className="mx-auto h-12 w-12 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1}
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                      />
                     </svg>
                     <h3 className="mt-2 text-lg font-medium text-gray-900">No more profiles</h3>
                     <p className="mt-1 text-sm text-gray-500">
-                      You've seen all available matches for now. Check back later for new opportunities.
+                      You've seen all available matches for now. Check back later for new
+                      opportunities.
                     </p>
                     <div className="mt-6">
                       <button
@@ -726,7 +749,7 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
                   </div>
                 </div>
               )}
-              
+
               {/* Action buttons */}
               {!allProfilesViewed && currentProfile && (
                 <div className="px-6 py-4 flex justify-center space-x-6 bg-white border-t border-gray-200">
@@ -734,37 +757,68 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
                     onClick={() => handleSwipe('left')}
                     className="w-14 h-14 flex items-center justify-center rounded-full bg-white border border-gray-300 shadow hover:shadow-md"
                   >
-                    <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="h-6 w-6 text-red-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
-                  
+
                   <button
                     onClick={() => handleSwipe('right')}
                     className="w-14 h-14 flex items-center justify-center rounded-full bg-white border border-gray-300 shadow hover:shadow-md"
                   >
-                    <svg className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="h-6 w-6 text-green-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   </button>
                 </div>
               )}
             </div>
           )}
-          
+
           {/* Matches List View */}
           {viewMode === 'list' && (
             <div className="h-full flex flex-col">
               <div className="p-4">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Your Matches</h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  You have matched with {allMatches.length} {allMatches.length === 1 ? 'profile' : 'profiles'}
+                  You have matched with {allMatches.length}{' '}
+                  {allMatches.length === 1 ? 'profile' : 'profiles'}
                 </p>
-                
+
                 {allMatches.length === 0 ? (
                   <div className="text-center py-8">
-                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    <svg
+                      className="mx-auto h-12 w-12 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1}
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                      />
                     </svg>
                     <h3 className="mt-2 text-sm font-medium text-gray-900">No matches yet</h3>
                     <p className="mt-1 text-sm text-gray-500">
@@ -786,32 +840,46 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
                         <li key={match.id} className="py-4">
                           <div className="flex items-center space-x-4">
                             <div className="flex-shrink-0">
-                              <img 
-                                src={match.avatarUrl} 
+                              <img
+                                src={match.avatarUrl}
                                 alt={match.name}
                                 className="h-12 w-12 rounded-full object-cover"
                               />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center">
-                                <p className="text-sm font-medium text-gray-900 truncate">{match.name}</p>
-                                <span className={`ml-2 px-2 py-0.5 text-xs rounded-full 
-                                  ${match.role === 'borrower' ? 'bg-blue-100 text-blue-800' : 
-                                  match.role === 'lender' ? 'bg-green-100 text-green-800' :
-                                  match.role === 'broker' ? 'bg-purple-100 text-purple-800' :
-                                  'bg-gray-100 text-gray-800'}`}
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                  {match.name}
+                                </p>
+                                <span
+                                  className={`ml-2 px-2 py-0.5 text-xs rounded-full 
+                                  ${
+                                    match.role === 'borrower'
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : match.role === 'lender'
+                                        ? 'bg-green-100 text-green-800'
+                                        : match.role === 'broker'
+                                          ? 'bg-purple-100 text-purple-800'
+                                          : 'bg-gray-100 text-gray-800'
+                                  }`}
                                 >
                                   {match.role.charAt(0).toUpperCase() + match.role.slice(1)}
                                 </span>
                               </div>
                               <p className="text-sm text-gray-500 truncate">{match.description}</p>
                               <div className="mt-1 flex items-center">
-                                <span className="text-xs text-primary-600 font-medium">{match.matchScore}% Match</span>
+                                <span className="text-xs text-primary-600 font-medium">
+                                  {match.matchScore}% Match
+                                </span>
                                 {match.industry && (
-                                  <span className="ml-2 text-xs text-gray-500">• {match.industry}</span>
+                                  <span className="ml-2 text-xs text-gray-500">
+                                    • {match.industry}
+                                  </span>
                                 )}
                                 {match.location && (
-                                  <span className="ml-2 text-xs text-gray-500">• {match.location}</span>
+                                  <span className="ml-2 text-xs text-gray-500">
+                                    • {match.location}
+                                  </span>
                                 )}
                               </div>
                             </div>
@@ -824,12 +892,13 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
                               </button>
                             </div>
                           </div>
-                          
+
                           {/* Key details */}
                           <div className="mt-2 grid grid-cols-2 gap-2">
                             {match.amount && (
                               <div className="text-xs text-gray-500">
-                                <span className="font-medium">Amount:</span> ${match.amount.toLocaleString()}
+                                <span className="font-medium">Amount:</span> $
+                                {match.amount.toLocaleString()}
                               </div>
                             )}
                             {match.rate && (
@@ -856,27 +925,46 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
               </div>
             </div>
           )}
-          
+
           {/* Match notification overlay */}
           {showMatch && matchedProfile && (
             <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-20">
               <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 text-center">
                 <div className="h-20 w-20 mx-auto mb-4 rounded-full bg-primary-100 flex items-center justify-center">
-                  <svg className="h-10 w-10 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="h-10 w-10 text-primary-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 </div>
-                
+
                 <h3 className="text-xl font-bold text-gray-900 mb-2">It's a Match!</h3>
                 <p className="text-gray-600 mb-6">
-                  You and <span className="font-semibold">{matchedProfile.name}</span> have expressed interest in each other
+                  You and <span className="font-semibold">{matchedProfile.name}</span> have
+                  expressed interest in each other
                 </p>
-                
+
                 <div className="flex -space-x-4 justify-center mb-6">
-                  <img src={matchedProfile.avatarUrl} alt="" className="w-16 h-16 rounded-full border-2 border-white object-cover z-10" />
-                  <img src="https://randomuser.me/api/portraits/women/18.jpg" alt="" className="w-16 h-16 rounded-full border-2 border-white object-cover" />
+                  <img
+                    src={matchedProfile.avatarUrl}
+                    alt=""
+                    className="w-16 h-16 rounded-full border-2 border-white object-cover z-10"
+                  />
+                  <img
+                    src="https://randomuser.me/api/portraits/women/18.jpg"
+                    alt=""
+                    className="w-16 h-16 rounded-full border-2 border-white object-cover"
+                  />
                 </div>
-                
+
                 <div className="space-y-3">
                   <button
                     className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
@@ -887,7 +975,7 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
                   >
                     View All Matches
                   </button>
-                  
+
                   <button
                     className="w-full py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                     onClick={dismissMatch}
@@ -911,4 +999,4 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({ isOpen, onClose, userRole
   );
 };
 
-export default SmartMatching; 
+export default SmartMatching;

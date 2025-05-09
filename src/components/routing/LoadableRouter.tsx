@@ -12,11 +12,11 @@ const LoadingSpinner = ({ pageName = 'page' }: { pageName?: string }) => (
 );
 
 // Error component
-const LoadError = ({ pageName = 'page', retry }: { pageName: string, retry: () => void }) => (
+const LoadError = ({ pageName = 'page', retry }: { pageName: string; retry: () => void }) => (
   <div className="p-8 text-center">
     <h2 className="text-xl text-red-600 font-bold mb-4">Failed to load {pageName}</h2>
     <p className="mb-4">There was a problem loading this page.</p>
-    <button 
+    <button
       onClick={retry}
       className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
     >
@@ -28,71 +28,80 @@ const LoadError = ({ pageName = 'page', retry }: { pageName: string, retry: () =
 // Loadable components with specific fallback and error UIs
 const Dashboard = loadable(() => import('../../pages/Dashboard'), {
   fallback: <LoadingSpinner pageName="Dashboard" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
 const CreditApplication = loadable(() => import('../../pages/CreditApplication'), {
   fallback: <LoadingSpinner pageName="Credit Application" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
 const Documents = loadable(() => import('../../pages/Documents'), {
   fallback: <LoadingSpinner pageName="Documents" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
 const RiskAssessment = loadable(() => import('../../pages/RiskAssessment'), {
   fallback: <LoadingSpinner pageName="Risk Assessment" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
 const DealStructuring = loadable(() => import('../../pages/DealStructuring'), {
   fallback: <LoadingSpinner pageName="Deal Structuring" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
 const SmartMatchPage = loadable(() => import('../../pages/SmartMatchPage'), {
   fallback: <LoadingSpinner pageName="Smart Match" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
 const Transactions = loadable(() => import('../../pages/Transactions'), {
   fallback: <LoadingSpinner pageName="Transactions" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
 const ProfileSettings = loadable(() => import('../../pages/ProfileSettings'), {
   fallback: <LoadingSpinner pageName="Profile Settings" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
 const ExampleTransactions = loadable(() => import('../../pages/ExampleTransactions'), {
   fallback: <LoadingSpinner pageName="Example Transactions" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
 const EnhancedAssetPress = loadable(() => import('../../pages/EnhancedAssetPress'), {
   fallback: <LoadingSpinner pageName="Asset Press" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
-const PortfolioNavigatorPage = loadable(() => import('../../pages/PortfolioNavigatorPage').then(m => ({ default: m.PortfolioNavigatorPage })), {
-  fallback: <LoadingSpinner pageName="Portfolio Navigator" />,
-});
+const PortfolioNavigatorPage = loadable(
+  () =>
+    import('../../pages/PortfolioNavigatorPage').then(m => ({ default: m.PortfolioNavigatorPage })),
+  {
+    fallback: <LoadingSpinner pageName="Portfolio Navigator" />,
+  }
+);
 
 const CommercialPaper = loadable(() => import('../../pages/CommercialPaper'), {
   fallback: <LoadingSpinner pageName="Commercial Paper" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
 const CustomerRetention = loadable(() => import('../../pages/CustomerRetention'), {
   fallback: <LoadingSpinner pageName="Customer Retention" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
 });
 
 const FormTemplate = loadable(() => import('../../pages/FormTemplate'), {
   fallback: <LoadingSpinner pageName="Form Template" />,
-  resolveComponent: (components) => components.default
+  resolveComponent: components => components.default,
+});
+
+const CommercialMarket = loadable(() => import('../../pages/CommercialMarket'), {
+  fallback: <LoadingSpinner pageName="Commercial Market" />,
+  resolveComponent: components => components.default,
 });
 
 const LoadableRouter: React.FC = () => {
@@ -102,6 +111,10 @@ const LoadableRouter: React.FC = () => {
       <Route path="/transactions" element={<Transactions />} />
       <Route path="/documents" element={<Documents />} />
       <Route path="/risk-assessment" element={<RiskAssessment />} />
+      <Route path="/risk-assessment/standard" element={<RiskAssessment />} />
+      <Route path="/risk-assessment/report" element={<RiskAssessment />} />
+      <Route path="/risk-assessment/lab" element={<RiskAssessment />} />
+      <Route path="/risk-assessment/score" element={<RiskAssessment />} />
       <Route path="/credit-application" element={<CreditApplication />} />
       <Route path="/deal-structuring" element={<DealStructuring />} />
       <Route path="/deal-structuring/smart-match" element={<SmartMatchPage />} />
@@ -113,9 +126,10 @@ const LoadableRouter: React.FC = () => {
       <Route path="/commercial-paper" element={<CommercialPaper />} />
       <Route path="/customer-retention" element={<CustomerRetention />} />
       <Route path="/forms/:templateId" element={<FormTemplate />} />
+      <Route path="/commercial-market" element={<CommercialMarket />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
 
-export default LoadableRouter; 
+export default LoadableRouter;

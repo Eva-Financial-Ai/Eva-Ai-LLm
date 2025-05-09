@@ -58,7 +58,7 @@ const makeRequest = async <T>(method: string, url: string, data?: any): Promise<
   try {
     let response;
     const fullUrl = `${API_BASE_URL}${url}`;
-    
+
     if (method === 'get') {
       response = await axios.get(fullUrl);
     } else if (method === 'post') {
@@ -68,7 +68,7 @@ const makeRequest = async <T>(method: string, url: string, data?: any): Promise<
     } else {
       throw new Error(`Unsupported method: ${method}`);
     }
-    
+
     return response.data as ApiResponse<T>;
   } catch (error) {
     console.error(`${method.toUpperCase()} request failed: ${url}`, error);
@@ -132,7 +132,7 @@ const riskDecisionService = {
     const url = `/requests/${requestId}/status`;
     const data = { status, notes };
     return makeRequest<PendingRequest>('patch', url, data);
-  }
+  },
 };
 
-export default riskDecisionService; 
+export default riskDecisionService;

@@ -65,19 +65,24 @@ export interface TimelineEvent {
 }
 
 // Deal type
-export type DealType = 'syndication' | 'origination' | 'participation' | 'refinance' | 'acquisition';
+export type DealType =
+  | 'syndication'
+  | 'origination'
+  | 'participation'
+  | 'refinance'
+  | 'acquisition';
 
 // Deal status
-export type DealStatus = 
-  'prospect' | 
-  'submitted' | 
-  'underwriting' | 
-  'approved' | 
-  'commitment_issued' |
-  'closing' |
-  'funded' | 
-  'closed' | 
-  'declined';
+export type DealStatus =
+  | 'prospect'
+  | 'submitted'
+  | 'underwriting'
+  | 'approved'
+  | 'commitment_issued'
+  | 'closing'
+  | 'funded'
+  | 'closed'
+  | 'declined';
 
 // Deal interface
 export interface Deal {
@@ -130,28 +135,36 @@ interface DealContextType {
   updateDeal: (id: string, dealData: Partial<Deal>) => Promise<Deal>;
   deleteDeal: (id: string) => Promise<boolean>;
   selectDeal: (deal: Deal | null) => void;
-  
+
   // Participant methods
   addParticipant: (dealId: string, participant: Omit<Participant, 'id'>) => Promise<Participant>;
-  updateParticipant: (dealId: string, participantId: string, data: Partial<Participant>) => Promise<Participant>;
+  updateParticipant: (
+    dealId: string,
+    participantId: string,
+    data: Partial<Participant>
+  ) => Promise<Participant>;
   removeParticipant: (dealId: string, participantId: string) => Promise<boolean>;
-  
+
   // Document methods
   addDocument: (dealId: string, document: Omit<Document, 'id'>) => Promise<Document>;
-  updateDocument: (dealId: string, documentId: string, data: Partial<Document>) => Promise<Document>;
+  updateDocument: (
+    dealId: string,
+    documentId: string,
+    data: Partial<Document>
+  ) => Promise<Document>;
   removeDocument: (dealId: string, documentId: string) => Promise<boolean>;
-  
+
   // Task methods
   addTask: (dealId: string, task: Omit<Task, 'id'>) => Promise<Task>;
   updateTask: (dealId: string, taskId: string, data: Partial<Task>) => Promise<Task>;
   completeTask: (dealId: string, taskId: string) => Promise<Task>;
   removeTask: (dealId: string, taskId: string) => Promise<boolean>;
-  
+
   // Note methods
   addNote: (dealId: string, note: Omit<Note, 'id'>) => Promise<Note>;
   updateNote: (dealId: string, noteId: string, text: string) => Promise<Note>;
   removeNote: (dealId: string, noteId: string) => Promise<boolean>;
-  
+
   // Timeline methods
   addTimelineEvent: (dealId: string, event: Omit<TimelineEvent, 'id'>) => Promise<TimelineEvent>;
 }
@@ -160,7 +173,7 @@ interface DealContextType {
 const DealContext = createContext<DealContextType | undefined>(undefined);
 
 // Provider component
-export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+export const DealProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -178,12 +191,12 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const fetchDeals = async (): Promise<void> => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // In a real app, this would be an API call
       // Simulate API call with timeout
       await new Promise(resolve => setTimeout(resolve, 800));
-      
+
       // Mock data
       const mockDeals: Deal[] = [
         {
@@ -203,8 +216,8 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
             contactInfo: {
               name: 'James Smith',
               email: 'james@acmeproperties.com',
-              phone: '(555) 123-4567'
-            }
+              phone: '(555) 123-4567',
+            },
           },
           property: {
             address: '123 Business Park Ave',
@@ -213,7 +226,7 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
             zip: '60601',
             type: 'Office',
             units: 3,
-            squareFeet: 45000
+            squareFeet: 45000,
           },
           participants: [
             {
@@ -223,7 +236,7 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               allocation: 3000000,
               status: 'participating',
               contactEmail: 'loans@fnb.com',
-              company: 'First National Bank'
+              company: 'First National Bank',
             },
             {
               id: 'participant-2',
@@ -232,7 +245,7 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               allocation: 2000000,
               status: 'participating',
               contactEmail: 'commercial@rcu.com',
-              company: 'Regional Credit Union'
+              company: 'Regional Credit Union',
             },
             {
               id: 'participant-3',
@@ -240,28 +253,28 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               role: 'broker',
               status: 'participating',
               contactEmail: 'deals@abcbrokerage.com',
-              company: 'ABC Brokerage'
-            }
+              company: 'ABC Brokerage',
+            },
           ],
           timeline: [
             {
               id: 'timeline-1',
               date: '2023-04-15T14:30:00Z',
               event: 'Deal created',
-              user: 'John Broker'
+              user: 'John Broker',
             },
             {
               id: 'timeline-2',
               date: '2023-04-18T10:15:00Z',
               event: 'Initial submission complete',
-              user: 'John Broker'
+              user: 'John Broker',
             },
             {
               id: 'timeline-3',
               date: '2023-04-22T16:45:00Z',
               event: 'Underwriting started',
-              user: 'Sarah Underwriter'
-            }
+              user: 'Sarah Underwriter',
+            },
           ],
           documents: [
             {
@@ -270,7 +283,7 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               type: 'pdf',
               uploadedBy: 'John Broker',
               uploadDate: '2023-04-16T09:20:00Z',
-              status: 'approved'
+              status: 'approved',
             },
             {
               id: 'doc-2',
@@ -278,7 +291,7 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               type: 'xlsx',
               uploadedBy: 'Acme Commercial Properties',
               uploadDate: '2023-04-17T11:30:00Z',
-              status: 'approved'
+              status: 'approved',
             },
             {
               id: 'doc-3',
@@ -286,8 +299,8 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               type: 'pdf',
               uploadedBy: 'John Broker',
               uploadDate: '2023-04-19T14:10:00Z',
-              status: 'pending'
-            }
+              status: 'pending',
+            },
           ],
           tasks: [
             {
@@ -298,7 +311,7 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               createdAt: '2023-04-15T15:00:00Z',
               dueDate: '2023-04-25T00:00:00Z',
               status: 'pending',
-              priority: 'high'
+              priority: 'high',
             },
             {
               id: 'task-2',
@@ -308,18 +321,18 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               createdAt: '2023-04-22T17:00:00Z',
               dueDate: '2023-04-26T00:00:00Z',
               status: 'pending',
-              priority: 'medium'
-            }
+              priority: 'medium',
+            },
           ],
           notes: [
             {
               id: 'note-1',
               text: 'Borrower has expressed interest in increasing the loan amount if terms are favorable.',
               createdBy: 'John Broker',
-              createdAt: '2023-04-16T10:30:00Z'
-            }
+              createdAt: '2023-04-16T10:30:00Z',
+            },
           ],
-          tags: ['Office', 'Refinance', 'Chicago']
+          tags: ['Office', 'Refinance', 'Chicago'],
         },
         {
           id: 'deal-2',
@@ -334,7 +347,7 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
           borrower: {
             id: 'borrower-2',
             name: 'Vista Retail Group',
-            type: 'Corporation'
+            type: 'Corporation',
           },
           property: {
             address: '789 Shopping Center Blvd',
@@ -343,7 +356,7 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
             zip: '30328',
             type: 'Retail',
             units: 12,
-            squareFeet: 65000
+            squareFeet: 65000,
           },
           participants: [
             {
@@ -351,28 +364,28 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               name: 'Commerce Bank',
               role: 'lender',
               allocation: 8200000,
-              status: 'participating'
+              status: 'participating',
             },
             {
               id: 'participant-5',
               name: 'XYZ Commercial Brokers',
               role: 'broker',
-              status: 'participating'
-            }
+              status: 'participating',
+            },
           ],
           timeline: [
             {
               id: 'timeline-4',
               date: '2023-04-10T09:00:00Z',
               event: 'Deal created',
-              user: 'Lisa Agent'
+              user: 'Lisa Agent',
             },
             {
               id: 'timeline-5',
               date: '2023-04-14T16:20:00Z',
               event: 'Submission complete',
-              user: 'Lisa Agent'
-            }
+              user: 'Lisa Agent',
+            },
           ],
           documents: [
             {
@@ -381,7 +394,7 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               type: 'pdf',
               uploadedBy: 'Lisa Agent',
               uploadDate: '2023-04-11T13:45:00Z',
-              status: 'approved'
+              status: 'approved',
             },
             {
               id: 'doc-5',
@@ -389,8 +402,8 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               type: 'pdf',
               uploadedBy: 'Lisa Agent',
               uploadDate: '2023-04-12T10:30:00Z',
-              status: 'approved'
-            }
+              status: 'approved',
+            },
           ],
           tasks: [
             {
@@ -401,25 +414,25 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
               createdAt: '2023-04-11T10:00:00Z',
               dueDate: '2023-04-22T00:00:00Z',
               status: 'completed',
-              priority: 'medium'
-            }
+              priority: 'medium',
+            },
           ],
           notes: [
             {
               id: 'note-2',
               text: 'Seller is motivated to close quickly. May consider price reduction for fast closing.',
               createdBy: 'Lisa Agent',
-              createdAt: '2023-04-11T14:20:00Z'
-            }
+              createdAt: '2023-04-11T14:20:00Z',
+            },
           ],
-          tags: ['Retail', 'Acquisition', 'Atlanta']
-        }
+          tags: ['Retail', 'Acquisition', 'Atlanta'],
+        },
       ];
-      
+
       setDeals(mockDeals);
     } catch (err) {
-      console.error("Error fetching deals:", err);
-      setError("Failed to fetch deals. Please try again later.");
+      console.error('Error fetching deals:', err);
+      setError('Failed to fetch deals. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -434,11 +447,11 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const createDeal = async (dealData: Partial<Deal>): Promise<Deal> => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // In a real app, this would be an API call
       await new Promise(resolve => setTimeout(resolve, 800));
-      
+
       const now = new Date().toISOString();
       const newDeal: Deal = {
         id: generateId(),
@@ -451,7 +464,7 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
         borrower: dealData.borrower || {
           id: generateId(),
           name: 'TBD',
-          type: 'Unknown'
+          type: 'Unknown',
         },
         participants: dealData.participants || [],
         timeline: dealData.timeline || [
@@ -459,20 +472,20 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
             id: generateId(),
             date: now,
             event: 'Deal created',
-            user: dealData.createdBy || 'Current User'
-          }
+            user: dealData.createdBy || 'Current User',
+          },
         ],
         documents: dealData.documents || [],
         tasks: dealData.tasks || [],
         notes: dealData.notes || [],
-        ...dealData
+        ...dealData,
       };
-      
+
       setDeals(prev => [...prev, newDeal]);
       return newDeal;
     } catch (err) {
-      console.error("Error creating deal:", err);
-      setError("Failed to create deal. Please try again.");
+      console.error('Error creating deal:', err);
+      setError('Failed to create deal. Please try again.');
       throw err;
     } finally {
       setLoading(false);
@@ -483,34 +496,34 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const updateDeal = async (id: string, dealData: Partial<Deal>): Promise<Deal> => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // In a real app, this would be an API call
       await new Promise(resolve => setTimeout(resolve, 800));
-      
+
       const dealIndex = deals.findIndex(deal => deal.id === id);
       if (dealIndex === -1) {
         throw new Error(`Deal with ID ${id} not found`);
       }
-      
+
       const updatedDeal = {
         ...deals[dealIndex],
-        ...dealData
+        ...dealData,
       };
-      
+
       const newDeals = [...deals];
       newDeals[dealIndex] = updatedDeal;
       setDeals(newDeals);
-      
+
       // If this is the selected deal, update it
       if (selectedDeal && selectedDeal.id === id) {
         setSelectedDeal(updatedDeal);
       }
-      
+
       return updatedDeal;
     } catch (err) {
-      console.error("Error updating deal:", err);
-      setError("Failed to update deal. Please try again.");
+      console.error('Error updating deal:', err);
+      setError('Failed to update deal. Please try again.');
       throw err;
     } finally {
       setLoading(false);
@@ -521,28 +534,28 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const deleteDeal = async (id: string): Promise<boolean> => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // In a real app, this would be an API call
       await new Promise(resolve => setTimeout(resolve, 800));
-      
+
       const dealIndex = deals.findIndex(deal => deal.id === id);
       if (dealIndex === -1) {
         throw new Error(`Deal with ID ${id} not found`);
       }
-      
+
       const newDeals = deals.filter(deal => deal.id !== id);
       setDeals(newDeals);
-      
+
       // If this is the selected deal, clear it
       if (selectedDeal && selectedDeal.id === id) {
         setSelectedDeal(null);
       }
-      
+
       return true;
     } catch (err) {
-      console.error("Error deleting deal:", err);
-      setError("Failed to delete deal. Please try again.");
+      console.error('Error deleting deal:', err);
+      setError('Failed to delete deal. Please try again.');
       throw err;
     } finally {
       setLoading(false);
@@ -555,109 +568,116 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   // Participant methods
-  const addParticipant = async (dealId: string, participant: Omit<Participant, 'id'>): Promise<Participant> => {
+  const addParticipant = async (
+    dealId: string,
+    participant: Omit<Participant, 'id'>
+  ): Promise<Participant> => {
     const dealIndex = deals.findIndex(deal => deal.id === dealId);
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const newParticipant: Participant = {
       id: generateId(),
-      ...participant
+      ...participant,
     };
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      participants: [...deals[dealIndex].participants, newParticipant]
+      participants: [...deals[dealIndex].participants, newParticipant],
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     // Add timeline event
     await addTimelineEvent(dealId, {
       date: new Date().toISOString(),
       event: `Added ${participant.name} as ${participant.role}`,
       user: 'Current User',
       relatedEntityId: newParticipant.id,
-      relatedEntityType: 'participant'
+      relatedEntityType: 'participant',
     });
-    
+
     return newParticipant;
   };
-  
-  const updateParticipant = async (dealId: string, participantId: string, data: Partial<Participant>): Promise<Participant> => {
+
+  const updateParticipant = async (
+    dealId: string,
+    participantId: string,
+    data: Partial<Participant>
+  ): Promise<Participant> => {
     const dealIndex = deals.findIndex(deal => deal.id === dealId);
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const participantIndex = deals[dealIndex].participants.findIndex(p => p.id === participantId);
     if (participantIndex === -1) {
       throw new Error(`Participant with ID ${participantId} not found in deal ${dealId}`);
     }
-    
+
     const updatedParticipant = {
       ...deals[dealIndex].participants[participantIndex],
-      ...data
+      ...data,
     };
-    
+
     const updatedParticipants = [...deals[dealIndex].participants];
     updatedParticipants[participantIndex] = updatedParticipant;
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      participants: updatedParticipants
+      participants: updatedParticipants,
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     return updatedParticipant;
   };
-  
+
   const removeParticipant = async (dealId: string, participantId: string): Promise<boolean> => {
     const dealIndex = deals.findIndex(deal => deal.id === dealId);
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const participant = deals[dealIndex].participants.find(p => p.id === participantId);
     if (!participant) {
       throw new Error(`Participant with ID ${participantId} not found in deal ${dealId}`);
     }
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      participants: deals[dealIndex].participants.filter(p => p.id !== participantId)
+      participants: deals[dealIndex].participants.filter(p => p.id !== participantId),
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     // Add timeline event
     await addTimelineEvent(dealId, {
       date: new Date().toISOString(),
       event: `Removed ${participant.name} as ${participant.role}`,
       user: 'Current User',
-      relatedEntityType: 'participant'
+      relatedEntityType: 'participant',
     });
-    
+
     return true;
   };
 
@@ -667,69 +687,73 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const newDocument: Document = {
       id: generateId(),
-      ...document
+      ...document,
     };
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      documents: [...deals[dealIndex].documents, newDocument]
+      documents: [...deals[dealIndex].documents, newDocument],
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     // Add timeline event
     await addTimelineEvent(dealId, {
       date: new Date().toISOString(),
       event: `Added document: ${document.name}`,
       user: document.uploadedBy,
       relatedEntityId: newDocument.id,
-      relatedEntityType: 'document'
+      relatedEntityType: 'document',
     });
-    
+
     return newDocument;
   };
-  
-  const updateDocument = async (dealId: string, documentId: string, data: Partial<Document>): Promise<Document> => {
+
+  const updateDocument = async (
+    dealId: string,
+    documentId: string,
+    data: Partial<Document>
+  ): Promise<Document> => {
     const dealIndex = deals.findIndex(deal => deal.id === dealId);
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const documentIndex = deals[dealIndex].documents.findIndex(d => d.id === documentId);
     if (documentIndex === -1) {
       throw new Error(`Document with ID ${documentId} not found in deal ${dealId}`);
     }
-    
+
     const updatedDocument = {
       ...deals[dealIndex].documents[documentIndex],
-      ...data
+      ...data,
     };
-    
+
     const updatedDocuments = [...deals[dealIndex].documents];
     updatedDocuments[documentIndex] = updatedDocument;
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      documents: updatedDocuments
+      documents: updatedDocuments,
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     // If status changed, add timeline event
     if (data.status && data.status !== deals[dealIndex].documents[documentIndex].status) {
       await addTimelineEvent(dealId, {
@@ -737,45 +761,45 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
         event: `Document ${updatedDocument.name} marked as ${data.status}`,
         user: 'Current User',
         relatedEntityId: documentId,
-        relatedEntityType: 'document'
+        relatedEntityType: 'document',
       });
     }
-    
+
     return updatedDocument;
   };
-  
+
   const removeDocument = async (dealId: string, documentId: string): Promise<boolean> => {
     const dealIndex = deals.findIndex(deal => deal.id === dealId);
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const document = deals[dealIndex].documents.find(d => d.id === documentId);
     if (!document) {
       throw new Error(`Document with ID ${documentId} not found in deal ${dealId}`);
     }
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      documents: deals[dealIndex].documents.filter(d => d.id !== documentId)
+      documents: deals[dealIndex].documents.filter(d => d.id !== documentId),
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     // Add timeline event
     await addTimelineEvent(dealId, {
       date: new Date().toISOString(),
       event: `Removed document: ${document.name}`,
       user: 'Current User',
-      relatedEntityType: 'document'
+      relatedEntityType: 'document',
     });
-    
+
     return true;
   };
 
@@ -785,69 +809,69 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const newTask: Task = {
       id: generateId(),
-      ...task
+      ...task,
     };
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      tasks: [...deals[dealIndex].tasks, newTask]
+      tasks: [...deals[dealIndex].tasks, newTask],
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     // Add timeline event
     await addTimelineEvent(dealId, {
       date: new Date().toISOString(),
       event: `Task created: ${task.description}`,
       user: task.createdBy,
       relatedEntityId: newTask.id,
-      relatedEntityType: 'task'
+      relatedEntityType: 'task',
     });
-    
+
     return newTask;
   };
-  
+
   const updateTask = async (dealId: string, taskId: string, data: Partial<Task>): Promise<Task> => {
     const dealIndex = deals.findIndex(deal => deal.id === dealId);
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const taskIndex = deals[dealIndex].tasks.findIndex(t => t.id === taskId);
     if (taskIndex === -1) {
       throw new Error(`Task with ID ${taskId} not found in deal ${dealId}`);
     }
-    
+
     const updatedTask = {
       ...deals[dealIndex].tasks[taskIndex],
-      ...data
+      ...data,
     };
-    
+
     const updatedTasks = [...deals[dealIndex].tasks];
     updatedTasks[taskIndex] = updatedTask;
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      tasks: updatedTasks
+      tasks: updatedTasks,
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     // If status changed, add timeline event
     if (data.status && data.status !== deals[dealIndex].tasks[taskIndex].status) {
       await addTimelineEvent(dealId, {
@@ -855,49 +879,49 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
         event: `Task "${updatedTask.description}" status changed to ${data.status}`,
         user: 'Current User',
         relatedEntityId: taskId,
-        relatedEntityType: 'task'
+        relatedEntityType: 'task',
       });
     }
-    
+
     return updatedTask;
   };
-  
+
   const completeTask = async (dealId: string, taskId: string): Promise<Task> => {
     return updateTask(dealId, taskId, { status: 'completed' });
   };
-  
+
   const removeTask = async (dealId: string, taskId: string): Promise<boolean> => {
     const dealIndex = deals.findIndex(deal => deal.id === dealId);
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const task = deals[dealIndex].tasks.find(t => t.id === taskId);
     if (!task) {
       throw new Error(`Task with ID ${taskId} not found in deal ${dealId}`);
     }
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      tasks: deals[dealIndex].tasks.filter(t => t.id !== taskId)
+      tasks: deals[dealIndex].tasks.filter(t => t.id !== taskId),
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     // Add timeline event
     await addTimelineEvent(dealId, {
       date: new Date().toISOString(),
       event: `Removed task: ${task.description}`,
       user: 'Current User',
-      relatedEntityType: 'task'
+      relatedEntityType: 'task',
     });
-    
+
     return true;
   };
 
@@ -907,25 +931,25 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const newNote: Note = {
       id: generateId(),
-      ...note
+      ...note,
     };
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      notes: [...deals[dealIndex].notes, newNote]
+      notes: [...deals[dealIndex].notes, newNote],
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     // Add timeline event if note is not private
     if (!note.isPrivate) {
       await addTimelineEvent(dealId, {
@@ -933,97 +957,100 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
         event: `Note added by ${note.createdBy}`,
         user: note.createdBy,
         relatedEntityId: newNote.id,
-        relatedEntityType: 'note'
+        relatedEntityType: 'note',
       });
     }
-    
+
     return newNote;
   };
-  
+
   const updateNote = async (dealId: string, noteId: string, text: string): Promise<Note> => {
     const dealIndex = deals.findIndex(deal => deal.id === dealId);
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const noteIndex = deals[dealIndex].notes.findIndex(n => n.id === noteId);
     if (noteIndex === -1) {
       throw new Error(`Note with ID ${noteId} not found in deal ${dealId}`);
     }
-    
+
     const updatedNote = {
       ...deals[dealIndex].notes[noteIndex],
       text,
       // Add an "edited" indicator
-      createdAt: `${deals[dealIndex].notes[noteIndex].createdAt} (edited)`
+      createdAt: `${deals[dealIndex].notes[noteIndex].createdAt} (edited)`,
     };
-    
+
     const updatedNotes = [...deals[dealIndex].notes];
     updatedNotes[noteIndex] = updatedNote;
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      notes: updatedNotes
+      notes: updatedNotes,
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     return updatedNote;
   };
-  
+
   const removeNote = async (dealId: string, noteId: string): Promise<boolean> => {
     const dealIndex = deals.findIndex(deal => deal.id === dealId);
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      notes: deals[dealIndex].notes.filter(n => n.id !== noteId)
+      notes: deals[dealIndex].notes.filter(n => n.id !== noteId),
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     return true;
   };
 
   // Timeline methods
-  const addTimelineEvent = async (dealId: string, event: Omit<TimelineEvent, 'id'>): Promise<TimelineEvent> => {
+  const addTimelineEvent = async (
+    dealId: string,
+    event: Omit<TimelineEvent, 'id'>
+  ): Promise<TimelineEvent> => {
     const dealIndex = deals.findIndex(deal => deal.id === dealId);
     if (dealIndex === -1) {
       throw new Error(`Deal with ID ${dealId} not found`);
     }
-    
+
     const newEvent: TimelineEvent = {
       id: generateId(),
-      ...event
+      ...event,
     };
-    
+
     const updatedDeal = {
       ...deals[dealIndex],
-      timeline: [...deals[dealIndex].timeline, newEvent]
+      timeline: [...deals[dealIndex].timeline, newEvent],
     };
-    
+
     const newDeals = [...deals];
     newDeals[dealIndex] = updatedDeal;
     setDeals(newDeals);
-    
+
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(updatedDeal);
     }
-    
+
     return newEvent;
   };
 
@@ -1039,37 +1066,33 @@ export const DealProvider: React.FC<{children: React.ReactNode}> = ({ children }
     updateDeal,
     deleteDeal,
     selectDeal,
-    
+
     // Participant methods
     addParticipant,
     updateParticipant,
     removeParticipant,
-    
+
     // Document methods
     addDocument,
     updateDocument,
     removeDocument,
-    
+
     // Task methods
     addTask,
     updateTask,
     completeTask,
     removeTask,
-    
+
     // Note methods
     addNote,
     updateNote,
     removeNote,
-    
+
     // Timeline methods
-    addTimelineEvent
+    addTimelineEvent,
   };
 
-  return (
-    <DealContext.Provider value={contextValue}>
-      {children}
-    </DealContext.Provider>
-  );
+  return <DealContext.Provider value={contextValue}>{children}</DealContext.Provider>;
 };
 
 // Custom hook to use the deal context
@@ -1081,4 +1104,4 @@ export const useDeal = (): DealContextType => {
   return context;
 };
 
-export default DealContext; 
+export default DealContext;

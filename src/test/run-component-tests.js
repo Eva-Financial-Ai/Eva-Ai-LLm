@@ -70,10 +70,13 @@ try {
 console.log('Running tests in headless browser...');
 try {
   // Using a simple browser for testing - you can replace this with Puppeteer or similar
-  execSync('npx http-server -o ./test-runner.html -c-1', { stdio: 'inherit', cwd: path.join(__dirname) });
+  execSync('npx http-server -o ./test-runner.html -c-1', {
+    stdio: 'inherit',
+    cwd: path.join(__dirname),
+  });
 } catch (error) {
   console.error('Failed to run tests:', error);
   process.exit(1);
 }
 
-console.log('Test run complete!'); 
+console.log('Test run complete!');

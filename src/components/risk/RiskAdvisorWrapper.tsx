@@ -11,13 +11,13 @@ interface RiskAdvisorWrapperProps {
 
 /**
  * Wrapper component for the Risk Advisor Chat that ensures proper context handling
- * This fixes the redirection issue by providing a dedicated component for Risk Advisor 
+ * This fixes the redirection issue by providing a dedicated component for Risk Advisor
  * that is separate from DocumentVerification
  */
-const RiskAdvisorWrapper: React.FC<RiskAdvisorWrapperProps> = ({ 
-  isOpen, 
-  onClose, 
-  mode = 'general' 
+const RiskAdvisorWrapper: React.FC<RiskAdvisorWrapperProps> = ({
+  isOpen,
+  onClose,
+  mode = 'general',
 }) => {
   const location = useLocation();
   const { currentTransaction } = useTransactionStore();
@@ -27,14 +27,14 @@ const RiskAdvisorWrapper: React.FC<RiskAdvisorWrapperProps> = ({
     if (location.search) {
       const params = new URLSearchParams(location.search);
       const context = params.get('context');
-      
+
       if (context === 'compliance') {
-        return "What are the regulatory compliance risks for this transaction?";
+        return 'What are the regulatory compliance risks for this transaction?';
       } else if (context === 'financials') {
-        return "Analyze the financial statements for risk factors.";
+        return 'Analyze the financial statements for risk factors.';
       }
     }
-    
+
     return undefined;
   };
 
@@ -48,4 +48,4 @@ const RiskAdvisorWrapper: React.FC<RiskAdvisorWrapperProps> = ({
   );
 };
 
-export default RiskAdvisorWrapper; 
+export default RiskAdvisorWrapper;

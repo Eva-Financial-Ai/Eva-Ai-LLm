@@ -10,17 +10,13 @@ const runComponentTests = () => {
   const root = createRoot(containerElement);
 
   // Define directories to test
-  const componentDirs = [
-    './src/components',
-    './src/pages',
-    './src/features'
-  ];
+  const componentDirs = ['./src/components', './src/pages', './src/features'];
 
   // Define options for component scanning
   const options = {
     excludeDirs: ['__tests__', 'node_modules'],
     excludeFiles: ['index.ts', 'types.ts'],
-    recursive: true
+    recursive: true,
   };
 
   // Render the component tester app
@@ -38,7 +34,7 @@ const runComponentTests = () => {
 // Handler for when testing completes
 const handleTestingComplete = (results: ComponentTestResult[]) => {
   console.log('Component testing complete!', results);
-  
+
   // Calculate statistics
   const totalComponents = results.length;
   const successfulComponents = results.filter(r => r.status === 'success').length;
@@ -67,4 +63,4 @@ Total Components Tested: ${totalComponents}
 };
 
 // Export the runner function
-export default runComponentTests; 
+export default runComponentTests;

@@ -30,7 +30,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
   placeholder = 'Select an option',
   error,
   className = '',
-  handleOtherChange
+  handleOtherChange,
 }) => {
   const [showOtherInput, setShowOtherInput] = useState(false);
   const [otherValue, setOtherValue] = useState('');
@@ -44,10 +44,10 @@ const SelectField: React.FC<SelectFieldProps> = ({
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newValue = e.target.value;
     const isOtherSelected = newValue === 'other';
-    
+
     setShowOtherInput(isOtherSelected);
     onChange(e);
-    
+
     // Reset other value when switching away from "other"
     if (!isOtherSelected) {
       setOtherValue('');
@@ -57,7 +57,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
   const handleOtherInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newOtherValue = e.target.value;
     setOtherValue(newOtherValue);
-    
+
     // If parent provided a handler for other field changes, call it
     if (handleOtherChange) {
       handleOtherChange(name, newOtherValue);
@@ -67,9 +67,10 @@ const SelectField: React.FC<SelectFieldProps> = ({
   return (
     <div className={`mb-4 ${className}`}>
       <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
-        {label}{required && <span className="text-red-500 ml-1">*</span>}
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
       </label>
-      
+
       <select
         id={name}
         name={name}
@@ -80,17 +81,17 @@ const SelectField: React.FC<SelectFieldProps> = ({
         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
       >
         {placeholder && <option value="">{placeholder}</option>}
-        
+
         {options.map(option => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
         ))}
-        
+
         {/* Always include "Other" option at the end */}
         <option value="other">Other</option>
       </select>
-      
+
       {showOtherInput && (
         <div className="mt-2">
           <input
@@ -103,10 +104,10 @@ const SelectField: React.FC<SelectFieldProps> = ({
           />
         </div>
       )}
-      
+
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 };
 
-export default SelectField; 
+export default SelectField;

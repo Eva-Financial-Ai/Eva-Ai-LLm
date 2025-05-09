@@ -44,7 +44,7 @@ const getAuthHeaders = () => {
   const token = localStorage.getItem('auth_token');
   return {
     'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : ''
+    Authorization: token ? `Bearer ${token}` : '',
   };
 };
 
@@ -64,7 +64,7 @@ export const getTransactions = async (): Promise<Transaction[]> => {
 
   try {
     const response = await fetch(`${API_BASE_URL}/transactions`, {
-      headers: getAuthHeaders()
+      headers: getAuthHeaders(),
     });
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -73,7 +73,7 @@ export const getTransactions = async (): Promise<Transaction[]> => {
     return data.data || [];
   } catch (error) {
     console.error('Failed to fetch transactions:', error);
-    
+
     // Fallback to mock data if API request fails
     console.log('Falling back to mock transaction data');
     return [...mockTransactions]; // Return a copy of mockTransactions
@@ -88,14 +88,14 @@ export const getTransactionById = async (id: string): Promise<Transaction | null
     mockTransactions = loadMockTransactions();
     const transaction = mockTransactions.find(t => t.id === id);
     if (transaction) {
-      return Promise.resolve({...transaction}); // Return a copy to prevent reference issues
+      return Promise.resolve({ ...transaction }); // Return a copy to prevent reference issues
     }
     return Promise.resolve(null);
   }
 
   try {
     const response = await fetch(`${API_BASE_URL}/transactions/${id}`, {
-      headers: getAuthHeaders()
+      headers: getAuthHeaders(),
     });
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -104,7 +104,7 @@ export const getTransactionById = async (id: string): Promise<Transaction | null
     return data.data || null;
   } catch (error) {
     console.error(`Failed to fetch transaction ${id}:`, error);
-    
+
     // Fallback to mock data if API request fails
     console.log(`Falling back to mock data for transaction ${id}`);
     return mockTransactions.find(t => t.id === id) || null;
@@ -112,29 +112,31 @@ export const getTransactionById = async (id: string): Promise<Transaction | null
 };
 
 // Create a new transaction
-export const createTransaction = async (transaction: Omit<Transaction, 'id'>): Promise<Transaction | null> => {
+export const createTransaction = async (
+  transaction: Omit<Transaction, 'id'>
+): Promise<Transaction | null> => {
   if (USE_MOCK_DATA) {
     console.log('Creating mock transaction with data:', transaction);
     try {
       const newTransaction: Transaction = {
         ...transaction,
         id: 'TX-' + Math.floor(Math.random() * 900000 + 100000),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
-      
+
       // Update the mockTransactions array
       mockTransactions.push(newTransaction);
-      
+
       // Save to localStorage
       saveMockTransactions(mockTransactions);
-      
+
       console.log('Created new transaction:', newTransaction);
       console.log('Updated mock transactions:', mockTransactions);
-      
+
       // Add a small delay to simulate network request
       return new Promise(resolve => {
         setTimeout(() => {
-          resolve({...newTransaction});
+          resolve({ ...newTransaction });
         }, 300);
       });
     } catch (err) {
@@ -149,23 +151,23 @@ export const createTransaction = async (transaction: Omit<Transaction, 'id'>): P
       headers: getAuthHeaders(),
       body: JSON.stringify(transaction),
     });
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     const data: ApiResponse<Transaction> = await response.json();
     return data.data || null;
   } catch (error) {
     console.error('Failed to create transaction:', error);
-    
+
     // Fallback to creating a mock transaction
     console.log('Creating fallback mock transaction');
     try {
       const newTransaction: Transaction = {
         ...transaction,
         id: 'TX-' + Math.floor(Math.random() * 900000 + 100000),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
       mockTransactions.push(newTransaction);
       saveMockTransactions(mockTransactions);
@@ -184,9 +186,9 @@ export const updateTransaction = async (transaction: Transaction): Promise<Trans
     try {
       const index = mockTransactions.findIndex(t => t.id === transaction.id);
       if (index >= 0) {
-        mockTransactions[index] = {...transaction};
+        mockTransactions[index] = { ...transaction };
         saveMockTransactions(mockTransactions);
-        return {...transaction};
+        return { ...transaction };
       }
       return null;
     } catch (err) {
@@ -201,16 +203,16 @@ export const updateTransaction = async (transaction: Transaction): Promise<Trans
       headers: getAuthHeaders(),
       body: JSON.stringify(transaction),
     });
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     const data: ApiResponse<Transaction> = await response.json();
     return data.data || null;
   } catch (error) {
     console.error(`Failed to update transaction ${transaction.id}:`, error);
-    
+
     // Fallback to updating mock transaction
     console.log(`Updating fallback mock transaction ${transaction.id}`);
     try {
@@ -249,13 +251,13 @@ export const deleteTransaction = async (id: string): Promise<boolean> => {
   try {
     const response = await fetch(`${API_BASE_URL}/transactions/${id}`, {
       method: 'DELETE',
-      headers: getAuthHeaders()
+      headers: getAuthHeaders(),
     });
-    
+
     return response.ok;
   } catch (error) {
     console.error(`Failed to delete transaction ${id}:`, error);
-    
+
     // Fallback to deleting mock transaction
     console.log(`Deleting fallback mock transaction ${id}`);
     try {
@@ -275,7 +277,7 @@ export const deleteTransaction = async (id: string): Promise<boolean> => {
 
 // Update transaction stage
 export const updateTransactionStage = async (
-  id: string, 
+  id: string,
   stage: string
 ): Promise<Transaction | null> => {
   if (USE_MOCK_DATA) {
@@ -285,10 +287,10 @@ export const updateTransactionStage = async (
       if (index >= 0) {
         mockTransactions[index] = {
           ...mockTransactions[index],
-          currentStage: stage as any
+          currentStage: stage as any,
         };
         saveMockTransactions(mockTransactions);
-        return {...mockTransactions[index]};
+        return { ...mockTransactions[index] };
       }
       return null;
     } catch (err) {
@@ -303,16 +305,16 @@ export const updateTransactionStage = async (
       headers: getAuthHeaders(),
       body: JSON.stringify({ stage }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     const data: ApiResponse<Transaction> = await response.json();
     return data.data || null;
   } catch (error) {
     console.error(`Failed to update stage for transaction ${id}:`, error);
-    
+
     // Fallback to updating mock transaction stage
     console.log(`Updating fallback mock transaction ${id} stage to ${stage}`);
     try {
@@ -320,10 +322,10 @@ export const updateTransactionStage = async (
       if (index >= 0) {
         mockTransactions[index] = {
           ...mockTransactions[index],
-          currentStage: stage as any
+          currentStage: stage as any,
         };
         saveMockTransactions(mockTransactions);
-        return {...mockTransactions[index]};
+        return { ...mockTransactions[index] };
       }
       return null;
     } catch (err) {
@@ -331,4 +333,4 @@ export const updateTransactionStage = async (
       return null;
     }
   }
-}; 
+};

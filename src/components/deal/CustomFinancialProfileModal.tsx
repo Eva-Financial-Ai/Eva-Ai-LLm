@@ -29,23 +29,23 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
   onClose,
   onSubmit,
   initialProfile,
-  loanAmount
+  loanAmount,
 }) => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<FinancialProfile>(initialProfile);
-  
+
   const handleChange = (field: keyof FinancialProfile, value: string | number) => {
     setProfile({
       ...profile,
-      [field]: typeof value === 'string' ? parseFloat(value) || 0 : value
+      [field]: typeof value === 'string' ? parseFloat(value) || 0 : value,
     });
   };
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(profile);
   };
-  
+
   const handleSendCreditApplication = () => {
     navigate('/credit-application', {
       state: {
@@ -53,36 +53,40 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
           requestedAmount: loanAmount,
           preferredTerm: profile.preferredTerm,
           creditScore: profile.creditScore,
-          businessRevenue: profile.yearlyRevenue
-        }
-      }
+          businessRevenue: profile.yearlyRevenue,
+        },
+      },
     });
     onClose();
   };
-  
+
   if (!isOpen) return null;
-  
+
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-900">Custom Financial Profile</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-500"
-          >
+          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-500">
             <span className="sr-only">Close</span>
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label htmlFor="maxDownPayment" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="maxDownPayment"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Maximum Down Payment
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -93,15 +97,18 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
                   type="number"
                   id="maxDownPayment"
                   value={profile.maxDownPayment || ''}
-                  onChange={(e) => handleChange('maxDownPayment', e.target.value)}
+                  onChange={e => handleChange('maxDownPayment', e.target.value)}
                   className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="0"
                 />
               </div>
             </div>
-            
+
             <div>
-              <label htmlFor="monthlyBudget" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="monthlyBudget"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Monthly Payment Budget
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -112,15 +119,18 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
                   type="number"
                   id="monthlyBudget"
                   value={profile.monthlyBudget || ''}
-                  onChange={(e) => handleChange('monthlyBudget', e.target.value)}
+                  onChange={e => handleChange('monthlyBudget', e.target.value)}
                   className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="0"
                 />
               </div>
             </div>
-            
+
             <div>
-              <label htmlFor="yearlyRevenue" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="yearlyRevenue"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Annual Business Revenue
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -131,13 +141,13 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
                   type="number"
                   id="yearlyRevenue"
                   value={profile.yearlyRevenue || ''}
-                  onChange={(e) => handleChange('yearlyRevenue', e.target.value)}
+                  onChange={e => handleChange('yearlyRevenue', e.target.value)}
                   className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="0"
                 />
               </div>
             </div>
-            
+
             <div>
               <label htmlFor="cashOnHand" className="block text-sm font-medium text-gray-700 mb-1">
                 Available Cash on Hand
@@ -150,15 +160,18 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
                   type="number"
                   id="cashOnHand"
                   value={profile.cashOnHand || ''}
-                  onChange={(e) => handleChange('cashOnHand', e.target.value)}
+                  onChange={e => handleChange('cashOnHand', e.target.value)}
                   className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="0"
                 />
               </div>
             </div>
-            
+
             <div>
-              <label htmlFor="existingLoanBalance" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="existingLoanBalance"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Existing Loan Balance
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -169,15 +182,18 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
                   type="number"
                   id="existingLoanBalance"
                   value={profile.existingLoanBalance || ''}
-                  onChange={(e) => handleChange('existingLoanBalance', e.target.value)}
+                  onChange={e => handleChange('existingLoanBalance', e.target.value)}
                   className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="0"
                 />
               </div>
             </div>
-            
+
             <div>
-              <label htmlFor="collateralValue" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="collateralValue"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Available Collateral Value
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -188,21 +204,24 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
                   type="number"
                   id="collateralValue"
                   value={profile.collateralValue || ''}
-                  onChange={(e) => handleChange('collateralValue', e.target.value)}
+                  onChange={e => handleChange('collateralValue', e.target.value)}
                   className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="0"
                 />
               </div>
             </div>
-            
+
             <div>
-              <label htmlFor="preferredTerm" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="preferredTerm"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Preferred Term (months)
               </label>
               <select
                 id="preferredTerm"
                 value={profile.preferredTerm || ''}
-                onChange={(e) => handleChange('preferredTerm', parseInt(e.target.value))}
+                onChange={e => handleChange('preferredTerm', parseInt(e.target.value))}
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               >
                 <option value="12">12 months (1 year)</option>
@@ -216,7 +235,7 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
                 <option value="120">120 months (10 years)</option>
               </select>
             </div>
-            
+
             <div>
               <label htmlFor="creditScore" className="block text-sm font-medium text-gray-700 mb-1">
                 Estimated Credit Score
@@ -224,7 +243,7 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
               <select
                 id="creditScore"
                 value={profile.creditScore || ''}
-                onChange={(e) => handleChange('creditScore', parseInt(e.target.value))}
+                onChange={e => handleChange('creditScore', parseInt(e.target.value))}
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               >
                 <option value="800">Excellent (800+)</option>
@@ -235,46 +254,55 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
                 <option value="550">Very Poor (below 600)</option>
               </select>
             </div>
-            
+
             <div>
-              <label htmlFor="debtToIncomeRatio" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="debtToIncomeRatio"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Debt-to-Income Ratio (%)
               </label>
               <input
                 type="number"
                 id="debtToIncomeRatio"
                 value={profile.debtToIncomeRatio || ''}
-                onChange={(e) => handleChange('debtToIncomeRatio', e.target.value)}
+                onChange={e => handleChange('debtToIncomeRatio', e.target.value)}
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="0"
                 min="0"
                 max="100"
               />
             </div>
-            
+
             <div>
-              <label htmlFor="operatingHistory" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="operatingHistory"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Business Operating History (years)
               </label>
               <input
                 type="number"
                 id="operatingHistory"
                 value={profile.operatingHistory || ''}
-                onChange={(e) => handleChange('operatingHistory', e.target.value)}
+                onChange={e => handleChange('operatingHistory', e.target.value)}
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="0"
                 min="0"
               />
             </div>
-            
+
             <div>
-              <label htmlFor="industryType" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="industryType"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Industry Type
               </label>
               <select
                 id="industryType"
                 value={profile.industryType || ''}
-                onChange={(e) => handleChange('industryType', e.target.value)}
+                onChange={e => handleChange('industryType', e.target.value)}
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               >
                 <option value="">Select Industry</option>
@@ -290,15 +318,18 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
                 <option value="other">Other</option>
               </select>
             </div>
-            
+
             <div>
-              <label htmlFor="businessStructure" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="businessStructure"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Business Structure
               </label>
               <select
                 id="businessStructure"
                 value={profile.businessStructure || ''}
-                onChange={(e) => handleChange('businessStructure', e.target.value)}
+                onChange={e => handleChange('businessStructure', e.target.value)}
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
               >
                 <option value="">Select Structure</option>
@@ -311,7 +342,7 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
               </select>
             </div>
           </div>
-          
+
           <div className="flex justify-end space-x-3">
             <button
               type="button"
@@ -340,4 +371,4 @@ const CustomFinancialProfileModal: React.FC<CustomFinancialProfileModalProps> = 
   );
 };
 
-export default CustomFinancialProfileModal; 
+export default CustomFinancialProfileModal;

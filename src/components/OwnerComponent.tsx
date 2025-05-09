@@ -7,7 +7,7 @@ export interface Owner {
   name: string;
   ownershipPercentage: string;
   shares?: string; // Number of shares owned
-  totalShares?: string; // Total company shares 
+  totalShares?: string; // Total company shares
   ssn?: string;
   businessEin?: string;
   trustEin?: string;
@@ -23,10 +23,10 @@ export interface Owner {
   isComplete: boolean;
   notificationSent: boolean;
   creditScore?: string; // Add credit score field
-  
+
   // Individual owner fields
   title?: string; // Job title/position in company
-  
+
   // Business owner fields
   businessFormationDate?: string;
   businessFormationState?: string;
@@ -34,7 +34,7 @@ export interface Owner {
   primaryContactTitle?: string;
   primaryContactEmail?: string;
   primaryContactPhone?: string;
-  
+
   // Trust owner fields
   trustFormationDate?: string;
   trustState?: string;
@@ -68,18 +68,18 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
   isMainOwner = false,
   isBrokerView = false,
   includeCredit = false,
-  requireMobile = false
+  requireMobile = false,
 }) => {
   const [addressInput, setAddressInput] = useState(owner.address || '');
   const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
   const [isSearchingAddress, setIsSearchingAddress] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSharesInput, setShowSharesInput] = useState(false);
-  
+
   // Format SSN
   const formatSsn = (value: string) => {
     const digits = value.replace(/\D/g, '');
-    
+
     if (digits.length <= 3) {
       return digits;
     } else if (digits.length <= 5) {
@@ -88,22 +88,22 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
       return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5, 9)}`;
     }
   };
-  
+
   // Format EIN
   const formatEin = (value: string) => {
     const digits = value.replace(/\D/g, '');
-    
+
     if (digits.length <= 2) {
       return digits;
     } else {
       return `${digits.slice(0, 2)}-${digits.slice(2, 9)}`;
     }
   };
-  
+
   // Format phone number
   const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, '');
-    
+
     if (digits.length <= 3) {
       return digits;
     } else if (digits.length <= 6) {
@@ -112,31 +112,33 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
       return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
     }
   };
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    
+
     // Handle SSN formatting
     if (name === 'ssn') {
       const formattedSsn = formatSsn(value);
       onChange({ ...owner, [name]: formattedSsn });
       return;
     }
-    
+
     // Handle EIN formatting
     if (name === 'businessEin' || name === 'trustEin') {
       const formattedEin = formatEin(value);
       onChange({ ...owner, [name]: formattedEin });
       return;
     }
-    
+
     // Handle phone formatting
     if (name === 'phone' || name === 'mobile' || name === 'businessPhone') {
       const formattedPhone = formatPhone(value);
       onChange({ ...owner, [name]: formattedPhone });
       return;
     }
-    
+
     // Handle owner type change
     if (name === 'type') {
       // Ensure the value is one of the allowed types before updating state
@@ -144,7 +146,7 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
       if (['individual', 'business', 'trust'].includes(newType)) {
         // Clear type-specific fields when type changes
         const updatedOwner = { ...owner, type: newType };
-        
+
         if (newType === 'individual') {
           delete updatedOwner.businessEin;
           delete updatedOwner.trustEin;
@@ -179,28 +181,28 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
           delete updatedOwner.primaryContactEmail;
           delete updatedOwner.primaryContactPhone;
         }
-        
+
         onChange(updatedOwner);
       }
       return;
     }
-    
+
     onChange({ ...owner, [name]: value });
   };
-  
+
   // Search for address
   const searchAddresses = async (query: string) => {
     if (query.length < 3) {
       setAddressSuggestions([]);
       return;
     }
-    
+
     setIsSearchingAddress(true);
-    
+
     try {
       // In a real implementation, this would call a geocoding API
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // Mock address suggestions
       const mockSuggestions: AddressSuggestion[] = [
         {
@@ -209,7 +211,7 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
           city: 'San Francisco',
           state: 'CA',
           zipCode: '94103',
-          fullAddress: `${Math.floor(Math.random() * 1000) + 100} ${query} St, San Francisco, CA 94103`
+          fullAddress: `${Math.floor(Math.random() * 1000) + 100} ${query} St, San Francisco, CA 94103`,
         },
         {
           id: '2',
@@ -217,7 +219,7 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
           city: 'Oakland',
           state: 'CA',
           zipCode: '94612',
-          fullAddress: `${Math.floor(Math.random() * 1000) + 100} ${query} Ave, Oakland, CA 94612`
+          fullAddress: `${Math.floor(Math.random() * 1000) + 100} ${query} Ave, Oakland, CA 94612`,
         },
         {
           id: '3',
@@ -225,10 +227,10 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
           city: 'San Jose',
           state: 'CA',
           zipCode: '95112',
-          fullAddress: `${Math.floor(Math.random() * 1000) + 100} ${query} Blvd, San Jose, CA 95112`
-        }
+          fullAddress: `${Math.floor(Math.random() * 1000) + 100} ${query} Blvd, San Jose, CA 95112`,
+        },
       ];
-      
+
       setAddressSuggestions(mockSuggestions);
       setIsSearchingAddress(false);
     } catch (error) {
@@ -236,22 +238,22 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
       setIsSearchingAddress(false);
     }
   };
-  
+
   // Handle address input changes
   const handleAddressInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    
+
     setAddressInput(value);
     onChange({ ...owner, address: value });
-    
+
     // Debounce address search
     const debounceTimer = setTimeout(() => {
       searchAddresses(value);
     }, 300);
-    
+
     return () => clearTimeout(debounceTimer);
   };
-  
+
   // Handle address selection
   const handleAddressSelect = (suggestion: AddressSuggestion) => {
     onChange({
@@ -259,50 +261,50 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
       address: suggestion.address,
       city: suggestion.city,
       state: suggestion.state,
-      zip: suggestion.zipCode
+      zip: suggestion.zipCode,
     });
-    
+
     setAddressInput(suggestion.address);
     setAddressSuggestions([]);
   };
-  
+
   // Toggle between percentage and shares
   const toggleSharesInput = () => {
     setShowSharesInput(!showSharesInput);
   };
-  
+
   // Add age validation function
   const isAtLeast18YearsOld = (dateString: string): boolean => {
     if (!dateString) return true; // If no date, don't block (we'll validate required separately)
-    
+
     const birthDate = new Date(dateString);
     const today = new Date();
-    
+
     // Calculate age
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
+
     // Adjust age if birth month/day hasn't occurred yet this year
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
+
     return age >= 18;
   };
 
   // Handle input change for date of birth to include age validation
   useEffect(() => {
     if (owner.dateOfBirth && !isAtLeast18YearsOld(owner.dateOfBirth)) {
-      setErrors(prev => ({...prev, dateOfBirth: 'Owner must be at least 18 years old to apply'}));
+      setErrors(prev => ({ ...prev, dateOfBirth: 'Owner must be at least 18 years old to apply' }));
     } else {
       setErrors(prev => {
-        const newErrors = {...prev};
+        const newErrors = { ...prev };
         delete newErrors.dateOfBirth;
         return newErrors;
       });
     }
   }, [owner.dateOfBirth]);
-  
+
   // Helper to render ID field based on owner type
   const renderIdentificationField = () => {
     if (owner.type === 'individual') {
@@ -311,7 +313,11 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
           <div className="mb-4">
             <label className="block text-sm font-medium text-light-text-secondary mb-1">
               Social Security Number*
-              {isBrokerView && <span className="text-xs font-normal ml-1 text-risk-orange-300">(Optional for broker)</span>}
+              {isBrokerView && (
+                <span className="text-xs font-normal ml-1 text-risk-orange-300">
+                  (Optional for broker)
+                </span>
+              )}
             </label>
             <input
               type="text"
@@ -326,11 +332,15 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
             {errors.ssn && <p className="text-risk-red text-sm mt-1">{errors.ssn}</p>}
             <p className="text-xs text-light-text-secondary mt-1">Format: XXX-XX-XXXX</p>
           </div>
-          
+
           <div className="mb-4">
             <label className="block text-sm font-medium text-light-text-secondary mb-1">
               Date of Birth*
-              {isBrokerView && <span className="text-xs font-normal ml-1 text-risk-orange-300">(Optional for broker)</span>}
+              {isBrokerView && (
+                <span className="text-xs font-normal ml-1 text-risk-orange-300">
+                  (Optional for broker)
+                </span>
+              )}
             </label>
             <input
               type="date"
@@ -341,7 +351,9 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
               className="w-full p-2 border border-light-border rounded-md text-light-text bg-white focus:ring-primary-500 focus:border-primary-500"
               required={!isBrokerView}
             />
-            {errors.dateOfBirth && <p className="text-risk-red text-sm mt-1">{errors.dateOfBirth}</p>}
+            {errors.dateOfBirth && (
+              <p className="text-risk-red text-sm mt-1">{errors.dateOfBirth}</p>
+            )}
           </div>
         </>
       );
@@ -350,7 +362,11 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
         <div className="mb-4">
           <label className="block text-sm font-medium text-light-text-secondary mb-1">
             Business EIN*
-            {isBrokerView && <span className="text-xs font-normal ml-1 text-risk-orange-300">(Optional for broker)</span>}
+            {isBrokerView && (
+              <span className="text-xs font-normal ml-1 text-risk-orange-300">
+                (Optional for broker)
+              </span>
+            )}
           </label>
           <input
             type="text"
@@ -371,7 +387,11 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
         <div className="mb-4">
           <label className="block text-sm font-medium text-light-text-secondary mb-1">
             Trust EIN*
-            {isBrokerView && <span className="text-xs font-normal ml-1 text-risk-orange-300">(Optional for broker)</span>}
+            {isBrokerView && (
+              <span className="text-xs font-normal ml-1 text-risk-orange-300">
+                (Optional for broker)
+              </span>
+            )}
           </label>
           <input
             type="text"
@@ -388,10 +408,10 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
         </div>
       );
     }
-    
+
     return null;
   };
-  
+
   // Render phone fields based on owner type
   const renderPhoneFields = () => {
     return (
@@ -411,7 +431,7 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
           />
           {errors.mobile && <p className="text-risk-red text-sm mt-1">{errors.mobile}</p>}
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-light-text-secondary mb-1">
             Business Phone <span className="text-xs text-gray-400">(Optional)</span>
@@ -428,7 +448,7 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
       </div>
     );
   };
-  
+
   // Render ownership fields with percentage or shares option
   const renderOwnershipFields = () => {
     return (
@@ -443,11 +463,13 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
             {showSharesInput ? 'Enter as percentage' : 'Enter as shares'}
           </button>
         </div>
-        
+
         {showSharesInput ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-light-text-secondary mb-1">Number of Shares</label>
+              <label className="block text-xs text-light-text-secondary mb-1">
+                Number of Shares
+              </label>
               <input
                 type="number"
                 name="shares"
@@ -458,7 +480,9 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
               />
             </div>
             <div>
-              <label className="block text-xs text-light-text-secondary mb-1">Total Company Shares</label>
+              <label className="block text-xs text-light-text-secondary mb-1">
+                Total Company Shares
+              </label>
               <input
                 type="number"
                 name="totalShares"
@@ -467,9 +491,11 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
                 className="w-full p-2 border border-light-border rounded-md text-light-text bg-white focus:ring-primary-500 focus:border-primary-500"
                 min="0"
               />
-              {parseInt(owner.shares || '0') > parseInt(owner.totalShares || '0') && owner.totalShares && parseInt(owner.totalShares) > 0 && (
-                <p className="text-risk-red text-xs mt-1">Shares cannot exceed total shares</p>
-              )}
+              {parseInt(owner.shares || '0') > parseInt(owner.totalShares || '0') &&
+                owner.totalShares &&
+                parseInt(owner.totalShares) > 0 && (
+                  <p className="text-risk-red text-xs mt-1">Shares cannot exceed total shares</p>
+                )}
             </div>
           </div>
         ) : (
@@ -485,20 +511,24 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
               required
             />
             <span className="absolute right-3 top-2 text-light-text-secondary">%</span>
-            {errors.ownershipPercentage && <p className="text-risk-red text-sm mt-1">{errors.ownershipPercentage}</p>}
+            {errors.ownershipPercentage && (
+              <p className="text-risk-red text-sm mt-1">{errors.ownershipPercentage}</p>
+            )}
           </div>
         )}
       </div>
     );
   };
-  
+
   // Add credit score field
   const renderCreditScore = () => {
     if (!includeCredit) return null;
-    
+
     return (
       <div className="mb-4">
-        <label className="block text-sm font-medium text-light-text-secondary mb-1">Credit Score</label>
+        <label className="block text-sm font-medium text-light-text-secondary mb-1">
+          Credit Score
+        </label>
         <select
           name="creditScore"
           value={owner.creditScore || ''}
@@ -516,14 +546,16 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
       </div>
     );
   };
-  
+
   // Add individual-specific fields
   const renderIndividualFields = () => {
     if (owner.type !== 'individual') return null;
-    
+
     return (
       <div className="mb-4">
-        <label className="block text-sm font-medium text-light-text-secondary mb-1">Title/Position</label>
+        <label className="block text-sm font-medium text-light-text-secondary mb-1">
+          Title/Position
+        </label>
         <input
           type="text"
           name="title"
@@ -535,31 +567,43 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
       </div>
     );
   };
-  
+
   // Add business owner specific fields
   const renderBusinessFields = () => {
     if (owner.type !== 'business') return null;
-    
+
     return (
       <>
         <div className="mb-4 p-4 bg-blue-50 rounded-md">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-blue-400"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-3">
               <p className="text-sm text-blue-700">
-                Business entity owners must provide a primary contact person who will serve as a personal guarantor for the credit application.
+                Business entity owners must provide a primary contact person who will serve as a
+                personal guarantor for the credit application.
               </p>
             </div>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-light-text-secondary mb-1">Formation Date</label>
+            <label className="block text-sm font-medium text-light-text-secondary mb-1">
+              Formation Date
+            </label>
             <input
               type="date"
               name="businessFormationDate"
@@ -568,9 +612,11 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
               className="w-full p-2 border border-light-border rounded-md text-light-text bg-white focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-light-text-secondary mb-1">State of Formation</label>
+            <label className="block text-sm font-medium text-light-text-secondary mb-1">
+              State of Formation
+            </label>
             <select
               name="businessFormationState"
               value={owner.businessFormationState || ''}
@@ -587,12 +633,16 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
             </select>
           </div>
         </div>
-        
+
         <div className="mb-4">
-          <h5 className="text-sm font-medium text-light-text-secondary mb-3">Primary Contact Information</h5>
+          <h5 className="text-sm font-medium text-light-text-secondary mb-3">
+            Primary Contact Information
+          </h5>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-light-text-secondary mb-1">Contact Name*</label>
+              <label className="block text-sm font-medium text-light-text-secondary mb-1">
+                Contact Name*
+              </label>
               <input
                 type="text"
                 name="primaryContactName"
@@ -602,9 +652,11 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
                 required
               />
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium text-light-text-secondary mb-1">Contact Title</label>
+              <label className="block text-sm font-medium text-light-text-secondary mb-1">
+                Contact Title
+              </label>
               <input
                 type="text"
                 name="primaryContactTitle"
@@ -614,10 +666,12 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-light-text-secondary mb-1">Contact Email*</label>
+              <label className="block text-sm font-medium text-light-text-secondary mb-1">
+                Contact Email*
+              </label>
               <input
                 type="email"
                 name="primaryContactEmail"
@@ -627,9 +681,11 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
                 required
               />
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium text-light-text-secondary mb-1">Contact Phone*</label>
+              <label className="block text-sm font-medium text-light-text-secondary mb-1">
+                Contact Phone*
+              </label>
               <input
                 type="tel"
                 name="primaryContactPhone"
@@ -644,31 +700,44 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
       </>
     );
   };
-  
+
   // Add trust owner specific fields
   const renderTrustFields = () => {
     if (owner.type !== 'trust') return null;
-    
+
     return (
       <>
         <div className="mb-4 p-4 bg-yellow-50 rounded-md">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-yellow-400"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-3">
               <p className="text-sm text-yellow-800">
-                <strong>Important:</strong> Trust owners typically require a personal guarantor for credit applications. Please be prepared to provide personal financial information for the trustee(s).
+                <strong>Important:</strong> Trust owners typically require a personal guarantor for
+                credit applications. Please be prepared to provide personal financial information
+                for the trustee(s).
               </p>
             </div>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-light-text-secondary mb-1">Trust Formation Date</label>
+            <label className="block text-sm font-medium text-light-text-secondary mb-1">
+              Trust Formation Date
+            </label>
             <input
               type="date"
               name="trustFormationDate"
@@ -677,9 +746,11 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
               className="w-full p-2 border border-light-border rounded-md text-light-text bg-white focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-light-text-secondary mb-1">Trust State</label>
+            <label className="block text-sm font-medium text-light-text-secondary mb-1">
+              Trust State
+            </label>
             <select
               name="trustState"
               value={owner.trustState || ''}
@@ -699,14 +770,18 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
       </>
     );
   };
-  
+
   return (
     <div className="bg-white shadow-sm rounded-lg border border-light-border p-4 mb-4">
       <div className="flex justify-between items-center mb-3">
-        <h3 className={`text-lg font-medium ${isMainOwner ? 'text-primary-700' : 'text-light-text'}`}>
-          {isMainOwner ? 'Primary Owner' : `Additional Owner ${owner.type === 'individual' ? '' : '(Entity)'}`}
+        <h3
+          className={`text-lg font-medium ${isMainOwner ? 'text-primary-700' : 'text-light-text'}`}
+        >
+          {isMainOwner
+            ? 'Primary Owner'
+            : `Additional Owner ${owner.type === 'individual' ? '' : '(Entity)'}`}
         </h3>
-        
+
         {!isMainOwner && (
           <button
             type="button"
@@ -714,16 +789,27 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
             className="text-risk-red hover:text-risk-red-dark"
             aria-label="Delete owner"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
         )}
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium text-light-text-secondary mb-1">Owner Type*</label>
+          <label className="block text-sm font-medium text-light-text-secondary mb-1">
+            Owner Type*
+          </label>
           <select
             name="type"
             value={owner.type}
@@ -736,10 +822,15 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
             <option value="trust">Trust</option>
           </select>
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-light-text-secondary mb-1">
-            {owner.type === 'individual' ? 'Full Legal Name' : owner.type === 'business' ? 'Business Legal Name' : 'Trust Name'}*
+            {owner.type === 'individual'
+              ? 'Full Legal Name'
+              : owner.type === 'business'
+                ? 'Business Legal Name'
+                : 'Trust Name'}
+            *
           </label>
           <input
             type="text"
@@ -752,21 +843,23 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
           {errors.name && <p className="text-risk-red text-sm mt-1">{errors.name}</p>}
         </div>
       </div>
-      
+
       {renderOwnershipFields()}
-      
+
       {renderIdentificationField()}
-      
+
       {renderIndividualFields()}
-      
+
       {renderBusinessFields()}
-      
+
       {renderTrustFields()}
-      
+
       {renderCreditScore()}
-      
+
       <div className="mb-4">
-        <label className="block text-sm font-medium text-light-text-secondary mb-1">Contact Information</label>
+        <label className="block text-sm font-medium text-light-text-secondary mb-1">
+          Contact Information
+        </label>
         <div className="space-y-4">
           <div className="address-section">
             <div className="mb-2">
@@ -779,7 +872,7 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
                 required
               />
               {errors.address && <p className="text-risk-red text-sm mt-1">{errors.address}</p>}
-              
+
               {/* Address autocomplete suggestions */}
               {addressSuggestions.length > 0 && (
                 <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-light-border max-h-60 overflow-auto">
@@ -794,14 +887,14 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
                   ))}
                 </div>
               )}
-              
+
               {isSearchingAddress && (
                 <div className="mt-1 text-sm text-light-text-secondary">
                   Searching for addresses...
                 </div>
               )}
             </div>
-            
+
             <div className="grid grid-cols-3 gap-2">
               <div className="col-span-1">
                 <input
@@ -845,9 +938,9 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
               </div>
             </div>
           </div>
-          
+
           {renderPhoneFields()}
-          
+
           <div>
             <input
               type="email"
@@ -866,4 +959,4 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
   );
 };
 
-export default OwnerComponent; 
+export default OwnerComponent;

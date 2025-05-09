@@ -6,7 +6,9 @@ interface FormFieldWithOtherProps {
   name: string;
   type: 'text' | 'select' | 'textarea' | 'number' | 'email' | 'password' | 'date';
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => void;
   options?: SelectOption[];
   otherValue?: string;
   onOtherChange?: (name: string, value: string) => void;
@@ -42,7 +44,7 @@ const FormFieldWithOther: React.FC<FormFieldWithOtherProps> = ({
   rows = 3,
   min,
   max,
-  step
+  step,
 }) => {
   const [showOtherInput, setShowOtherInput] = useState(false);
   const [localOtherValue, setLocalOtherValue] = useState(otherValue);
@@ -60,7 +62,7 @@ const FormFieldWithOther: React.FC<FormFieldWithOtherProps> = ({
   const handleOtherInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setLocalOtherValue(newValue);
-    
+
     if (onOtherChange) {
       onOtherChange(name, newValue);
     }
@@ -72,7 +74,7 @@ const FormFieldWithOther: React.FC<FormFieldWithOtherProps> = ({
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
-      
+
       {type === 'select' ? (
         // Select field
         <>
@@ -86,16 +88,16 @@ const FormFieldWithOther: React.FC<FormFieldWithOtherProps> = ({
             disabled={disabled}
           >
             {placeholder && <option value="">{placeholder}</option>}
-            
+
             {options.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
-            
+
             <option value="other">Other</option>
           </select>
-          
+
           {showOtherInput && (
             <div className="mt-2">
               <input
@@ -140,10 +142,10 @@ const FormFieldWithOther: React.FC<FormFieldWithOtherProps> = ({
           step={step}
         />
       )}
-      
+
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 };
 
-export default FormFieldWithOther; 
+export default FormFieldWithOther;

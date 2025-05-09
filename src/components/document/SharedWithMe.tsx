@@ -18,34 +18,34 @@ const SharedWithMe: React.FC<SharedWithMeProps> = ({
   sortBy,
   setSortBy,
   sortDirection,
-  setSortDirection
+  setSortDirection,
 }) => {
   // Format file size
   const formatFileSize = (bytes?: number): string => {
     if (!bytes) return 'N/A';
-    
+
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
     let size = bytes;
     let unitIndex = 0;
-    
+
     while (size >= 1024 && unitIndex < units.length - 1) {
       size /= 1024;
       unitIndex++;
     }
-    
+
     return `${size.toFixed(1)} ${units[unitIndex]}`;
   };
-  
+
   // Format date
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
-  
+
   // Handle sorting
   const handleSort = (column: 'name' | 'date' | 'size') => {
     if (sortBy === column) {
@@ -55,43 +55,59 @@ const SharedWithMe: React.FC<SharedWithMeProps> = ({
       setSortDirection('asc');
     }
   };
-  
+
   // Render file icons based on type
   const renderFileIcon = (file: FileItem) => {
     if (file.type === 'folder') {
       return (
         <svg className="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1H8a3 3 0 00-3 3v1.5a1.5 1.5 0 01-3 0V6z" clipRule="evenodd" />
+          <path
+            fillRule="evenodd"
+            d="M2 6a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1H8a3 3 0 00-3 3v1.5a1.5 1.5 0 01-3 0V6z"
+            clipRule="evenodd"
+          />
           <path d="M6 12a2 2 0 012-2h8a2 2 0 012 2v2a2 2 0 01-2 2H2h2a2 2 0 002-2v-2z" />
         </svg>
       );
     } else if (file.type === 'pdf') {
       return (
         <svg className="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd" />
+          <path
+            fillRule="evenodd"
+            d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z"
+            clipRule="evenodd"
+          />
           <path d="M8 7a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm0 4a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
         </svg>
       );
     } else if (file.type === 'image') {
       return (
         <svg className="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+          <path
+            fillRule="evenodd"
+            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+            clipRule="evenodd"
+          />
         </svg>
       );
     } else {
       return (
         <svg className="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd" />
+          <path
+            fillRule="evenodd"
+            d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z"
+            clipRule="evenodd"
+          />
           <path d="M7 14h6v-1H7v1zm0-3h6v-1H7v1zm0-3h6V7H7v1z" />
         </svg>
       );
     }
   };
-  
+
   // Function to render signature badge
   const renderSignatureBadge = (file: FileItem) => {
     if (!file.signatureStatus) return null;
-    
+
     switch (file.signatureStatus) {
       case 'awaiting':
         return (
@@ -123,13 +139,13 @@ const SharedWithMe: React.FC<SharedWithMeProps> = ({
         <h2 className="text-lg font-medium text-gray-900">Shared With Me</h2>
         <p className="text-sm text-gray-500">Files and folders others have shared with you</p>
       </div>
-      
+
       {/* Sort controls */}
       <div className="px-4 py-2 border-b border-gray-200 flex justify-end">
         <div className="relative">
           <select
             value={`${sortBy}-${sortDirection}`}
-            onChange={(e) => {
+            onChange={e => {
               const [newSortBy, newSortDirection] = e.target.value.split('-');
               setSortBy(newSortBy as 'name' | 'date' | 'size');
               setSortDirection(newSortDirection as 'asc' | 'desc');
@@ -145,14 +161,29 @@ const SharedWithMe: React.FC<SharedWithMeProps> = ({
           </select>
         </div>
       </div>
-      
+
       {/* Files area */}
       <div className="flex-1 overflow-auto p-4">
         {files.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full">
-            <svg className="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18h8a2 2 0 002-2V8a2 2 0 00-2-2h-6l-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 5v10M10 10h6" />
+            <svg
+              className="h-16 w-16 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M6 18h8a2 2 0 002-2V8a2 2 0 00-2-2h-6l-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M13 5v10M10 10h6"
+              />
             </svg>
             <p className="mt-4 text-gray-500">No files have been shared with you yet</p>
           </div>
@@ -174,7 +205,7 @@ const SharedWithMe: React.FC<SharedWithMeProps> = ({
                 <p className="text-xs text-gray-500 truncate w-full text-center">
                   {file.sharedWith && file.sharedWith.length > 0 && file.sharedWith[0].name}
                 </p>
-                
+
                 {renderSignatureBadge(file)}
               </div>
             ))}
@@ -183,71 +214,101 @@ const SharedWithMe: React.FC<SharedWithMeProps> = ({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   <button
                     onClick={() => handleSort('name')}
                     className="flex items-center space-x-1 focus:outline-none"
                   >
                     <span>Name</span>
                     {sortBy === 'name' && (
-                      <svg 
-                        className={`h-4 w-4 ${sortDirection === 'asc' ? 'transform rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
+                      <svg
+                        className={`h-4 w-4 ${sortDirection === 'asc' ? 'transform rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     )}
                   </button>
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Shared By
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   <button
                     onClick={() => handleSort('date')}
                     className="flex items-center space-x-1 focus:outline-none"
                   >
                     <span>Shared Date</span>
                     {sortBy === 'date' && (
-                      <svg 
-                        className={`h-4 w-4 ${sortDirection === 'asc' ? 'transform rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
+                      <svg
+                        className={`h-4 w-4 ${sortDirection === 'asc' ? 'transform rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     )}
                   </button>
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   <button
                     onClick={() => handleSort('size')}
                     className="flex items-center space-x-1 focus:outline-none"
                   >
                     <span>Size</span>
                     {sortBy === 'size' && (
-                      <svg 
-                        className={`h-4 w-4 ${sortDirection === 'asc' ? 'transform rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
+                      <svg
+                        className={`h-4 w-4 ${sortDirection === 'asc' ? 'transform rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     )}
                   </button>
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Status
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {files.map(file => (
-                <tr 
+                <tr
                   key={file.id}
                   onClick={() => onFileSelect(file)}
                   className="cursor-pointer hover:bg-gray-50"
@@ -281,16 +342,20 @@ const SharedWithMe: React.FC<SharedWithMeProps> = ({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {file.signatureStatus ? (
-                      <span 
+                      <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          file.signatureStatus === 'awaiting' ? 'bg-yellow-100 text-yellow-800' :
-                          file.signatureStatus === 'completed' ? 'bg-green-100 text-green-800' :
-                          'bg-red-100 text-red-800'
+                          file.signatureStatus === 'awaiting'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : file.signatureStatus === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
                         }`}
                       >
-                        {file.signatureStatus === 'awaiting' ? 'Awaiting Signature' :
-                         file.signatureStatus === 'completed' ? 'Signed' :
-                         'Rejected'}
+                        {file.signatureStatus === 'awaiting'
+                          ? 'Awaiting Signature'
+                          : file.signatureStatus === 'completed'
+                            ? 'Signed'
+                            : 'Rejected'}
                       </span>
                     ) : (
                       <span className="text-sm text-gray-500">-</span>
@@ -306,4 +371,4 @@ const SharedWithMe: React.FC<SharedWithMeProps> = ({
   );
 };
 
-export default SharedWithMe; 
+export default SharedWithMe;

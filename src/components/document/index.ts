@@ -15,4 +15,4 @@ export { default as DocumentUpload } from './DocumentUpload';
 export { default as DocumentStatusViewer } from './DocumentStatusViewer';
 export { default as WrittenPasswordVerification } from './WrittenPasswordVerification';
 export { default as TransactionExecution } from './TransactionExecution';
-export { default as CovenantManager } from './CovenantManager'; 
+export { default as CovenantManager } from './CovenantManager';

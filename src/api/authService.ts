@@ -30,19 +30,19 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
   // Use mock data if flag is set
   if (USE_MOCK_DATA) {
     console.log('Using mock authentication data');
-    
+
     // Check if credentials are provided (basic validation)
     if (!credentials.email || !credentials.password) {
       return {
         success: false,
-        error: 'Email and password are required.'
+        error: 'Email and password are required.',
       };
     }
-    
+
     // Store the mock token and user data
     localStorage.setItem('auth_token', mockLoginResponse.token);
     localStorage.setItem('user', JSON.stringify(mockLoginResponse.user));
-    
+
     return mockLoginResponse;
   }
 
@@ -56,33 +56,33 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
     });
 
     const data: AuthResponse = await response.json();
-    
+
     if (data.success && data.token) {
       // Store the token in localStorage
       localStorage.setItem('auth_token', data.token);
-      
+
       // Store user data if needed
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
       }
     }
-    
+
     return data;
   } catch (error) {
     console.error('Login failed:', error);
-    
+
     if (USE_MOCK_DATA) {
       console.log('Falling back to mock authentication');
-      
+
       localStorage.setItem('auth_token', mockLoginResponse.token);
       localStorage.setItem('user', JSON.stringify(mockLoginResponse.user));
-      
+
       return mockLoginResponse;
     }
-    
+
     return {
       success: false,
-      error: 'Network error. Please try again.'
+      error: 'Network error. Please try again.',
     };
   }
 };
@@ -109,33 +109,33 @@ export const logout = (): void => {
 // Refresh token
 export const refreshToken = async (): Promise<boolean> => {
   const token = localStorage.getItem('auth_token');
-  
+
   if (!token) return false;
-  
+
   if (USE_MOCK_DATA) {
     console.log('Using mock token refresh');
     return true;
   }
-  
+
   try {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
-    
+
     const data: AuthResponse = await response.json();
-    
+
     if (data.success && data.token) {
       localStorage.setItem('auth_token', data.token);
       return true;
     }
-    
+
     return false;
   } catch (error) {
     console.error('Token refresh failed:', error);
     return USE_MOCK_DATA; // Return true if using mock data
   }
-}; 
+};

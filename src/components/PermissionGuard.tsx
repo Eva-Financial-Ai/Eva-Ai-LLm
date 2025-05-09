@@ -9,22 +9,22 @@ interface PermissionGuardProps {
   fallback?: React.ReactNode;
 }
 
-export const PermissionGuard: React.FC<PermissionGuardProps> = ({ 
-  feature, 
-  minimumPermission, 
-  children, 
-  fallback = null 
+export const PermissionGuard: React.FC<PermissionGuardProps> = ({
+  feature,
+  minimumPermission,
+  children,
+  fallback = null,
 }) => {
   const { hasPermission, loadingPermissions } = useUserType();
-  
+
   if (loadingPermissions) {
-    return <div className="animate-pulse bg-gray-100 rounded h-10"></div>; 
+    return <div className="animate-pulse bg-gray-100 rounded h-10"></div>;
   }
-  
+
   if (hasPermission(feature, minimumPermission)) {
     return <>{children}</>;
   }
-  
+
   return <>{fallback}</>;
 };
 
@@ -39,17 +39,17 @@ export const RolePermissionGuard: React.FC<RolePermissionGuardProps> = ({
   feature,
   minimumRole,
   children,
-  fallback = null
+  fallback = null,
 }) => {
   const { hasRolePermission, loadingPermissions } = useUserType();
-  
+
   if (loadingPermissions) {
     return <div className="animate-pulse bg-gray-100 rounded h-10"></div>;
   }
-  
+
   if (hasRolePermission(feature, minimumRole)) {
     return <>{children}</>;
   }
-  
+
   return <>{fallback}</>;
-}; 
+};

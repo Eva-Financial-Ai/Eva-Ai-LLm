@@ -3,7 +3,7 @@ import DiagnosticService from './DiagnosticService';
 
 /**
  * AutomatedTestManager
- * 
+ *
  * A utility class that initializes and manages all background testing and diagnostic services.
  * This avoids showing any UI to the user while still maintaining the diagnostic capabilities.
  */
@@ -30,7 +30,7 @@ class AutomatedTestManager {
     }
 
     // Register callbacks for test service
-    TestService.setResultCallback((results) => {
+    TestService.setResultCallback(results => {
       console.group('Automated Component Test Results');
       console.log(`Total components tested: ${results.length}`);
       console.log(`Passed: ${results.filter(r => r.status === 'success').length}`);
@@ -40,7 +40,7 @@ class AutomatedTestManager {
     });
 
     // Register callbacks for diagnostic service
-    DiagnosticService.setResultCallback((results) => {
+    DiagnosticService.setResultCallback(results => {
       console.group('Automated Diagnostic Results');
       console.log(`Total diagnostics: ${results.length}`);
       console.log(`OK: ${results.filter(r => r.status === 'ok').length}`);
@@ -70,22 +70,28 @@ class AutomatedTestManager {
     }, 5000);
 
     // Schedule periodic runs (every 10 minutes)
-    setInterval(() => {
-      if (!DiagnosticService.isDiagnosticRunning()) {
-        DiagnosticService.runDiagnostics().catch(error => {
-          console.error('Periodic diagnostics run failed:', error);
-        });
-      }
-    }, 10 * 60 * 1000);
+    setInterval(
+      () => {
+        if (!DiagnosticService.isDiagnosticRunning()) {
+          DiagnosticService.runDiagnostics().catch(error => {
+            console.error('Periodic diagnostics run failed:', error);
+          });
+        }
+      },
+      10 * 60 * 1000
+    );
 
     // Periodic test runs (every 30 minutes)
-    setInterval(() => {
-      if (!TestService.isTestRunning()) {
-        TestService.runTests().catch(error => {
-          console.error('Periodic tests run failed:', error);
-        });
-      }
-    }, 30 * 60 * 1000);
+    setInterval(
+      () => {
+        if (!TestService.isTestRunning()) {
+          TestService.runTests().catch(error => {
+            console.error('Periodic tests run failed:', error);
+          });
+        }
+      },
+      30 * 60 * 1000
+    );
   }
 
   // API to manually trigger tests
@@ -100,4 +106,4 @@ class AutomatedTestManager {
 }
 
 // Export singleton instance
-export default AutomatedTestManager.getInstance(); 
+export default AutomatedTestManager.getInstance();

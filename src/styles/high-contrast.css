@@ -1,0 +1,125 @@
+/* High Contrast Mode Styles */
+
+body.high-contrast {
+  /* Background and text colors */
+  --background-color: #000;
+  --text-color: #fff;
+  --heading-color: #fff;
+  --link-color: #ffff00; /* Yellow for links */
+  --link-hover-color: #00ff00; /* Green for hover */
+  --border-color: #fff;
+
+  /* Button colors */
+  --button-bg: #000;
+  --button-text: #fff;
+  --button-border: #fff;
+  --button-hover-bg: #333;
+
+  /* Form colors */
+  --input-bg: #000;
+  --input-text: #fff;
+  --input-border: #fff;
+  --input-focus-border: #00ffff; /* Cyan for focus */
+
+  /* Apply the colors */
+  background-color: var(--background-color) !important;
+  color: var(--text-color) !important;
+}
+
+/* Basic elements */
+body.high-contrast h1,
+body.high-contrast h2,
+body.high-contrast h3,
+body.high-contrast h4,
+body.high-contrast h5,
+body.high-contrast h6 {
+  color: var(--heading-color) !important;
+}
+
+body.high-contrast a {
+  color: var(--link-color) !important;
+  text-decoration: underline !important;
+}
+
+body.high-contrast a:hover,
+body.high-contrast a:focus {
+  color: var(--link-hover-color) !important;
+}
+
+/* Buttons */
+body.high-contrast button,
+body.high-contrast .btn {
+  background-color: var(--button-bg) !important;
+  color: var(--button-text) !important;
+  border: 2px solid var(--button-border) !important;
+  outline: none !important;
+}
+
+body.high-contrast button:hover,
+body.high-contrast .btn:hover {
+  background-color: var(--button-hover-bg) !important;
+}
+
+body.high-contrast button:focus,
+body.high-contrast .btn:focus {
+  box-shadow: 0 0 0 3px var(--input-focus-border) !important;
+}
+
+/* Form inputs */
+body.high-contrast input,
+body.high-contrast select,
+body.high-contrast textarea {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border: 2px solid var(--input-border) !important;
+}
+
+body.high-contrast input:focus,
+body.high-contrast select:focus,
+body.high-contrast textarea:focus {
+  border-color: var(--input-focus-border) !important;
+  box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.5) !important;
+}
+
+/* Container elements */
+body.high-contrast .card,
+body.high-contrast .bg-white,
+body.high-contrast .bg-gray-50,
+body.high-contrast .bg-gray-100 {
+  background-color: var(--background-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Navigation */
+body.high-contrast nav,
+body.high-contrast .navbar,
+body.high-contrast .sidebar {
+  background-color: var(--background-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Tables */
+body.high-contrast table {
+  border: 2px solid var(--border-color) !important;
+}
+
+body.high-contrast th,
+body.high-contrast td {
+  border: 1px solid var(--border-color) !important;
+}
+
+body.high-contrast tr:nth-child(even) {
+  background-color: #222 !important;
+}
+
+/* Icons */
+body.high-contrast svg {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
+/* Focus state */
+body.high-contrast *:focus {
+  outline: 3px solid var(--input-focus-border) !important;
+  outline-offset: 2px !important;
+}

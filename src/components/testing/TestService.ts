@@ -50,7 +50,7 @@ class TestService {
         componentDirs: ['./src/components/risk', './src/pages'],
         excludeDirs: ['__tests__', 'node_modules'],
         excludeFiles: ['index.ts', 'types.ts'],
-        recursive: true
+        recursive: true,
       });
 
       if (errors.length > 0) {
@@ -59,35 +59,39 @@ class TestService {
 
       // We don't actually render the test UI, but we need to collect results
       // This will be enhanced later to run the actual tests without UI
-      const results: ComponentTestResult[] = Object.entries(componentMap).map(([name, { component }]) => {
-        try {
-          // Do a basic check if the component exists
-          return {
-            name,
-            path: component.displayName || name,
-            status: 'success',
-            message: 'Component validated'
-          };
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          return {
-            name,
-            path: name,
-            status: 'error',
-            message: errorMessage
-          };
+      const results: ComponentTestResult[] = Object.entries(componentMap).map(
+        ([name, { component }]) => {
+          try {
+            // Do a basic check if the component exists
+            return {
+              name,
+              path: component.displayName || name,
+              status: 'success',
+              message: 'Component validated',
+            };
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return {
+              name,
+              path: name,
+              status: 'error',
+              message: errorMessage,
+            };
+          }
         }
-      });
+      );
 
       this.lastResults = results;
-      
+
       // Log results to console
       const successCount = results.filter(r => r.status === 'success').length;
       const errorCount = results.filter(r => r.status === 'error').length;
       const warningCount = results.filter(r => r.status === 'warning').length;
-      
-      console.log(`Automated test completed: ${successCount} passed, ${errorCount} failed, ${warningCount} warnings`);
-      
+
+      console.log(
+        `Automated test completed: ${successCount} passed, ${errorCount} failed, ${warningCount} warnings`
+      );
+
       // Call the result callback if provided
       if (this.resultCallback) {
         this.resultCallback(results);
@@ -96,12 +100,12 @@ class TestService {
       return results;
     } catch (error) {
       console.error('Error running automated tests:', error);
-      
+
       // Call the error callback if provided
       if (this.errorCallback && error instanceof Error) {
         this.errorCallback(error);
       }
-      
+
       throw error;
     } finally {
       this.isRunning = false;
@@ -115,8 +119,10 @@ export default TestService.getInstance();
 // Initialize automated testing on module load if in development
 if (process.env.NODE_ENV === 'development') {
   setTimeout(() => {
-    TestService.getInstance().runTests().catch(error => {
-      console.error('Automated test initialization failed:', error);
-    });
+    TestService.getInstance()
+      .runTests()
+      .catch(error => {
+        console.error('Automated test initialization failed:', error);
+      });
   }, 5000); // Delay 5 seconds to allow app to load first
-} 
+}
