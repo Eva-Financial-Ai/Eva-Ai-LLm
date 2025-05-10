@@ -1,7 +1,32 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useWorkflow } from '../../contexts/WorkflowContext';
-import ErrorBoundary, { LoadingFallback, SkeletonLoader } from '../common/ErrorBoundary';
+import ErrorBoundary from '../common/ErrorBoundary';
 import performanceMonitor from '../../utils/performance';
+
+// Custom loading fallback component
+const LoadingFallback = ({ message = 'Loading...' }: { message?: string }) => {
+  return (
+    <div className="flex flex-col items-center justify-center h-48">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mb-4"></div>
+      <p className="text-primary-600 text-lg">{message}</p>
+    </div>
+  );
+};
+
+// Simple skeleton loader
+const SkeletonLoader = ({ rows = 3, className = '' }: { rows?: number; className?: string }) => {
+  return (
+    <div className={`animate-pulse ${className}`}>
+      {Array.from({ length: rows }).map((_, index) => (
+        <div
+          key={index}
+          className="h-4 bg-gray-200 rounded mb-3"
+          style={{ width: `${Math.floor(Math.random() * 30) + 70}%` }}
+        ></div>
+      ))}
+    </div>
+  );
+};
 
 // Define types for risk categories and view modes
 export type RiskCategory =
@@ -286,48 +311,111 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
   // Render error state
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg
-              className="h-5 w-5 text-red-400"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+      <ErrorBoundary
+        fallback={
+          <div className="bg-white shadow rounded-lg overflow-hidden p-6">
+            <h2 className="text-xl font-medium text-gray-900 mb-6">
+              Error Loading Risk Assessment
+            </h2>
+            <p className="text-red-500 mb-4">
+              There was a problem loading the risk assessment data.
+            </p>
+            <button
+              onClick={() => {
+                setError(null);
+                loadCategoryData(selectedCategory);
+              }}
+              className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
             >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-              />
-            </svg>
+              Try Again
+            </button>
           </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">Error Loading Risk Map</h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{error}</p>
-            </div>
-            <div className="mt-4">
-              <button
-                type="button"
-                onClick={() => loadCategoryData(selectedCategory)}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Retry
-              </button>
+        }
+      >
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="p-6">
+            <h2 className="text-xl font-medium text-gray-900 mb-6">
+              Risk Assessment{' '}
+              {effectiveTransaction?.applicantData?.name
+                ? `for ${effectiveTransaction.applicantData.name}`
+                : ''}
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="md:col-span-1 bg-gray-50 p-4 rounded-lg">
+                <Suspense fallback={<SkeletonLoader rows={6} />}>
+                  <RiskMapNavigator
+                    selectedCategory={selectedCategory}
+                    onCategorySelect={handleCategorySelect}
+                  />
+                </Suspense>
+              </div>
+
+              <div className="md:col-span-3">
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  {isCurrentCategoryLoading ? (
+                    // Show loading state only for the current category
+                    <div className="animate-pulse">
+                      <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+                      <div className="h-64 bg-gray-200 rounded-lg"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4 md:mb-0">
+                          {selectedCategory === 'all'
+                            ? 'Overall Risk Profile'
+                            : `${selectedCategoryScore.label} Assessment`}
+                        </h3>
+
+                        <ScoreDisplay score={selectedCategoryScore} />
+                      </div>
+
+                      <div className="mt-6">
+                        <Suspense fallback={<LoadingFallback message="Loading chart data..." />}>
+                          <RiskScoreChart data={chartData} selectedCategory={selectedCategory} />
+                        </Suspense>
+                      </div>
+
+                      {selectedCategory !== 'all' && (
+                        <div className="mt-8 border-t border-gray-200 pt-6">
+                          <Suspense fallback={<SkeletonLoader rows={8} className="mt-4" />}>
+                            <RiskCategoryDetail
+                              category={selectedCategory}
+                              score={selectedCategoryScore.value}
+                              transactionId={effectiveTransactionId}
+                            />
+                          </Suspense>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </ErrorBoundary>
     );
   }
 
   return (
     <ErrorBoundary
-      onReset={() => {
-        setError(null);
-        loadCategoryData(selectedCategory);
-      }}
+      fallback={
+        <div className="bg-white shadow rounded-lg overflow-hidden p-6">
+          <h2 className="text-xl font-medium text-gray-900 mb-6">Error Loading Risk Assessment</h2>
+          <p className="text-red-500 mb-4">There was a problem loading the risk assessment data.</p>
+          <button
+            onClick={() => {
+              setError(null);
+              loadCategoryData(selectedCategory);
+            }}
+            className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+          >
+            Try Again
+          </button>
+        </div>
+      }
     >
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="p-6">

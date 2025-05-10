@@ -510,6 +510,10 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
 
   // Navigate to transaction execution page with selected match
   const handleSelectStructure = (match: DealStructureMatch) => {
+    // Close the dialog first
+    setSelectedMatchId(null);
+
+    // Then navigate to the transaction execution page
     navigate(`/transactions/new/execute`, {
       state: {
         selectedMatch: match,
@@ -522,6 +526,9 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
 
   // Navigate to the custom dashboard
   const handleNavigateToCustomDashboard = () => {
+    // Close the dialog first
+    setSelectedMatchId(null);
+
     // Instead of navigating, we'll now trigger a custom modal in the parent
     if (window.dispatchEvent) {
       // Create a custom event that the parent component can listen to
@@ -532,6 +539,9 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
 
   // Navigate to credit application with pre-filled data
   const handleSendCreditApplication = () => {
+    // Close the dialog first
+    setSelectedMatchId(null);
+
     navigate('/credit-application', {
       state: {
         prefilledData: {
@@ -556,6 +566,30 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
 
   // Get the selected match
   const selectedMatch = matches.find(m => m.id === selectedMatchId);
+
+  // Update state to track elapsed time
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [timeInterval, setTimeInterval] = useState<NodeJS.Timeout | null>(null);
+
+  // Start the timer when match dialog is opened
+  useEffect(() => {
+    if (selectedMatchId) {
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        setElapsedTime(Math.round((Date.now() - startTime) / 1000));
+      }, 1000);
+      setTimeInterval(interval);
+      return () => {
+        if (interval) clearInterval(interval);
+      };
+    } else {
+      setElapsedTime(0);
+      if (timeInterval) {
+        clearInterval(timeInterval);
+        setTimeInterval(null);
+      }
+    }
+  }, [selectedMatchId]);
 
   // Update the renderMatchDialog function to include the new tab navigation
   const renderMatchDialog = () => {
@@ -710,7 +744,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
 
                 <div className="border-t border-gray-200 pt-4 mt-4">
                   <div className="flex justify-between mb-4">
-                    <div className="text-sm text-gray-500">Time: 3s</div>
+                    <div className="text-sm text-gray-500">Time: {elapsedTime}s</div>
                     <div className="text-sm text-gray-500">Source: ?</div>
                     <div className="text-sm text-gray-500">Match Rate: {match.matchScore}%</div>
                   </div>
@@ -781,20 +815,29 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
           {/* Footer actions */}
           <div className="bg-gray-50 px-6 py-4 flex justify-between">
             <button
-              onClick={() => setSelectedMatchId(null)}
+              onClick={() => {
+                console.log('Canceling match dialog');
+                setSelectedMatchId(null);
+              }}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
             >
               Cancel
             </button>
             <div className="space-x-3">
               <button
-                onClick={() => handleSendCreditApplication()}
+                onClick={() => {
+                  console.log('Sending credit application');
+                  handleSendCreditApplication();
+                }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
                 Send Credit Application
               </button>
               <button
-                onClick={() => handleSelectStructure(match)}
+                onClick={() => {
+                  console.log('Selecting structure');
+                  handleSelectStructure(match);
+                }}
                 className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
               >
                 Select This Structure
@@ -1016,15 +1059,24 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
     // In a real implementation, this would send the response to the backend
     console.log(`Match response: ${response} for match ID: ${selectedMatchId}`);
 
-    // Close the dialog
-    setSelectedMatchId(null);
-
     // If it's a match, select the structure
     if (response === 'hard-match' && selectedMatchId) {
       const match = matches.find(m => m.id === selectedMatchId);
-      if (match && onSelectMatch) {
-        onSelectMatch(match);
+      if (match) {
+        // Close the dialog
+        setSelectedMatchId(null);
+
+        // Then process the match if needed
+        if (onSelectMatch) {
+          onSelectMatch(match);
+        }
+
+        // Auto-navigate to structure editor
+        handleSelectStructure(match);
       }
+    } else {
+      // For other responses, just close the dialog
+      setSelectedMatchId(null);
     }
   };
 

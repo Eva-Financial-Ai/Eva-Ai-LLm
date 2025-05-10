@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { usePQCryptography } from './PQCryptographyProvider';
 
+// Whitelist of allowed emails for development
+const ALLOWED_EMAILS = [
+  'justin@evafi.ai',
+  'rao@evafi.ai',
+  'abel@evafi.ai',
+  'lahari@evafi.ai',
+  'tech@evafi.ai',
+  'demo@evafi.ai',
+  'customer@lender.com',
+  'investor@gmail.com',
+];
+
+// Allowed phone number for development access
+const ALLOWED_PHONE = '7027654321';
+
 // Add a type for the MOCK_USERS object with an index signature
 interface MockUser {
   name: string;
@@ -8,48 +23,54 @@ interface MockUser {
   publicKey: string;
   id: string;
   mobileNumber?: string;
+  email?: string;
 }
 
 interface MockUsers {
   [key: string]: MockUser;
 }
 
-// Update the MOCK_USERS declaration with the proper type
+// Update the MOCK_USERS declaration with the proper type and add emails
 const MOCK_USERS: MockUsers = {
   admin: {
     name: 'Admin User',
     role: 'admin',
     publicKey: 'dilithium-pk-4a5f6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b',
     id: '1001',
-    mobileNumber: '+1-555-123-4567',
+    mobileNumber: ALLOWED_PHONE,
+    email: 'tech@evafi.ai',
   },
   borrower: {
     name: 'John Smith',
     role: 'borrower',
     publicKey: 'dilithium-pk-1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
     id: '1002',
-    mobileNumber: '+1-555-234-5678',
+    mobileNumber: ALLOWED_PHONE,
+    email: 'customer@lender.com',
   },
   lender: {
     name: 'Financial Corp LLC',
     role: 'lender',
     publicKey: 'dilithium-pk-7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e',
     id: '1003',
-    mobileNumber: '+1-555-345-6789',
+    mobileNumber: ALLOWED_PHONE,
+    email: 'justin@evafi.ai',
   },
   broker: {
     name: 'Finance Broker Inc',
     role: 'broker',
     publicKey: 'dilithium-pk-8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f',
     id: '1004',
-    mobileNumber: '+1-555-456-7890',
+    mobileNumber: ALLOWED_PHONE,
+    email: 'rao@evafi.ai',
   },
   vendor: {
     name: 'Asset Supply Co',
     role: 'vendor',
     publicKey: 'dilithium-pk-9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a',
     id: '1005',
-    mobileNumber: '+1-555-567-8901',
+    mobileNumber: ALLOWED_PHONE,
+    email: 'investor@gmail.com',
   },
 };
 
@@ -64,6 +85,7 @@ const PQCLogin: React.FC<PQCLoginProps> = ({ onLoginSuccess }) => {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [authStep, setAuthStep] = useState<'credentials' | 'challenge' | 'key-generation' | '2fa'>(
     'credentials'
@@ -89,6 +111,22 @@ const PQCLogin: React.FC<PQCLoginProps> = ({ onLoginSuccess }) => {
     setLoading(false);
   }, []);
 
+  const validateEmail = (email: string) => {
+    if (!email) return 'Email is required';
+    if (!ALLOWED_EMAILS.includes(email.toLowerCase())) {
+      return 'This email is not authorized for development access';
+    }
+    return null;
+  };
+
+  const validatePhone = (phone: string) => {
+    if (!phone) return 'Phone number is required';
+    if (phone !== ALLOWED_PHONE) {
+      return 'Invalid phone number for development access';
+    }
+    return null;
+  };
+
   const handleUsernameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -98,10 +136,29 @@ const PQCLogin: React.FC<PQCLoginProps> = ({ onLoginSuccess }) => {
       if (authMode === 'signin') {
         // Sign in flow
         const user = MOCK_USERS[username.toLowerCase()];
+
         if (!user) {
           throw new Error(
             'Invalid username. Try "admin", "borrower", "lender", "broker", or "vendor"'
           );
+        }
+
+        // Validate the email if provided
+        if (email) {
+          const emailError = validateEmail(email);
+          if (emailError) {
+            throw new Error(emailError);
+          }
+
+          // Check if email matches user's email
+          if (user.email && user.email.toLowerCase() !== email.toLowerCase()) {
+            throw new Error('Email does not match the account');
+          }
+        }
+
+        // Validate phone number
+        if (mobileNumber !== ALLOWED_PHONE) {
+          throw new Error('Invalid phone number for development access');
         }
 
         // Proceed to 2FA step
@@ -116,6 +173,17 @@ const PQCLogin: React.FC<PQCLoginProps> = ({ onLoginSuccess }) => {
         // Sign up flow
         if (!mobileNumber) {
           throw new Error('Mobile number is required for signup');
+        }
+
+        // Validate the email
+        const emailError = validateEmail(email);
+        if (emailError) {
+          throw new Error(emailError);
+        }
+
+        // Validate phone number
+        if (mobileNumber !== ALLOWED_PHONE) {
+          throw new Error('Invalid phone number for development access');
         }
 
         if (MOCK_USERS[username.toLowerCase()]) {
@@ -251,119 +319,185 @@ const PQCLogin: React.FC<PQCLoginProps> = ({ onLoginSuccess }) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="max-w-2xl w-full bg-white rounded-lg shadow-xl p-10">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Quantum-Resistant Login</h2>
-          <p className="text-sm text-gray-600 mt-2">
-            Secure authentication using post-quantum cryptography
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            {authMode === 'signin'
+              ? 'Sign in with quantum-secure authentication'
+              : 'Sign up for quantum-secure authentication'}
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            {authMode === 'signin'
+              ? 'Using post-quantum cryptography for enhanced security'
+              : 'Create a new quantum-secure account'}
           </p>
         </div>
 
-        {/* Toggle between sign in and sign up */}
-        <div className="flex justify-center mb-8">
-          <div className="flex p-1 bg-gray-100 rounded-md">
-            <button
-              onClick={() => setAuthMode('signin')}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
-                authMode === 'signin'
-                  ? 'bg-white shadow-sm text-gray-800'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => {
-                setAuthMode('signup');
-                setAuthStep('credentials');
-              }}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
-                authMode === 'signup'
-                  ? 'bg-white shadow-sm text-gray-800'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Sign Up
-            </button>
-          </div>
-        </div>
-
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-md mb-6">
-            {error}
+          <div className="rounded-md bg-red-50 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-red-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">{error}</h3>
+              </div>
+            </div>
           </div>
         )}
 
         {authStep === 'credentials' && (
-          <form onSubmit={handleUsernameSubmit}>
-            <div className="grid grid-cols-1 gap-6 mb-6">
+          <form className="mt-8 space-y-6" onSubmit={handleUsernameSubmit}>
+            <div className="rounded-md shadow-sm -space-y-px">
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="username" className="sr-only">
                   Username
                 </label>
                 <input
                   id="username"
+                  name="username"
                   type="text"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10"
+                  placeholder="Username"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder={
-                    authMode === 'signin'
-                      ? "Try 'admin', 'borrower', 'lender', 'broker', or 'vendor'"
-                      : 'Choose a username'
-                  }
-                  required
                 />
               </div>
 
               <div>
-                <label
-                  htmlFor="mobileNumber"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Mobile Number {authMode === 'signup' && <span className="text-red-500">*</span>}
+                <label htmlFor="email" className="sr-only">
+                  Email
                 </label>
                 <input
-                  id="mobileNumber"
-                  type="tel"
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10"
+                  placeholder="Email (must be on whitelist)"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="mobile-number" className="sr-only">
+                  Mobile Number
+                </label>
+                <input
+                  id="mobile-number"
+                  name="mobileNumber"
+                  type="text"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10"
+                  placeholder="Mobile Number (7027654321)"
                   value={mobileNumber}
                   onChange={e => setMobileNumber(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Enter your mobile number for 2FA"
-                  required={authMode === 'signup'}
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  {authMode === 'signin'
-                    ? "We'll send a verification code to this number"
-                    : 'This number will be used for 2FA verification'}
-                </p>
+              </div>
+
+              <div>
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10"
+                  placeholder="Password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                />
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
+            <div className="text-sm text-center">
+              <p className="font-medium text-gray-500">Development System Access Only</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Restricted to authorized emails and phone number
+              </p>
+            </div>
+
+            <div>
               <button
                 type="submit"
-                disabled={loading || !username || (authMode === 'signup' && !mobileNumber)}
-                className={`w-full sm:flex-1 px-6 py-3 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${loading ? 'opacity-75 cursor-not-allowed' : ''}`}
+                disabled={loading}
+                className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                  loading ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
               >
-                {loading
-                  ? 'Processing...'
-                  : authMode === 'signin'
-                    ? otpSent
-                      ? 'Sending verification code...'
-                      : 'Continue'
-                    : 'Create Account'}
+                {loading ? (
+                  <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                    <svg
+                      className="animate-spin h-5 w-5 text-indigo-300"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  </span>
+                ) : (
+                  <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                    <svg
+                      className="h-5 w-5 text-indigo-500 group-hover:text-indigo-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </span>
+                )}
+                {loading ? 'Please wait...' : 'Continue'}
               </button>
+            </div>
 
-              {authMode === 'signin' && (
-                <button
-                  type="button"
-                  className="w-full sm:flex-1 px-6 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                >
-                  Use Hardware Security Key
-                </button>
-              )}
+            <div className="text-center">
+              <button
+                type="button"
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+                onClick={() => {
+                  setAuthMode(authMode === 'signin' ? 'signup' : 'signin');
+                  setError(null);
+                }}
+              >
+                {authMode === 'signin'
+                  ? 'Sign up for a new account'
+                  : 'Sign in with existing account'}
+              </button>
             </div>
           </form>
         )}

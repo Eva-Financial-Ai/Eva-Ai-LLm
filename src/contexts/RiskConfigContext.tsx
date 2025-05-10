@@ -108,7 +108,7 @@ const defaultRiskAppetiteLevels: RiskLevel[] = [
 // Provider component
 export const RiskConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [riskFactors, setRiskFactors] = useState<RiskFactorWeight[]>(defaultRiskFactors);
-  const [collateralCoverage, setCollateralCoverage] = useState<number>(120);
+  const [collateralCoverage, setCollateralCoverage] = useState<number>(100);
   const [guarantorStrength, setGuarantorStrength] = useState<number>(50);
   const [riskAppetite, setRiskAppetite] = useState<number>(50);
   const [riskAppetiteLevels] = useState<RiskLevel[]>(defaultRiskAppetiteLevels);
@@ -136,7 +136,7 @@ export const RiskConfigProvider: React.FC<{ children: ReactNode }> = ({ children
   // Function to reset configuration to defaults
   const resetToDefaults = () => {
     setRiskFactors(defaultRiskFactors);
-    setCollateralCoverage(120);
+    setCollateralCoverage(100);
     setGuarantorStrength(50);
     setRiskAppetite(50);
 

@@ -7,10 +7,26 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api
 // Flag to use mock data when API is unavailable
 const USE_MOCK_DATA = true; // Set to false when your API is ready
 
+// Whitelist of allowed emails
+const ALLOWED_EMAILS = [
+  'justin@evafi.ai',
+  'rao@evafi.ai',
+  'abel@evafi.ai',
+  'lahari@evafi.ai',
+  'tech@evafi.ai',
+  'demo@evafi.ai',
+  'customer@lender.com',
+  'investor@gmail.com',
+];
+
+// Allowed phone number for development access
+const ALLOWED_PHONE = '7027654321';
+
 // Define types
 interface LoginCredentials {
   email: string;
   password: string;
+  phoneNumber?: string;
 }
 
 interface AuthResponse {
@@ -21,12 +37,29 @@ interface AuthResponse {
     name: string;
     email: string;
     role: string;
+    phoneNumber?: string;
   };
   error?: string;
 }
 
 // Login user
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
+  // Check if email is in the whitelist
+  if (!ALLOWED_EMAILS.includes(credentials.email.toLowerCase())) {
+    return {
+      success: false,
+      error: 'Access denied. Your email is not authorized for this development system.',
+    };
+  }
+
+  // Check phone number if provided
+  if (credentials.phoneNumber && credentials.phoneNumber !== ALLOWED_PHONE) {
+    return {
+      success: false,
+      error: 'Invalid phone number for authentication.',
+    };
+  }
+
   // Use mock data if flag is set
   if (USE_MOCK_DATA) {
     console.log('Using mock authentication data');
@@ -39,11 +72,25 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
       };
     }
 
-    // Store the mock token and user data
-    localStorage.setItem('auth_token', mockLoginResponse.token);
-    localStorage.setItem('user', JSON.stringify(mockLoginResponse.user));
+    // Create a customized mock response based on the actual email
+    const customResponse = {
+      ...mockLoginResponse,
+      user: {
+        ...mockLoginResponse.user,
+        email: credentials.email,
+        name: credentials.email
+          .split('@')[0]
+          .replace('.', ' ')
+          .replace(/\b\w/g, l => l.toUpperCase()),
+        phoneNumber: credentials.phoneNumber,
+      },
+    };
 
-    return mockLoginResponse;
+    // Store the mock token and user data
+    localStorage.setItem('auth_token', customResponse.token);
+    localStorage.setItem('user', JSON.stringify(customResponse.user));
+
+    return customResponse;
   }
 
   try {
@@ -74,10 +121,24 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
     if (USE_MOCK_DATA) {
       console.log('Falling back to mock authentication');
 
-      localStorage.setItem('auth_token', mockLoginResponse.token);
-      localStorage.setItem('user', JSON.stringify(mockLoginResponse.user));
+      // Create a customized mock response based on the actual email
+      const customResponse = {
+        ...mockLoginResponse,
+        user: {
+          ...mockLoginResponse.user,
+          email: credentials.email,
+          name: credentials.email
+            .split('@')[0]
+            .replace('.', ' ')
+            .replace(/\b\w/g, l => l.toUpperCase()),
+          phoneNumber: credentials.phoneNumber,
+        },
+      };
 
-      return mockLoginResponse;
+      localStorage.setItem('auth_token', customResponse.token);
+      localStorage.setItem('user', JSON.stringify(customResponse.user));
+
+      return customResponse;
     }
 
     return {

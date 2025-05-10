@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useUserType } from '../contexts/UserTypeContext';
 import { UserType } from '../types/UserTypes';
-import TopNavigation from '../components/layout/TopNavigation';
 import { useLocation } from 'react-router-dom';
 
 const CommercialMarket: React.FC = () => {
@@ -192,8 +191,6 @@ const CommercialMarket: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <TopNavigation title="Commercial Market" />
-
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">

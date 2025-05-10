@@ -37,6 +37,9 @@ const demoPortfolioManagers: PortfolioManager[] = [
   },
 ];
 
+// DEMO ONLY: Fixed demo password that will always work for testing purposes
+const DEMO_PASSWORD = 'EVA-DEMO-PASSWORD-123';
+
 const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = ({
   transactionId,
   onVerificationSuccess,
@@ -103,10 +106,10 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
     setVerifying(true);
     setErrorMessage('');
 
-    // For demo purposes, directly compare with demoPassword
+    // For demo purposes, compare with demoPassword or with the DEMO_PASSWORD
     // In production, this would be a secure API call to verify the password
     setTimeout(() => {
-      if (writtenPassword === demoPassword) {
+      if (writtenPassword === demoPassword || writtenPassword === DEMO_PASSWORD) {
         onVerificationSuccess();
       } else {
         setErrorMessage('Invalid password. Please try again.');
@@ -126,6 +129,18 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
           <h2 className="text-xl font-semibold">Written Password Verification</h2>
           <p className="text-sm text-gray-600">
             Additional security verification required by portfolio manager to close this transaction
+          </p>
+        </div>
+
+        {/* DEMO ONLY: Fixed password display */}
+        <div className="mb-4 bg-yellow-100 border-2 border-yellow-400 p-3 rounded-md text-center">
+          <p className="text-sm font-bold text-yellow-800">DEMO MODE: Always working password</p>
+          <div className="mt-2 bg-white p-2 rounded border border-yellow-400 font-mono text-lg">
+            {DEMO_PASSWORD}
+          </div>
+          <p className="mt-1 text-xs text-yellow-700">
+            This password will always work during demo. In production, real passwords would be
+            required.
           </p>
         </div>
 
@@ -258,7 +273,7 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Written passwords are case-sensitive and follow the format: EVA-PM-XXXX-XXXXX
+                Written passwords are case-sensitive. You can also use the demo password above.
               </p>
               {errorMessage && <p className="text-xs text-red-600 mt-1">{errorMessage}</p>}
             </div>
@@ -306,11 +321,11 @@ const WrittenPasswordVerification: React.FC<WrittenPasswordVerificationProps> = 
           </p>
         </div>
 
-        {/* For DEMO purposes only - would not exist in production */}
-        {process.env.NODE_ENV === 'development' && demoPassword && (
+        {/* For DEMO purposes only - display generated password if one exists */}
+        {demoPassword && (
           <div className="mt-4 border border-dashed border-red-300 bg-red-50 p-3 rounded-md">
             <p className="text-xs font-medium text-red-800 mb-1">
-              DEMO PASSWORD (for testing only):
+              Manager-specific password (for testing):
             </p>
             <p className="text-sm font-mono bg-white p-2 rounded border border-red-200">
               {demoPassword}

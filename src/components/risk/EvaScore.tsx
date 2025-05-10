@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import EvaScoreLoader from './EvaScoreLoader';
 
 interface ScoreCategory {
   id: string;
@@ -17,8 +18,42 @@ interface ScoreBreakdown {
   lastUpdated: string;
 }
 
+// Simplified score type options
+type ScoreType = 'unsecured' | 'equipment' | 'real-estate' | 'debt-equity';
+
 const EvaScore: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'summary' | 'details' | 'history'>('summary');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [scoreType, setScoreType] = useState<ScoreType>('unsecured');
+
+  // Simulate data loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Re-fetch data when score type changes
+  useEffect(() => {
+    setLoading(true);
+
+    // Simulated API call based on selected score type
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [scoreType]);
+
+  // Score type labels for display
+  const scoreTypeLabels = {
+    unsecured: 'Eva - Unsecured Commercial Paper Score',
+    equipment: 'Eva - Commercial Equipment, Vehicles Paper Score',
+    'real-estate': 'Eva - Commercial Real Estate & Land Paper Score',
+    'debt-equity': 'Asset Back Collaterized Debt Equity Report',
+  };
 
   // Mock data for Eva Score
   const scoreBreakdown: ScoreBreakdown = {
@@ -105,6 +140,59 @@ const EvaScore: React.FC = () => {
     if (percentage >= 60) return 'text-blue-600 bg-blue-100';
     if (percentage >= 40) return 'text-yellow-600 bg-yellow-100';
     return 'text-red-600 bg-red-100';
+  };
+
+  // Render selection options for score types
+  const renderScoreTypeSelector = () => {
+    return (
+      <div className="bg-gray-50 p-4 border-b border-gray-200">
+        <div className="w-full">
+          <label className="block text-sm font-medium text-gray-700 mb-3">Score Type</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <button
+              onClick={() => setScoreType('unsecured')}
+              className={`px-3 py-2 text-sm rounded-md text-left ${
+                scoreType === 'unsecured'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Eva - Unsecured Commercial Paper Score
+            </button>
+            <button
+              onClick={() => setScoreType('equipment')}
+              className={`px-3 py-2 text-sm rounded-md text-left ${
+                scoreType === 'equipment'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Eva - Commercial Equipment, Vehicles Paper Score
+            </button>
+            <button
+              onClick={() => setScoreType('real-estate')}
+              className={`px-3 py-2 text-sm rounded-md text-left ${
+                scoreType === 'real-estate'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Eva - Commercial Real Estate & Land Paper Score
+            </button>
+            <button
+              onClick={() => setScoreType('debt-equity')}
+              className={`px-3 py-2 text-sm rounded-md text-left ${
+                scoreType === 'debt-equity'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Asset Back Collaterized Debt Equity Report
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Render score gauge
@@ -236,6 +324,11 @@ const EvaScore: React.FC = () => {
     );
   };
 
+  // If loading, show the custom loader
+  if (loading) {
+    return <EvaScoreLoader />;
+  }
+
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
@@ -244,6 +337,9 @@ const EvaScore: React.FC = () => {
           Comprehensive AI-powered creditworthiness score based on the 5C's framework
         </p>
       </div>
+
+      {/* Score Type Selector */}
+      {renderScoreTypeSelector()}
 
       {/* Score gauge visualization */}
       <div className="bg-white p-4">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import loadable from '@loadable/component';
+import PageLayout from '../layout/PageLayout';
 
 // Loading spinner component
 const LoadingSpinner = ({ pageName = 'page' }: { pageName?: string }) => (
@@ -33,6 +34,11 @@ const Dashboard = loadable(() => import('../../pages/Dashboard'), {
 
 const CreditApplication = loadable(() => import('../../pages/CreditApplication'), {
   fallback: <LoadingSpinner pageName="Credit Application" />,
+  resolveComponent: components => components.default,
+});
+
+const AutoOriginations = loadable(() => import('../../pages/AutoOriginationsPage'), {
+  fallback: <LoadingSpinner pageName="Auto Originations" />,
   resolveComponent: components => components.default,
 });
 
@@ -104,29 +110,240 @@ const CommercialMarket = loadable(() => import('../../pages/CommercialMarket'), 
   resolveComponent: components => components.default,
 });
 
+const ShieldVault = loadable(() => import('../../pages/ShieldVault'), {
+  fallback: <LoadingSpinner pageName="Shield Vault" />,
+  resolveComponent: components => components.default,
+});
+
+// Add FormsList component
+const FormsList = loadable(() => import('../../pages/FormsList'), {
+  fallback: <LoadingSpinner pageName="Forms List" />,
+  resolveComponent: components => components.default,
+});
+
+// Add Contacts and Commitments components
+const Contacts = loadable(() => import('../../pages/Contacts'), {
+  fallback: <LoadingSpinner pageName="Contacts" />,
+  resolveComponent: components => components.default,
+});
+
+const Commitments = loadable(() => import('../../pages/Commitments'), {
+  fallback: <LoadingSpinner pageName="Commitments" />,
+  resolveComponent: components => components.default,
+});
+
+// Create page wrappers with PageLayout
+const PageWrapper = (Component: React.ComponentType, title: string) => {
+  return () => (
+    <PageLayout title={title}>
+      <Component />
+    </PageLayout>
+  );
+};
+
 const LoadableRouter: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/transactions" element={<Transactions />} />
-      <Route path="/documents" element={<Documents />} />
-      <Route path="/risk-assessment" element={<RiskAssessment />} />
-      <Route path="/risk-assessment/standard" element={<RiskAssessment />} />
-      <Route path="/risk-assessment/report" element={<RiskAssessment />} />
-      <Route path="/risk-assessment/lab" element={<RiskAssessment />} />
-      <Route path="/risk-assessment/score" element={<RiskAssessment />} />
-      <Route path="/credit-application" element={<CreditApplication />} />
-      <Route path="/deal-structuring" element={<DealStructuring />} />
-      <Route path="/deal-structuring/smart-match" element={<SmartMatchPage />} />
-      <Route path="/profile" element={<ProfileSettings />} />
-      <Route path="/examples" element={<ExampleTransactions />} />
-      <Route path="/asset-press" element={<EnhancedAssetPress />} />
-      <Route path="/portfolio-wallet" element={<PortfolioNavigatorPage />} />
-      <Route path="/asset-portfolio" element={<PortfolioNavigatorPage />} />
-      <Route path="/commercial-paper" element={<CommercialPaper />} />
-      <Route path="/customer-retention" element={<CustomerRetention />} />
-      <Route path="/forms/:templateId" element={<FormTemplate />} />
-      <Route path="/commercial-market" element={<CommercialMarket />} />
+      <Route
+        path="/"
+        element={
+          <PageLayout title="Dashboard">
+            <Dashboard />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/transactions"
+        element={
+          <PageLayout title="Transactions">
+            <Transactions />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/documents"
+        element={
+          <PageLayout title="Documents">
+            <Documents />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/shield-vault"
+        element={
+          <PageLayout title="Shield Vault">
+            <ShieldVault />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/risk-assessment"
+        element={
+          <PageLayout title="Risk Assessment">
+            <RiskAssessment />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/risk-assessment/standard"
+        element={
+          <PageLayout title="Standard Risk Assessment">
+            <RiskAssessment />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/risk-assessment/report"
+        element={
+          <PageLayout title="Eva Risk Report">
+            <RiskAssessment />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/risk-assessment/lab"
+        element={
+          <PageLayout title="Risk Lab">
+            <RiskAssessment />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/risk-assessment/score"
+        element={
+          <PageLayout title="Eva Score">
+            <RiskAssessment />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/credit-application"
+        element={
+          <PageLayout title="Credit Application">
+            <CreditApplication />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/auto-originations"
+        element={
+          <PageLayout title="Auto Originations">
+            <AutoOriginations />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/deal-structuring"
+        element={
+          <PageLayout title="Deal Structuring">
+            <DealStructuring />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/deal-structuring/smart-match"
+        element={
+          <PageLayout title="Smart Match">
+            <SmartMatchPage />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <PageLayout title="Profile Settings">
+            <ProfileSettings />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/examples"
+        element={
+          <PageLayout title="Example Transactions">
+            <ExampleTransactions />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/asset-press"
+        element={
+          <PageLayout title="Asset Press">
+            <EnhancedAssetPress />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/portfolio-wallet"
+        element={
+          <PageLayout title="Portfolio Wallet">
+            <PortfolioNavigatorPage />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/asset-portfolio"
+        element={
+          <PageLayout title="Asset Portfolio">
+            <PortfolioNavigatorPage />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/commercial-paper"
+        element={
+          <PageLayout title="Commercial Paper">
+            <CommercialPaper />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/customer-retention"
+        element={
+          <PageLayout title="Customer Retention">
+            <CustomerRetention />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/contacts"
+        element={
+          <PageLayout title="Contacts">
+            <Contacts />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/commitments"
+        element={
+          <PageLayout title="Commitments">
+            <Commitments />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/forms"
+        element={
+          <PageLayout title="Safe Forms Templates">
+            <FormsList />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/forms/:templateId"
+        element={
+          <PageLayout title="Form Template">
+            <FormTemplate />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/commercial-market"
+        element={
+          <PageLayout title="Commercial Market">
+            <CommercialMarket />
+          </PageLayout>
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

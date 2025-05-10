@@ -20,8 +20,8 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
   const { currentTransaction, fetchTransactions } = useWorkflow();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'documents' | 'blockchain' | 'covenants' | 'shield'>(
-    'blockchain'
+  const [activeTab, setActiveTab] = useState<'documents' | 'covenants' | 'blockchain' | 'shield'>(
+    'documents'
   );
   const [showPasswordVerification, setShowPasswordVerification] = useState(false);
   const [verificationComplete, setVerificationComplete] = useState(false);
@@ -181,7 +181,7 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
           </div>
         </div>
 
-        {/* Navigation tabs */}
+        {/* Navigation tabs - reordered as requested */}
         <div className="border-b border-gray-200 mb-6">
           <nav className="flex -mb-px">
             <button
@@ -195,16 +195,6 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
               Documents
             </button>
             <button
-              onClick={() => setActiveTab('blockchain')}
-              className={`mr-8 py-4 px-1 ${
-                activeTab === 'blockchain'
-                  ? 'border-b-2 border-primary-500 text-primary-600'
-                  : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } font-medium text-sm transition-colors duration-200`}
-            >
-              Blockchain Verification
-            </button>
-            <button
               onClick={() => setActiveTab('covenants')}
               className={`mr-8 py-4 px-1 ${
                 activeTab === 'covenants'
@@ -213,6 +203,16 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
               } font-medium text-sm transition-colors duration-200`}
             >
               Covenants
+            </button>
+            <button
+              onClick={() => setActiveTab('blockchain')}
+              className={`mr-8 py-4 px-1 ${
+                activeTab === 'blockchain'
+                  ? 'border-b-2 border-primary-500 text-primary-600'
+                  : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } font-medium text-sm transition-colors duration-200`}
+            >
+              Blockchain Verification
             </button>
             <button
               onClick={() => setActiveTab('shield')}
@@ -226,6 +226,137 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
             </button>
           </nav>
         </div>
+
+        {/* Covenants Tab Content */}
+        {activeTab === 'covenants' && (
+          <div>
+            <div className="mb-6">
+              <div className="rounded-md bg-blue-50 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="h-5 w-5 text-blue-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3 flex-1 md:flex md:justify-between">
+                    <p className="text-sm text-blue-700">
+                      Contract covenants define requirements and restrictions that the borrower must
+                      adhere to throughout the loan term. These covenants will be included in the
+                      closing contracts, which are generated as smart contracts once all conditions
+                      are met. This ensures they are immutable and automatically enforced once saved
+                      to the blockchain.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-medium text-gray-900">Contract Covenants</h2>
+              <button
+                type="button"
+                onClick={() => setShowCovenantManager(true)}
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                Manage Covenants
+              </button>
+            </div>
+
+            {covenants.length > 0 ? (
+              <div className="bg-white shadow overflow-hidden sm:rounded-md">
+                <ul className="divide-y divide-gray-200">
+                  {covenants.map((covenant, index) => (
+                    <li key={covenant.id || index}>
+                      <div className="px-4 py-4 sm:px-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <p className="text-sm font-medium text-primary-600 truncate">
+                              {covenant.name}
+                            </p>
+                            <div className="ml-2 flex-shrink-0 flex">
+                              <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                {covenant.type}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="ml-2 flex-shrink-0 flex">
+                            <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                              {covenant.frequency}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-2 sm:flex sm:justify-between">
+                          <div className="sm:flex">
+                            <p className="flex items-center text-sm text-gray-500">
+                              {covenant.description}
+                            </p>
+                          </div>
+                          {covenant.hasThreshold && covenant.threshold && (
+                            <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                              <p>Threshold: {covenant.threshold}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                  />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No covenants added</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Add covenants to define requirements for this transaction.
+                </p>
+                <div className="mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowCovenantManager(true)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  >
+                    <svg
+                      className="-ml-1 mr-2 h-5 w-5"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Add Covenants
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Blockchain Verification Tab Content */}
         {activeTab === 'blockchain' && (
@@ -515,8 +646,8 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
           </div>
         )}
 
-        {/* Covenants Tab Content */}
-        {activeTab === 'covenants' && (
+        {/* Documents Tab Content */}
+        {activeTab === 'documents' && (
           <div>
             <div className="mb-6">
               <div className="rounded-md bg-blue-50 p-4">
@@ -537,9 +668,9 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
                   </div>
                   <div className="ml-3 flex-1 md:flex md:justify-between">
                     <p className="text-sm text-blue-700">
-                      Contract covenants define requirements and restrictions that the borrower must
-                      adhere to throughout the loan term. These help protect the lender's interests
-                      and ensure ongoing financial health of the borrower.
+                      Transaction documents form the legal foundation of the deal. After documents
+                      are finalized, covenants can be defined and included in the closing contracts
+                      as smart contracts, which are then verified and published to the blockchain.
                     </p>
                   </div>
                 </div>
@@ -547,107 +678,190 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
             </div>
 
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-medium text-gray-900">Contract Covenants</h2>
+              <h2 className="text-lg font-medium text-gray-900">Transaction Documents</h2>
               <button
                 type="button"
-                onClick={() => setShowCovenantManager(true)}
                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
-                Manage Covenants
+                Upload Documents
               </button>
             </div>
 
-            {covenants.length > 0 ? (
-              <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul className="divide-y divide-gray-200">
-                  {covenants.map((covenant, index) => (
-                    <li key={covenant.id || index}>
-                      <div className="px-4 py-4 sm:px-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <p className="text-sm font-medium text-primary-600 truncate">
-                              {covenant.name}
-                            </p>
-                            <div className="ml-2 flex-shrink-0 flex">
-                              <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                {covenant.type}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="ml-2 flex-shrink-0 flex">
-                            <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              {covenant.frequency}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-2 sm:flex sm:justify-between">
-                          <div className="sm:flex">
-                            <p className="flex items-center text-sm text-gray-500">
-                              {covenant.description}
-                            </p>
-                          </div>
-                          {covenant.hasThreshold && covenant.threshold && (
-                            <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                              <p>Threshold: {covenant.threshold}</p>
-                            </div>
-                          )}
-                        </div>
+            <div className="bg-white shadow overflow-hidden sm:rounded-md">
+              <ul className="divide-y divide-gray-200">
+                <li>
+                  <div className="px-4 py-4 sm:px-6 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <svg
+                        className="h-5 w-5 text-gray-400 mr-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-primary-600">
+                          Master Loan Agreement
+                        </p>
+                        <p className="text-xs text-gray-500">Updated 2 hours ago</p>
                       </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Signed
+                      </span>
+                      <button className="text-gray-400 hover:text-gray-500">
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div className="px-4 py-4 sm:px-6 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <svg
+                        className="h-5 w-5 text-gray-400 mr-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-primary-600">Security Agreement</p>
+                        <p className="text-xs text-gray-500">Updated 1 day ago</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Pending Signature
+                      </span>
+                      <button className="text-gray-400 hover:text-gray-500">
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div className="px-4 py-4 sm:px-6 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <svg
+                        className="h-5 w-5 text-gray-400 mr-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-primary-600">Promissory Note</p>
+                        <p className="text-xs text-gray-500">Updated 3 days ago</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Signed
+                      </span>
+                      <button className="text-gray-400 hover:text-gray-500">
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={() => setActiveTab('covenants')}
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
+                  className="-ml-1 mr-2 h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
                 >
                   <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                    fillRule="evenodd"
+                    d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                    clipRule="evenodd"
                   />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No covenants added</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Add covenants to define requirements for this transaction.
-                </p>
-                <div className="mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setShowCovenantManager(true)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                  >
-                    <svg
-                      className="-ml-1 mr-2 h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Add Covenants
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Placeholder for other tabs */}
-        {activeTab === 'documents' && (
-          <div className="py-12 text-center text-gray-500">
-            <p>Documents tab content would appear here</p>
+                Continue to Covenants
+              </button>
+            </div>
           </div>
         )}
 

@@ -234,9 +234,38 @@ const mockChartDataByYear = {
 
 // Create user type-specific dashboard components
 const BusinessDashboard: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleNewApplication = () => {
+    navigate('/credit-application');
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
       <div className="lg:col-span-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">My Dashboard</h2>
+          <button
+            onClick={handleNewApplication}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <svg
+              className="-ml-1 mr-2 h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+            New Origination
+          </button>
+        </div>
         <DealProgressCard />
       </div>
       <div className="lg:col-span-3">
@@ -448,8 +477,37 @@ const VendorDashboard: React.FC = () => {
 };
 
 const LenderDashboard: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleCreateNewDeal = () => {
+    navigate('/credit-application');
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-12 gap-6">
+      <div className="col-span-12 flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-800">Lender Dashboard</h2>
+        <button
+          onClick={handleCreateNewDeal}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+        >
+          <svg
+            className="-ml-1 mr-2 h-5 w-5"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          New Origination
+        </button>
+      </div>
       {/* Key metrics row */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
         <div className="lg:col-span-3">
@@ -1899,124 +1957,61 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="flex flex-col h-full">
       <TopNavigation title="Dashboard" />
+      <div className="flex-1 overflow-auto px-4 py-6 space-y-6">
+        {/* Demo Mode Switcher */}
+        <DemoModeSwitcherPanel
+          currentUserType={getUserTypeString(userType || UserType.BUSINESS)}
+          onUserTypeChange={handleUserTypeSwitch}
+        />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg p-6 shadow mb-8">
-          <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-500">Get a 360° view of your financing activities</p>
+        {/* Main Dashboard content - without redundant Dashboard title */}
+        <div className="space-y-6">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mb-4"></div>
+              <p className="text-primary-600 text-lg">Loading dashboard data...</p>
             </div>
-
-            <div className="flex space-x-4 mt-4 md:mt-0">
-              {/* Add New Transaction button */}
-              <button
-                onClick={handleCreateNewTransaction}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
+          ) : error ? (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
+              <div className="flex-shrink-0">
                 <svg
-                  className="mr-2 -ml-1 h-5 w-5"
+                  className="h-5 w-5 text-red-400"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
                   <path
                     fillRule="evenodd"
-                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                     clipRule="evenodd"
                   />
                 </svg>
-                {(() => {
-                  switch (currentUserType) {
-                    case UserType.BUSINESS:
-                      return 'Apply for Financing';
-                    case UserType.VENDOR:
-                      return 'Transaction';
-                    case UserType.BROKERAGE:
-                      return 'Create New Deal';
-                    case UserType.LENDER:
-                      return 'Create Funding Opportunity';
-                    default:
-                      return 'Start New Transaction';
-                  }
-                })()}
-              </button>
-
+              </div>
               <div className="ml-3">
-                <button className="text-gray-400 hover:text-gray-500 focus:outline-none">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                <h3 className="text-sm font-medium text-red-800">Error loading dashboard data</h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
+                <button
+                  className="mt-2 text-sm font-medium text-red-800 hover:text-red-900"
+                  onClick={handleRetry}
+                >
+                  Try again
                 </button>
               </div>
             </div>
-          </div>
-
-          <div className="mt-4">
-            <DemoModeSwitcherPanel
-              onUserTypeChange={handleUserTypeSwitch}
-              currentUserType={getUserTypeString(currentUserType)}
-            />
-          </div>
+          ) : (
+            <>
+              {/* Dashboard content based on user type */}
+              {userType === UserType.BUSINESS && <BusinessDashboard />}
+              {userType === UserType.VENDOR && <VendorDashboard />}
+              {userType === UserType.BROKERAGE && <BrokerageDashboard />}
+              {userType === UserType.LENDER && <LenderDashboard />}
+              {/* ... Other user type dashboards */}
+            </>
+          )}
         </div>
-
-        {/* Dynamic Dashboard Component - based on user type */}
-        {(() => {
-          try {
-            // Render specific dashboard component based on user type
-            switch (currentUserType) {
-              case UserType.BUSINESS:
-                return <BusinessDashboard />;
-              case UserType.VENDOR:
-                return <VendorDashboard />;
-              case UserType.BROKERAGE:
-                return <BrokerageDashboard />;
-              case UserType.LENDER:
-                return <LenderDashboard />;
-              default:
-                // Fallback to DynamicDashboard if no specific component
-                return (
-                  <DynamicDashboard
-                    metrics={dashboardData.metrics}
-                    transactions={dashboardData.transactions}
-                    activities={[]} // Removed activity data as requested
-                    dueDiligence={dueDiligence}
-                    trends={{}}
-                  />
-                );
-            }
-          } catch (error) {
-            console.error('Error rendering dashboard:', error);
-            return (
-              <div className="bg-white p-6 rounded-lg shadow">
-                <div className="text-red-500 mb-4">
-                  There was an error loading the dashboard content.
-                </div>
-                <button
-                  onClick={handleRetry}
-                  className="bg-primary-600 text-white px-4 py-2 rounded"
-                >
-                  Refresh Dashboard
-                </button>
-              </div>
-            );
-          }
-        })()}
-
-        {/* Add the dialog */}
-        <NewDealDialog />
-      </main>
+      </div>
     </div>
   );
 };

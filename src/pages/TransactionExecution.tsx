@@ -86,7 +86,7 @@ const TransactionExecution: React.FC = () => {
   const [actionInProgress, setActionInProgress] = useState<boolean>(false);
   // Add active tab state for navigation
   const [activeTab, setActiveTab] = useState<
-    'documents' | 'blockchain_verification' | 'covenants' | 'shield_vault'
+    'documents' | 'covenants' | 'blockchain_verification' | 'shield_vault'
   >('documents');
 
   // Load transactions (mock data for now)
@@ -698,16 +698,6 @@ const TransactionExecution: React.FC = () => {
                 Documents
               </button>
               <button
-                onClick={() => setActiveTab('blockchain_verification')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'blockchain_verification'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Blockchain Verification
-              </button>
-              <button
                 onClick={() => setActiveTab('covenants')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'covenants'
@@ -716,6 +706,16 @@ const TransactionExecution: React.FC = () => {
                 }`}
               >
                 Covenants
+              </button>
+              <button
+                onClick={() => setActiveTab('blockchain_verification')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'blockchain_verification'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Blockchain Verification
               </button>
               <button
                 onClick={() => setActiveTab('shield_vault')}
@@ -984,7 +984,112 @@ const TransactionExecution: React.FC = () => {
                   </ul>
                 </div>
               </div>
+
+              {/* Continue to Covenants button */}
+              <div className="mt-6 flex justify-center">
+                <button
+                  onClick={() => setActiveTab('covenants')}
+                  className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-md flex items-center"
+                >
+                  <svg
+                    className="mr-2 h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                  Continue to Covenants
+                </button>
+              </div>
             </>
+          )}
+
+          {/* Covenants Tab */}
+          {activeTab === 'covenants' && (
+            <div className="mb-6">
+              <h4 className="text-base font-medium text-gray-900 mb-2">Transaction Covenants</h4>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
+                <div className="flex items-start">
+                  <svg
+                    className="h-5 w-5 text-blue-600 mt-0.5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <div>
+                    <p className="text-sm text-blue-800 font-medium">Smart Contract Covenants</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Covenants are automatically generated as part of the closing contracts and
+                      deployed as smart contracts on the blockchain. These enforceable agreements
+                      ensure all parties comply with the terms of financing.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-md p-6">
+                <div className="mb-6">
+                  <h5 className="text-sm font-medium text-gray-900 mb-3">
+                    Covenant Password Verification
+                  </h5>
+                  <p className="text-sm text-gray-700 mb-4">
+                    For security purposes, please enter the covenant password provided during
+                    contract finalization.
+                    <br />
+                    <span className="text-gray-500 text-xs">
+                      (For demo purposes, enter: EVA-DEMO-PASSWORD-123)
+                    </span>
+                  </p>
+
+                  <div className="flex items-center space-x-4">
+                    <input
+                      type="password"
+                      placeholder="Enter covenant password"
+                      className="flex-1 border border-gray-300 rounded-md px-4 py-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                    <button className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md">
+                      Verify Access
+                    </button>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="flex justify-center items-center">
+                    <div className="text-center">
+                      <svg
+                        className="h-12 w-12 text-gray-400 mx-auto mb-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                        />
+                      </svg>
+                      <p className="text-gray-500">Enter the password to view covenant details</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Blockchain Verification Tab */}
@@ -994,16 +1099,6 @@ const TransactionExecution: React.FC = () => {
                 verifications={selectedTransaction.shieldVerifications}
                 blockchainRecordId={selectedTransaction.blockchainRecordId}
               />
-            </div>
-          )}
-
-          {/* Covenants Tab */}
-          {activeTab === 'covenants' && (
-            <div className="mb-6">
-              <h4 className="text-base font-medium text-gray-900 mb-2">Transaction Covenants</h4>
-              <div className="bg-gray-50 rounded-md p-6 text-center">
-                <p className="text-gray-500">No covenants available for this transaction</p>
-              </div>
             </div>
           )}
 

@@ -2,7 +2,7 @@ import React, { Fragment, useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useWorkflow } from '../../contexts/WorkflowContext';
 import { UserContext } from '../../contexts/UserContext';
-import * as authService from '../../api/authService';
+import { useAuth } from '../../contexts/AuthContext';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -151,7 +151,7 @@ const Navbar = () => {
     showAILifecycleAssistant,
     setShowAILifecycleAssistant,
   } = useContext(UserContext);
-  const user = authService.getCurrentUser();
+  const { user, logout } = useAuth();
 
   // State for notifications
   const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
@@ -164,7 +164,8 @@ const Navbar = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleLogout = () => {
-    authService.logout();
+    logout();
+    navigate('/login');
   };
 
   const toggleDarkMode = () => {
@@ -474,12 +475,12 @@ const Navbar = () => {
                       <Menu.Item>
                         {({ active }: { active: boolean }) => (
                           <a
-                            href="/login"
+                            href="#"
                             className={classNames(
                               active ? 'bg-light-bg-alt' : '',
                               'block px-3 py-1.5 text-xs text-light-text'
                             )}
-                            onClick={() => localStorage.removeItem('auth_token')}
+                            onClick={handleLogout}
                           >
                             Sign out
                           </a>

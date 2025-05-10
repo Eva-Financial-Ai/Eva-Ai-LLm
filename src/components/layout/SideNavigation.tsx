@@ -19,12 +19,14 @@ const SideNavigation: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { userType } = useUserType();
-  // Initialize with all menu items expanded
+  // Initialize with Credit Application, Customer Retention, and other important sections open by default
   const [expandedItems, setExpandedItems] = useState<string[]>([
-    'Deal Structuring',
-    'Filelock Drive',
-    'Portfolio Navigator',
+    'Credit Application',
+    'Customer Retention',
     'Risk Map Navigator',
+    'Deal Structuring',
+    'Portfolio Navigator',
+    'Filelock Drive',
   ]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -55,16 +57,19 @@ const SideNavigation: React.FC = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  // Function to handle user-type specific navigation for Commercial Market
-  const getCommercialMarketPath = () => {
+  // Function to handle user-type specific navigation for Asset Marketplace
+  const getAssetMarketplacePath = () => {
     if (userType === UserType.VENDOR) {
+      // Manufacturers/vendors want to list equipment for sale
       return '/commercial-market?view=seller';
     } else if (userType === UserType.BROKERAGE) {
+      // Brokers need view for funding sources and syndication
       return '/commercial-market?view=broker';
     } else if (userType === UserType.LENDER) {
+      // Lenders need to manage repossessions and offer financing
       return '/commercial-market?view=lender';
     } else {
-      // Default to buyer view for business or any other type
+      // Default to buyer view for business/borrower or any other type
       return '/commercial-market?view=buyer';
     }
   };
@@ -73,6 +78,10 @@ const SideNavigation: React.FC = () => {
     {
       name: 'Dashboard',
       href: '/',
+      onClick: () => {
+        console.log('Navigating to Dashboard');
+        navigate('/');
+      },
       icon: active => (
         <svg
           className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -94,6 +103,10 @@ const SideNavigation: React.FC = () => {
     {
       name: 'Credit Application',
       href: '/credit-application',
+      onClick: () => {
+        console.log('Navigating to Credit Application - DEBUG LOG');
+        navigate('/credit-application');
+      },
       icon: active => (
         <svg
           className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -110,11 +123,69 @@ const SideNavigation: React.FC = () => {
           />
         </svg>
       ),
-      current: location.pathname === '/credit-application',
+      current:
+        location.pathname === '/credit-application' || location.pathname === '/auto-originations',
+      isOpen: expandedItems.includes('Credit Application'),
+      children: [
+        {
+          name: 'Application Form',
+          href: '/credit-application',
+          onClick: () => {
+            console.log('Navigating to Application Form - DEBUG LOG');
+            navigate('/credit-application');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          ),
+          current: location.pathname === '/credit-application',
+        },
+        {
+          name: 'Auto Originations',
+          href: '/auto-originations',
+          onClick: () => {
+            console.log('Navigating to Auto Originations - DEBUG LOG');
+            navigate('/auto-originations');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
+              />
+            </svg>
+          ),
+          current: location.pathname === '/auto-originations',
+        },
+      ],
     },
     {
       name: 'Customer Retention',
       href: '/customer-retention',
+      onClick: () => {
+        console.log('Navigating to Customer Retention - DEBUG LOG');
+        navigate('/customer-retention');
+      },
       icon: active => (
         <svg
           className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -131,11 +202,96 @@ const SideNavigation: React.FC = () => {
           />
         </svg>
       ),
-      current: location.pathname === '/customer-retention',
+      current:
+        location.pathname === '/customer-retention' ||
+        location.pathname === '/contacts' ||
+        location.pathname === '/commitments',
+      isOpen: expandedItems.includes('Customer Retention'),
+      children: [
+        {
+          name: 'Dashboard',
+          href: '/customer-retention',
+          onClick: () => {
+            console.log('Navigating to Customer Retention Dashboard - DEBUG LOG');
+            navigate('/customer-retention');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+          ),
+          current: location.pathname === '/customer-retention',
+        },
+        {
+          name: 'Contacts',
+          href: '/contacts',
+          onClick: () => {
+            console.log('Navigating to Contacts - DEBUG LOG');
+            navigate('/contacts');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+          ),
+          current: location.pathname === '/contacts',
+        },
+        {
+          name: 'Commitments',
+          href: '/commitments',
+          onClick: () => {
+            console.log('Navigating to Commitments - DEBUG LOG');
+            navigate('/commitments');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          ),
+          current: location.pathname === '/commitments',
+        },
+      ],
     },
     {
       name: 'Filelock Drive',
       href: '/documents',
+      onClick: () => {
+        console.log('Navigating to Filelock Drive - DEBUG LOG');
+        navigate('/documents');
+      },
       icon: active => (
         <svg
           className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -152,12 +308,69 @@ const SideNavigation: React.FC = () => {
           />
         </svg>
       ),
-      current: location.pathname === '/documents' || location.pathname === '/document-center',
+      current:
+        location.pathname === '/documents' ||
+        location.pathname === '/document-center' ||
+        location.pathname.startsWith('/shield-vault'),
       isOpen: expandedItems.includes('Filelock Drive'),
       children: [
         {
+          name: 'Document Management',
+          href: '/documents',
+          onClick: () => {
+            console.log('Navigating to Document Management - DEBUG LOG');
+            navigate('/documents');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          ),
+          current: location.pathname === '/documents',
+        },
+        {
+          name: 'Shield Vault',
+          href: '/shield-vault',
+          onClick: () => {
+            console.log('Navigating to Shield Vault - DEBUG LOG');
+            navigate('/shield-vault');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+          ),
+          current: location.pathname.startsWith('/shield-vault'),
+        },
+        {
           name: 'Safe Forms',
           href: '/forms',
+          onClick: () => {
+            console.log('Navigating to Safe Forms - DEBUG LOG');
+            navigate('/forms');
+          },
           icon: active => (
             <svg
               className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -180,7 +393,11 @@ const SideNavigation: React.FC = () => {
     },
     {
       name: 'Risk Map Navigator',
-      href: '/risk-assessment/standard',
+      href: '/risk-assessment',
+      onClick: () => {
+        console.log('Navigating to Risk Assessment - DEBUG LOG');
+        navigate('/risk-assessment/standard');
+      },
       icon: active => (
         <svg
           className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -205,6 +422,10 @@ const SideNavigation: React.FC = () => {
         {
           name: 'Standard',
           href: '/risk-assessment/standard',
+          onClick: () => {
+            console.log('Navigating to Standard Risk Assessment - DEBUG LOG');
+            navigate('/risk-assessment/standard');
+          },
           icon: active => (
             <svg
               className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -229,6 +450,10 @@ const SideNavigation: React.FC = () => {
         {
           name: 'Eva Risk Report',
           href: '/risk-assessment/report',
+          onClick: () => {
+            console.log('Navigating to Eva Risk Report - DEBUG LOG');
+            navigate('/risk-assessment/report');
+          },
           icon: active => (
             <svg
               className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -241,7 +466,7 @@ const SideNavigation: React.FC = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
               />
             </svg>
           ),
@@ -250,6 +475,10 @@ const SideNavigation: React.FC = () => {
         {
           name: 'RiskLab',
           href: '/risk-assessment/lab',
+          onClick: () => {
+            console.log('Navigating to RiskLab - DEBUG LOG');
+            navigate('/risk-assessment/lab');
+          },
           icon: active => (
             <svg
               className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -271,6 +500,10 @@ const SideNavigation: React.FC = () => {
         {
           name: 'Eva Score',
           href: '/risk-assessment/score',
+          onClick: () => {
+            console.log('Navigating to Eva Score - DEBUG LOG');
+            navigate('/risk-assessment/score');
+          },
           icon: active => (
             <svg
               className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -294,6 +527,10 @@ const SideNavigation: React.FC = () => {
     {
       name: 'Deal Structuring',
       href: '/deal-structuring',
+      onClick: () => {
+        console.log('Navigating to Deal Structuring - DEBUG LOG');
+        navigate('/deal-structuring');
+      },
       icon: active => (
         <svg
           className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -310,12 +547,16 @@ const SideNavigation: React.FC = () => {
           />
         </svg>
       ),
-      current: location.pathname === '/deal-structuring',
+      current: location.pathname.startsWith('/deal-structuring'),
       isOpen: expandedItems.includes('Deal Structuring'),
       children: [
         {
           name: 'Structure Editor',
-          href: '/deal-structuring/editor',
+          href: '/deal-structuring',
+          onClick: () => {
+            console.log('Navigating to Structure Editor - DEBUG LOG');
+            navigate('/deal-structuring');
+          },
           icon: active => (
             <svg
               className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -338,11 +579,15 @@ const SideNavigation: React.FC = () => {
               />
             </svg>
           ),
-          current: location.pathname === '/deal-structuring/editor',
+          current: location.pathname === '/deal-structuring',
         },
         {
           name: 'Smart Match',
           href: '/deal-structuring/smart-match',
+          onClick: () => {
+            console.log('Navigating to Smart Match - DEBUG LOG');
+            navigate('/deal-structuring/smart-match');
+          },
           icon: active => (
             <svg
               className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -362,33 +607,41 @@ const SideNavigation: React.FC = () => {
           current: location.pathname === '/deal-structuring/smart-match',
           badge: 'New',
         },
+        {
+          name: 'Transaction Execution',
+          href: '/transactions',
+          onClick: () => {
+            console.log('Navigating to Transaction Execution - DEBUG LOG');
+            navigate('/transactions');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+              />
+            </svg>
+          ),
+          current:
+            location.pathname === '/transactions' || location.pathname.includes('/transactions/'),
+        },
       ],
-    },
-    {
-      name: 'Transaction Execution',
-      href: '/transactions',
-      icon: active => (
-        <svg
-          className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-          />
-        </svg>
-      ),
-      current:
-        location.pathname === '/transactions' || location.pathname.includes('/transactions/'),
     },
     {
       name: 'Asset Press',
       href: '/asset-press',
+      onClick: () => {
+        console.log('Navigating to Asset Press - DEBUG LOG');
+        navigate('/asset-press');
+      },
       icon: active => (
         <svg
           className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -410,7 +663,11 @@ const SideNavigation: React.FC = () => {
     },
     {
       name: 'Portfolio Navigator',
-      href: '/portfolio-navigator',
+      href: '/portfolio-wallet',
+      onClick: () => {
+        console.log('Navigating to Portfolio Navigator - DEBUG LOG');
+        navigate('/portfolio-wallet');
+      },
       icon: active => (
         <svg
           className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -428,13 +685,17 @@ const SideNavigation: React.FC = () => {
         </svg>
       ),
       current:
-        location.pathname === '/portfolio-navigator' || location.pathname === '/portfolio-wallet',
+        location.pathname === '/portfolio-wallet' || location.pathname === '/asset-portfolio',
       isOpen: expandedItems.includes('Portfolio Navigator'),
       badge: 'Beta',
       children: [
         {
           name: 'Portfolio Wallet',
           href: '/portfolio-wallet',
+          onClick: () => {
+            console.log('Navigating to Portfolio Wallet - DEBUG LOG');
+            navigate('/portfolio-wallet');
+          },
           icon: active => (
             <svg
               className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -453,11 +714,42 @@ const SideNavigation: React.FC = () => {
           ),
           current: location.pathname === '/portfolio-wallet',
         },
+        {
+          name: 'Asset Portfolio',
+          href: '/asset-portfolio',
+          onClick: () => {
+            console.log('Navigating to Asset Portfolio - DEBUG LOG');
+            navigate('/asset-portfolio');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          ),
+          current: location.pathname === '/asset-portfolio',
+        },
       ],
     },
     {
-      name: 'Commercial Truck & Equipment Market',
-      href: getCommercialMarketPath(),
+      name: 'Asset Marketplace',
+      href: getAssetMarketplacePath(),
+      onClick: () => {
+        console.log('Navigating to Asset Marketplace - DEBUG LOG');
+        const path = getAssetMarketplacePath();
+        console.log('Asset Marketplace path:', path);
+        navigate(path);
+      },
       icon: active => (
         <svg
           className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
@@ -474,8 +766,91 @@ const SideNavigation: React.FC = () => {
           />
         </svg>
       ),
-      current: location.pathname === '/commercial-market',
-      badge: 'Coming Soon',
+      current:
+        location.pathname.includes('/commercial-market') ||
+        location.pathname.includes('/asset-marketplace'),
+      isOpen: expandedItems.includes('Asset Marketplace'),
+      children: [
+        {
+          name: 'Browse Assets',
+          href: '/commercial-market',
+          onClick: () => {
+            console.log('Navigating to Browse Assets - DEBUG LOG');
+            navigate('/commercial-market');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+              />
+            </svg>
+          ),
+          current: location.pathname === '/commercial-market',
+        },
+        {
+          name: 'Manage Listings',
+          href: '/commercial-market?view=manage',
+          onClick: () => {
+            console.log('Navigating to Manage Listings - DEBUG LOG');
+            navigate('/commercial-market?view=manage');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+          ),
+          current:
+            location.pathname.includes('/commercial-market') &&
+            location.search.includes('view=manage'),
+        },
+        {
+          name: 'Broker Network',
+          href: '/commercial-market?view=broker',
+          onClick: () => {
+            console.log('Navigating to Broker Network - DEBUG LOG');
+            navigate('/commercial-market?view=broker');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          ),
+          current:
+            location.pathname.includes('/commercial-market') &&
+            location.search.includes('view=broker'),
+        },
+      ],
     },
   ];
 
@@ -591,32 +966,68 @@ const SideNavigation: React.FC = () => {
                 <ul className="mt-1 pl-4 space-y-1">
                   {item.children.map(subItem => (
                     <li key={subItem.name} className="mt-1">
-                      <Link
-                        to={subItem.href}
-                        className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                          subItem.current
-                            ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                      >
-                        <span className="mr-3">{subItem.icon(subItem.current)}</span>
-                        <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                          {subItem.name}
-                        </span>
-                        {subItem.badge && !sidebarCollapsed && (
-                          <span
-                            className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                              subItem.badge === 'New'
-                                ? 'bg-green-100 text-green-800'
-                                : subItem.badge === 'Beta'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-amber-100 text-amber-800'
-                            }`}
-                          >
-                            {subItem.badge}
+                      {subItem.onClick ? (
+                        <button
+                          onClick={e => {
+                            e.preventDefault();
+                            console.log(`Collapsed View Child: Clicking ${subItem.name} - DEBUG`);
+                            if (subItem.onClick) {
+                              subItem.onClick();
+                            }
+                          }}
+                          className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                            subItem.current
+                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
+                          title={subItem.name}
+                        >
+                          <span className="mr-3">{subItem.icon(subItem.current)}</span>
+                          <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                            {subItem.name}
                           </span>
-                        )}
-                      </Link>
+                          {subItem.badge && !sidebarCollapsed && (
+                            <span
+                              className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                                subItem.badge === 'New'
+                                  ? 'bg-green-100 text-green-800'
+                                  : subItem.badge === 'Beta'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-amber-100 text-amber-800'
+                              }`}
+                            >
+                              {subItem.badge}
+                            </span>
+                          )}
+                        </button>
+                      ) : (
+                        <Link
+                          to={subItem.href}
+                          className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                            subItem.current
+                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
+                        >
+                          <span className="mr-3">{subItem.icon(subItem.current)}</span>
+                          <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                            {subItem.name}
+                          </span>
+                          {subItem.badge && !sidebarCollapsed && (
+                            <span
+                              className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                                subItem.badge === 'New'
+                                  ? 'bg-green-100 text-green-800'
+                                  : subItem.badge === 'Beta'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-amber-100 text-amber-800'
+                              }`}
+                            >
+                              {subItem.badge}
+                            </span>
+                          )}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -681,7 +1092,39 @@ const SideNavigation: React.FC = () => {
 
       return (
         <li key={item.name}>
-          {item.name === 'Commercial Truck & Equipment Market' ? (
+          {item.onClick ? (
+            <button
+              onClick={e => {
+                e.preventDefault();
+                console.log(`Collapsed View: Clicking ${item.name} - DEBUG`);
+                if (item.onClick) {
+                  item.onClick();
+                }
+              }}
+              className={`w-full flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                item.current
+                  ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+              title={item.name}
+            >
+              <span className="mr-3">{item.icon(item.current)}</span>
+              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
+              {item.badge && !sidebarCollapsed && (
+                <span
+                  className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                    item.badge === 'New'
+                      ? 'bg-green-100 text-green-800'
+                      : item.badge === 'Beta'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          ) : item.name === 'Commercial Truck & Equipment Market' ? (
             <Link
               to={item.href}
               className={`flex items-center px-2 py-2 text-sm font-medium rounded-md ${
@@ -792,72 +1235,189 @@ const SideNavigation: React.FC = () => {
               )}
             </div>
             <nav className="flex-1 px-2 bg-white space-y-0">
-              {sidebarCollapsed
-                ? // Collapsed view
-                  navigation.map(item => (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                        item.current ? 'bg-pink-50' : 'hover:bg-gray-50'
-                      }`}
-                      title={item.name}
-                    >
-                      {item.icon(item.current)}
-                    </Link>
-                  ))
-                : // Expanded view
-                  navigation.map(item => (
+              {sidebarCollapsed ? (
+                // Collapsed view with visible sub-items
+                <ul className="space-y-1">
+                  {navigation.map(item => (
                     <li key={item.name}>
-                      {item.children ? (
-                        <>
-                          <button
-                            onClick={() => toggleItem(item.name)}
-                            className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md ${
-                              item.current
-                                ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                            }`}
-                          >
-                            <div className="flex items-center">
-                              <span className="mr-3">{item.icon(item.current)}</span>
-                              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                                {item.name}
-                              </span>
-                              {item.badge && !sidebarCollapsed && (
-                                <span
-                                  className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                    item.badge === 'New'
-                                      ? 'bg-green-100 text-green-800'
-                                      : item.badge === 'Beta'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'bg-amber-100 text-amber-800'
+                      {item.onClick ? (
+                        <button
+                          onClick={e => {
+                            e.preventDefault();
+                            console.log(`Collapsed View: Clicking ${item.name} - DEBUG`);
+                            if (item.onClick) {
+                              item.onClick();
+                            }
+                          }}
+                          className={`flex justify-center items-center p-2 my-1 rounded-md ${
+                            item.current ? 'bg-pink-50' : 'hover:bg-gray-50'
+                          }`}
+                          title={item.name}
+                        >
+                          {item.icon(item.current)}
+                          {item.badge && (
+                            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                          )}
+                        </button>
+                      ) : (
+                        <Link
+                          to={item.href}
+                          className={`flex justify-center items-center p-2 my-1 rounded-md ${
+                            item.current ? 'bg-pink-50' : 'hover:bg-gray-50'
+                          }`}
+                          title={item.name}
+                          onClick={e => {
+                            console.log(`Collapsed View (Link): Clicking ${item.name} - DEBUG`);
+                            if (item.onClick) {
+                              e.preventDefault();
+                              item.onClick();
+                            }
+                          }}
+                        >
+                          {item.icon(item.current)}
+                          {item.badge && (
+                            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                          )}
+                        </Link>
+                      )}
+
+                      {/* Show children even when collapsed */}
+                      {item.children && expandedItems.includes(item.name) && (
+                        <ul className="pl-3 mt-1">
+                          {item.children.map(subItem => (
+                            <li key={subItem.name}>
+                              {subItem.onClick ? (
+                                <button
+                                  onClick={e => {
+                                    e.preventDefault();
+                                    console.log(
+                                      `Collapsed View Child: Clicking ${subItem.name} - DEBUG`
+                                    );
+                                    if (subItem.onClick) {
+                                      subItem.onClick();
+                                    }
+                                  }}
+                                  className={`flex justify-center items-center p-2 my-1 rounded-md ${
+                                    subItem.current ? 'bg-primary-50' : 'hover:bg-gray-50'
                                   }`}
+                                  title={subItem.name}
                                 >
-                                  {item.badge}
-                                </span>
+                                  {subItem.icon(subItem.current)}
+                                  {subItem.badge && (
+                                    <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                                  )}
+                                </button>
+                              ) : (
+                                <Link
+                                  to={subItem.href}
+                                  className={`flex justify-center items-center p-2 my-1 rounded-md ${
+                                    subItem.current ? 'bg-primary-50' : 'hover:bg-gray-50'
+                                  }`}
+                                  title={subItem.name}
+                                  onClick={e => {
+                                    console.log(
+                                      `Collapsed View Child (Link): Clicking ${subItem.name} - DEBUG`
+                                    );
+                                    if (subItem.onClick) {
+                                      e.preventDefault();
+                                      subItem.onClick();
+                                    }
+                                  }}
+                                >
+                                  {subItem.icon(subItem.current)}
+                                  {subItem.badge && (
+                                    <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                                  )}
+                                </Link>
                               )}
-                            </div>
-                            <svg
-                              className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
-                                expandedItems.includes(item.name) ? 'rotate-90' : ''
-                              }`}
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                              aria-hidden="true"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </button>
-                          {expandedItems.includes(item.name) && (
-                            <ul className="mt-1 pl-4 space-y-1">
-                              {item.children.map(subItem => (
-                                <li key={subItem.name} className="mt-1">
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                // Regular expanded view
+                navigation.map(item => (
+                  <li key={item.name}>
+                    {item.children ? (
+                      <>
+                        <button
+                          onClick={() => toggleItem(item.name)}
+                          className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md ${
+                            item.current
+                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
+                        >
+                          <div className="flex items-center">
+                            <span className="mr-3">{item.icon(item.current)}</span>
+                            <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                              {item.name}
+                            </span>
+                            {item.badge && !sidebarCollapsed && (
+                              <span
+                                className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                                  item.badge === 'New'
+                                    ? 'bg-green-100 text-green-800'
+                                    : item.badge === 'Beta'
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : 'bg-amber-100 text-amber-800'
+                                }`}
+                              >
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                          <svg
+                            className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
+                              expandedItems.includes(item.name) ? 'rotate-90' : ''
+                            }`}
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                        {expandedItems.includes(item.name) && (
+                          <ul className="mt-1 pl-4 space-y-1">
+                            {item.children.map(subItem => (
+                              <li key={subItem.name} className="mt-1">
+                                {subItem.onClick ? (
+                                  <button
+                                    onClick={subItem.onClick}
+                                    className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                                      subItem.current
+                                        ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                    }`}
+                                  >
+                                    <span className="mr-3">{subItem.icon(subItem.current)}</span>
+                                    <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                                      {subItem.name}
+                                    </span>
+                                    {subItem.badge && !sidebarCollapsed && (
+                                      <span
+                                        className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                                          subItem.badge === 'New'
+                                            ? 'bg-green-100 text-green-800'
+                                            : subItem.badge === 'Beta'
+                                              ? 'bg-blue-100 text-blue-800'
+                                              : 'bg-amber-100 text-amber-800'
+                                        }`}
+                                      >
+                                        {subItem.badge}
+                                      </span>
+                                    )}
+                                  </button>
+                                ) : (
                                   <Link
                                     to={subItem.href}
                                     className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
@@ -884,68 +1444,70 @@ const SideNavigation: React.FC = () => {
                                       </span>
                                     )}
                                   </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </>
-                      ) : item.name === 'Commercial Truck & Equipment Market' ? (
-                        <Link
-                          to={item.href}
-                          className={`flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                            item.current
-                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                        >
-                          <span className="mr-3">{item.icon(item.current)}</span>
-                          <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                            {item.name}
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
+                    ) : item.name === 'Commercial Truck & Equipment Market' ? (
+                      <Link
+                        to={item.href}
+                        className={`flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                          item.current
+                            ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                      >
+                        <span className="mr-3">{item.icon(item.current)}</span>
+                        <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                          {item.name}
+                        </span>
+                        {item.badge && !sidebarCollapsed && (
+                          <span
+                            className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                              item.badge === 'New'
+                                ? 'bg-green-100 text-green-800'
+                                : item.badge === 'Beta'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-amber-100 text-amber-800'
+                            }`}
+                          >
+                            {item.badge}
                           </span>
-                          {item.badge && !sidebarCollapsed && (
-                            <span
-                              className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                item.badge === 'New'
-                                  ? 'bg-green-100 text-green-800'
-                                  : item.badge === 'Beta'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-amber-100 text-amber-800'
-                              }`}
-                            >
-                              {item.badge}
-                            </span>
-                          )}
-                        </Link>
-                      ) : (
-                        <Link
-                          to={item.href}
-                          className={`flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                            item.current
-                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                        >
-                          <span className="mr-3">{item.icon(item.current)}</span>
-                          <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                            {item.name}
+                        )}
+                      </Link>
+                    ) : (
+                      <Link
+                        to={item.href}
+                        className={`flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                          item.current
+                            ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                      >
+                        <span className="mr-3">{item.icon(item.current)}</span>
+                        <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                          {item.name}
+                        </span>
+                        {item.badge && !sidebarCollapsed && (
+                          <span
+                            className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                              item.badge === 'New'
+                                ? 'bg-green-100 text-green-800'
+                                : item.badge === 'Beta'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-amber-100 text-amber-800'
+                            }`}
+                          >
+                            {item.badge}
                           </span>
-                          {item.badge && !sidebarCollapsed && (
-                            <span
-                              className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                item.badge === 'New'
-                                  ? 'bg-green-100 text-green-800'
-                                  : item.badge === 'Beta'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-amber-100 text-amber-800'
-                              }`}
-                            >
-                              {item.badge}
-                            </span>
-                          )}
-                        </Link>
-                      )}
-                    </li>
-                  ))}
+                        )}
+                      </Link>
+                    )}
+                  </li>
+                ))
+              )}
             </nav>
           </div>
           {!sidebarCollapsed && (

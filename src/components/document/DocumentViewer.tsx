@@ -115,10 +115,11 @@ interface DocumentViewerProps {
   onBack: () => void;
   onEdit: () => void;
   onSign: () => void;
-  onShare: () => void; // Fixed: This doesn't accept parameters
+  onShare: () => void;
   onDelete: () => void;
   onDownload: () => void;
   onUpdateFile?: (updatedFile: FileItem) => void;
+  onChatWithFile?: () => void;
 }
 
 const DocumentViewer: React.FC<DocumentViewerProps> = ({
@@ -130,6 +131,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   onDelete,
   onDownload,
   onUpdateFile,
+  onChatWithFile,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(10); // In a real app, get this from the PDF
@@ -316,9 +318,16 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           {!file.blockchainVerified && (
             <button
               onClick={() => setShowBlockchainLockModal(true)}
-              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm flex items-center"
+              className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 inline-flex items-center"
+              disabled={isCertifying || file.blockchainVerified}
             >
-              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="w-4 h-4 mr-1.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -326,7 +335,30 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                   d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                 />
               </svg>
-              Lock on Blockchain
+              {file.blockchainVerified ? 'Locked on Blockchain' : 'Lock on Blockchain'}
+            </button>
+          )}
+
+          {onChatWithFile && (
+            <button
+              onClick={onChatWithFile}
+              className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 inline-flex items-center"
+            >
+              <svg
+                className="w-4 h-4 mr-1.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                />
+              </svg>
+              Chat With File
             </button>
           )}
 

@@ -195,8 +195,6 @@ const CreditApplication: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <TopNavigation title="Credit Application" />
-
       <h1 className="text-2xl font-bold text-gray-800 mb-2">Credit Application</h1>
       <p className="text-gray-600 mb-6">
         Complete the form below to begin the credit application process

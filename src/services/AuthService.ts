@@ -9,11 +9,13 @@ export interface AuthUser {
   employeeRole?: EmployeeRole;
   organizationId: string;
   organizationName: string;
+  phoneNumber?: string;
 }
 
 export interface LoginCredentials {
   email: string;
   password: string;
+  phoneNumber?: string;
 }
 
 export interface AuthResult {
@@ -22,6 +24,21 @@ export interface AuthResult {
   refreshToken: string;
   expiresAt: number;
 }
+
+// Whitelist of allowed emails
+const ALLOWED_EMAILS = [
+  'justin@evafi.ai',
+  'rao@evafi.ai',
+  'abel@evafi.ai',
+  'lahari@evafi.ai',
+  'tech@evafi.ai',
+  'demo@evafi.ai',
+  'customer@lender.com',
+  'investor@gmail.com',
+];
+
+// Allowed phone number for development access
+const ALLOWED_PHONE = '7027654321';
 
 /**
  * Authentication Service
@@ -51,6 +68,16 @@ class AuthService {
    */
   public async login(credentials: LoginCredentials): Promise<AuthResult> {
     try {
+      // Check if email is in the whitelist
+      if (!ALLOWED_EMAILS.includes(credentials.email.toLowerCase())) {
+        throw new Error('Access denied. Your email is not authorized for this development system.');
+      }
+
+      // Check phone number if provided
+      if (credentials.phoneNumber && credentials.phoneNumber !== ALLOWED_PHONE) {
+        throw new Error('Invalid phone number for authentication.');
+      }
+
       // In a real app, this would make an API call to a backend
       // For now, we'll simulate a successful response for a demo user
 
@@ -67,18 +94,19 @@ class AuthService {
         employeeRole: EmployeeRole.ADMIN,
         organizationId: 'org_123456789',
         organizationName: 'Demo Financial Services',
+        phoneNumber: credentials.phoneNumber,
       };
 
-      // Determine user type based on email domain (demo only)
-      if (credentials.email.includes('@business.com')) {
-        user.userType = UserType.BUSINESS;
-        user.organizationName = 'Demo Business';
-      } else if (credentials.email.includes('@vendor.com')) {
-        user.userType = UserType.VENDOR;
-        user.organizationName = 'Demo Vendor';
-      } else if (credentials.email.includes('@broker.com')) {
+      // Determine user type based on email domain
+      if (credentials.email.includes('@evafi.ai')) {
+        user.userType = UserType.LENDER;
+        user.organizationName = 'EVA Financial';
+      } else if (credentials.email.includes('@lender.com')) {
+        user.userType = UserType.LENDER;
+        user.organizationName = 'Customer Financial';
+      } else if (credentials.email.includes('@gmail.com')) {
         user.userType = UserType.BROKERAGE;
-        user.organizationName = 'Demo Brokerage';
+        user.organizationName = 'Investor Services';
       }
 
       // Create expiry 2 hours from now
@@ -111,7 +139,11 @@ class AuthService {
       };
     } catch (error) {
       console.error('Login failed:', error);
-      throw new Error('Authentication failed. Please check your credentials and try again.');
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : 'Authentication failed. Please check your credentials and try again.'
+      );
     }
   }
 

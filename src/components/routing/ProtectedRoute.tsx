@@ -1,46 +1,48 @@
 import React from 'react';
-import { Route, Navigate, RouteProps } from 'react-router-dom';
-import { useUserType } from '../../contexts/UserTypeContext';
-import { UserType, PermissionLevel, FeatureAccess } from '../../types/UserTypes';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
-interface ProtectedRouteProps extends Omit<RouteProps, 'children'> {
-  allowedUserTypes?: UserType[];
-  requiredFeature?: keyof FeatureAccess;
-  minimumPermission?: PermissionLevel;
-  redirectPath?: string;
+interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  allowedUserTypes,
-  requiredFeature,
-  minimumPermission = PermissionLevel.VIEW,
-  redirectPath = '/unauthorized',
-  children,
-  ...routeProps
-}) => {
-  const { userType, hasPermission, loadingPermissions } = useUserType();
+// Whitelist of allowed emails
+const ALLOWED_EMAILS = [
+  'justin@evafi.ai',
+  'rao@evafi.ai',
+  'abel@evafi.ai',
+  'lahari@evafi.ai',
+  'tech@evafi.ai',
+  'demo@evafi.ai',
+  'customer@lender.com',
+  'investor@gmail.com',
+];
 
-  if (loadingPermissions) {
+// Allowed phone number for development access
+const ALLOWED_PHONE = '7027654321';
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+        <p className="ml-3 text-primary-600">Verifying access...</p>
       </div>
     );
   }
 
-  // Check if user type is allowed
-  const isUserTypeAllowed = !allowedUserTypes || (userType && allowedUserTypes.includes(userType));
-
-  // Check if user has necessary feature permission
-  const hasFeaturePermission =
-    !requiredFeature || hasPermission(requiredFeature, minimumPermission);
-
-  // Only allow access if both conditions are met
-  if (!isUserTypeAllowed || !hasFeaturePermission) {
-    return <Navigate to={redirectPath} replace />;
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    // Save the current location for redirecting back after login
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Render the route normally
+  // Render children if authenticated
   return <>{children}</>;
 };
+
+export default ProtectedRoute;

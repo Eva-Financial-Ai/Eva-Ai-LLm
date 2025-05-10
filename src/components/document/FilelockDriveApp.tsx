@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 // Utilities for enhanced features
 import { motion, AnimatePresence } from 'framer-motion';
 import ShieldVaultDashboard from './ShieldVaultDashboard';
+import FileChatPanel from './FileChatPanel';
 
 // Types
 export interface FileItem {
@@ -157,7 +158,7 @@ const FilelockDriveApp: React.FC = () => {
     'idle' | 'processing' | 'completed' | 'error'
   >('idle');
   const [currentAIAction, setCurrentAIAction] = useState<
-    'summarize' | 'extract' | 'translate' | 'analyze' | null
+    'summarize' | 'extract' | 'translate' | 'analyze' | 'chat' | null
   >(null);
 
   // Version history state
@@ -431,7 +432,7 @@ const FilelockDriveApp: React.FC = () => {
     return folderMatch && searchMatch;
   });
 
-  // Sort files: folders first, then by selected sort criteria
+  // Sort files: folders first, then by selected criteria
   const sortedFiles = [...filteredFiles].sort((a, b) => {
     // Always put folders first
     if (a.type === 'folder' && b.type !== 'folder') return -1;
@@ -899,8 +900,43 @@ const FilelockDriveApp: React.FC = () => {
     }
   }, [fileIdToShare, selectedFile]);
 
+  // Document viewing and actions
+  // Add a method to handle the Chat With File feature in FilelockDriveApp component
+  const handleChatWithFile = (file: FileItem) => {
+    setSelectedFile(file);
+    // Set a new view state for the chat interface
+    setShowAIPanel(true);
+    setCurrentAIAction('chat');
+  };
+
+  // Pass this handler to the DocumentViewer component when rendering it
+  const renderDocumentViewer = () => {
+    if (!selectedFile) return null;
+
+    return (
+      <DocumentViewer
+        file={selectedFile}
+        onBack={() => {
+          setCurrentView('explorer');
+          setSelectedFile(null);
+        }}
+        onEdit={() => setCurrentView('editor')}
+        onSign={() => setCurrentView('signature')}
+        onShare={() => handleShare(selectedFile.id, [])}
+        onDelete={() => handleDelete([selectedFile.id])}
+        onDownload={() => console.log('Download file:', selectedFile.name)}
+        onUpdateFile={updatedFile => {
+          const updatedFiles = files.map(f => (f.id === updatedFile.id ? updatedFile : f));
+          setFiles(updatedFiles);
+          setSelectedFile(updatedFile);
+        }}
+        onChatWithFile={() => handleChatWithFile(selectedFile)}
+      />
+    );
+  };
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="filelock-drive-app h-full flex flex-col">
       {renderNavigation()}
 
       {currentView === 'explorer' && (
@@ -940,26 +976,84 @@ const FilelockDriveApp: React.FC = () => {
       )}
 
       {currentView === 'viewer' && selectedFile && (
-        <div className="flex h-full">
+        <div className="flex flex-grow h-[calc(100vh-200px)] overflow-hidden">
           <div
             className={`flex-1 ${showVersionHistory || showAIPanel || showComments || showCollaborationPanel ? 'w-3/4' : 'w-full'}`}
           >
-            <DocumentViewer
-              file={selectedFile}
-              onBack={() => setCurrentView('explorer')}
-              onEdit={() => setCurrentView('editor')}
-              onSign={() => setCurrentView('signature')}
-              onShare={() => setShowShareDialog(selectedFile.id || null)}
-              onDelete={() => {
-                handleDelete([selectedFile.id]);
-                setCurrentView('explorer');
-              }}
-              onDownload={() => console.log('Downloading file:', selectedFile?.name)}
-            />
+            {renderDocumentViewer()}
           </div>
 
-          {/* Side panels for enhanced features */}
-          {(showVersionHistory || showAIPanel || showComments || showCollaborationPanel) && (
+          {/* Sidebar panels */}
+          {showAIPanel && (
+            <div className="sidebar-panel w-1/4 h-full">
+              {currentAIAction === 'chat' ? (
+                <FileChatPanel
+                  file={selectedFile}
+                  onClose={() => {
+                    setShowAIPanel(false);
+                    setCurrentAIAction(null);
+                  }}
+                />
+              ) : (
+                <div className="ai-processing-panel p-4 border-l border-gray-200 h-full">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">AI Document Processing</h3>
+                    <button
+                      onClick={() => {
+                        setShowAIPanel(false);
+                        setCurrentAIAction(null);
+                      }}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => handleAIProcessing(selectedFile, 'summarize')}
+                      className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+                      disabled={aiProcessingStatus === 'processing'}
+                    >
+                      Summarize Document
+                    </button>
+
+                    <button
+                      onClick={() => handleAIProcessing(selectedFile, 'extract')}
+                      className="w-full px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
+                      disabled={aiProcessingStatus === 'processing'}
+                    >
+                      Extract Key Data
+                    </button>
+
+                    <button
+                      onClick={() => handleAIProcessing(selectedFile, 'analyze')}
+                      className="w-full px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md"
+                      disabled={aiProcessingStatus === 'processing'}
+                    >
+                      Analyze Document
+                    </button>
+
+                    {aiProcessingStatus === 'completed' && selectedFile.aiSummary && (
+                      <div className="mt-4 p-3 bg-gray-50 rounded-md">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">AI Summary</h4>
+                        <p className="text-sm text-gray-600">{selectedFile.aiSummary}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Other sidebar panels (version history, comments, collaboration) */}
+          {(showVersionHistory || showComments || showCollaborationPanel) && (
             <div className="w-1/4 border-l border-gray-200 overflow-y-auto p-4">
               {/* Version History Panel */}
               {showVersionHistory && (
@@ -1026,13 +1120,13 @@ const FilelockDriveApp: React.FC = () => {
                 </div>
               )}
 
-              {/* AI Processing Panel */}
-              {showAIPanel && (
+              {/* Comments Panel */}
+              {showComments && (
                 <div>
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium text-gray-900">AI Tools</h3>
+                    <h3 className="text-lg font-medium text-gray-900">Comments</h3>
                     <button
-                      onClick={() => setShowAIPanel(false)}
+                      onClick={() => setShowComments(false)}
                       className="text-gray-400 hover:text-gray-500"
                     >
                       <svg
@@ -1052,35 +1146,41 @@ const FilelockDriveApp: React.FC = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <button
-                      onClick={() => handleAIProcessing(selectedFile, 'summarize')}
-                      className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
-                      disabled={aiProcessingStatus === 'processing'}
-                    >
-                      Summarize Document
-                    </button>
+                    <div className="flex">
+                      <input
+                        type="text"
+                        placeholder="Add a comment"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md text-sm"
+                      />
+                      <button
+                        onClick={() => handleAddComment(selectedFile.id, 'This is a new comment')}
+                        className="px-3 py-2 bg-primary-600 text-white rounded-r-md text-sm"
+                      >
+                        Post
+                      </button>
+                    </div>
 
-                    <button
-                      onClick={() => handleAIProcessing(selectedFile, 'extract')}
-                      className="w-full px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
-                      disabled={aiProcessingStatus === 'processing'}
-                    >
-                      Extract Key Data
-                    </button>
-
-                    <button
-                      onClick={() => handleAIProcessing(selectedFile, 'analyze')}
-                      className="w-full px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md"
-                      disabled={aiProcessingStatus === 'processing'}
-                    >
-                      Analyze Document
-                    </button>
-
-                    {aiProcessingStatus === 'completed' && selectedFile.aiSummary && (
-                      <div className="mt-4 p-3 bg-gray-50 rounded-md">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">AI Summary</h4>
-                        <p className="text-sm text-gray-600">{selectedFile.aiSummary}</p>
-                      </div>
+                    {selectedFile.comments && selectedFile.comments.length > 0 ? (
+                      <ul className="space-y-3 mt-4">
+                        {selectedFile.comments.map(comment => (
+                          <li key={comment.id} className="border-b pb-3">
+                            <div className="flex items-start">
+                              <div className="h-8 w-8 rounded-full bg-gray-200 flex-shrink-0"></div>
+                              <div className="ml-2 flex-1">
+                                <div className="flex justify-between">
+                                  <span className="text-sm font-medium">{comment.userName}</span>
+                                  <span className="text-xs text-gray-500">
+                                    {new Date(comment.timestamp).toLocaleString()}
+                                  </span>
+                                </div>
+                                <p className="text-sm mt-1">{comment.content}</p>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-500 mt-4">No comments yet</p>
                     )}
                   </div>
                 </div>
@@ -1172,72 +1272,6 @@ const FilelockDriveApp: React.FC = () => {
                         Initialize E-Signature Process
                       </button>
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Comments Panel */}
-              {showComments && (
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium text-gray-900">Comments</h3>
-                    <button
-                      onClick={() => setShowComments(false)}
-                      className="text-gray-400 hover:text-gray-500"
-                    >
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex">
-                      <input
-                        type="text"
-                        placeholder="Add a comment"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md text-sm"
-                      />
-                      <button
-                        onClick={() => handleAddComment(selectedFile.id, 'This is a new comment')}
-                        className="px-3 py-2 bg-primary-600 text-white rounded-r-md text-sm"
-                      >
-                        Post
-                      </button>
-                    </div>
-
-                    {selectedFile.comments && selectedFile.comments.length > 0 ? (
-                      <ul className="space-y-3 mt-4">
-                        {selectedFile.comments.map(comment => (
-                          <li key={comment.id} className="border-b pb-3">
-                            <div className="flex items-start">
-                              <div className="h-8 w-8 rounded-full bg-gray-200 flex-shrink-0"></div>
-                              <div className="ml-2 flex-1">
-                                <div className="flex justify-between">
-                                  <span className="text-sm font-medium">{comment.userName}</span>
-                                  <span className="text-xs text-gray-500">
-                                    {new Date(comment.timestamp).toLocaleString()}
-                                  </span>
-                                </div>
-                                <p className="text-sm mt-1">{comment.content}</p>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-gray-500 mt-4">No comments yet</p>
-                    )}
                   </div>
                 </div>
               )}
