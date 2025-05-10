@@ -1,0 +1,32 @@
+# This is a CODEOWNERS file for the EVA Financial Frontend
+# Each line is a file pattern followed by one or more owners.
+
+# These owners will be the default owners for everything in
+# the repo unless a later match takes precedence
+*                    @financeaiguy
+
+# Frontend core components
+/src/components/     @financeaiguy
+
+# API and services
+/src/api/            @financeaiguy
+/src/services/       @financeaiguy
+
+# Security related components
+/src/components/security/  @financeaiguy
+
+# Risk components
+/src/components/risk/      @financeaiguy
+
+# Configurations
+/.github/            @financeaiguy
+/config/             @financeaiguy
+
+# Build configurations
+*.config.js          @financeaiguy
+package.json         @financeaiguy
+
+# Testing related files
+/src/tests/          @financeaiguy
+*.test.tsx           @financeaiguy
+*.test.ts            @financeaiguy 

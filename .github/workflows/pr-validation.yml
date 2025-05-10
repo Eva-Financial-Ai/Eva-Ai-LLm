@@ -1,0 +1,46 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Validate linear history
+        run: |
+          # Get the base branch (typically main)
+          BASE_BRANCH=${{ github.event.pull_request.base.ref }}
+          
+          # Get the current branch
+          CURRENT_BRANCH=${{ github.event.pull_request.head.ref }}
+          
+          # Find merge commits between the base branch and the current branch
+          MERGE_COMMITS=$(git log --merges --oneline $BASE_BRANCH..$CURRENT_BRANCH)
+          
+          if [ -n "$MERGE_COMMITS" ]; then
+            echo "::error::Pull request contains merge commits. Please rebase your branch for a linear history."
+            echo "$MERGE_COMMITS"
+            exit 1
+          else
+            echo "Pull request maintains a linear history ✅"
+          fi
+
+      - name: Validate PR title
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          VALID_PREFIXES="feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert"
+          
+          if ! [[ $PR_TITLE =~ ^($VALID_PREFIXES)(\(.+\))?: ]]; then
+            echo "::error::Pull request title does not follow the conventional commit format: type(scope): description"
+            echo "Valid types: $VALID_PREFIXES"
+            exit 1
+          else
+            echo "Pull request title follows conventional commit format ✅"
+          fi 
