@@ -271,32 +271,50 @@ export const WorkflowProvider = ({ children }: WorkflowProviderProps) => {
       setLastPageVisit(path);
 
       if (currentTransaction) {
-        const txId = currentTransaction.id;
+        try {
+          // Update last page visit time
+          const updatedTransaction = { ...currentTransaction };
+          
+          // Ensure timeTracking is initialized
+          if (!updatedTransaction.timeTracking) {
+            initializeTimeTracking(updatedTransaction);
+          }
 
-        // Update last page visit time
-        const updatedTransaction = { ...currentTransaction };
-        if (!updatedTransaction.timeTracking) {
-          initializeTimeTracking(updatedTransaction);
-        }
+          // Add additional safety check - if timeTracking is still undefined after initialization
+          // or if timeMetrics is undefined, don't proceed
+          if (!updatedTransaction.timeTracking || !updatedTransaction.timeTracking.timeMetrics) {
+            console.error('[WorkflowContext] Error: timeTracking or timeMetrics is undefined after initialization');
+            return;
+          }
 
-        if (updatedTransaction.timeTracking) {
+          // Now we know timeTracking and timeMetrics exist
+          const timeMetrics = updatedTransaction.timeTracking.timeMetrics;
+          
+          // Initialize lastPageVisit and totalTimeSpent if they don't exist
+          if (!timeMetrics.lastPageVisit) {
+            timeMetrics.lastPageVisit = {};
+          }
+          
+          if (!timeMetrics.totalTimeSpent) {
+            timeMetrics.totalTimeSpent = {};
+          }
+            
           // Calculate time spent on previous page
           const prevPath = lastPageVisit;
-          const lastVisitTime = updatedTransaction.timeTracking.timeMetrics.lastPageVisit[prevPath];
+          const lastVisitTime = timeMetrics.lastPageVisit[prevPath];
 
           if (prevPath && lastVisitTime) {
             const timeSpent = new Date().getTime() - new Date(lastVisitTime).getTime();
-            updatedTransaction.timeTracking.timeMetrics.totalTimeSpent[prevPath] =
-              (updatedTransaction.timeTracking.timeMetrics.totalTimeSpent[prevPath] || 0) +
-              timeSpent;
+            timeMetrics.totalTimeSpent[prevPath] =
+              (timeMetrics.totalTimeSpent[prevPath] || 0) + timeSpent;
           }
 
           // Update the current page visit time
-          updatedTransaction.timeTracking.timeMetrics.lastPageVisit[path] = currentTime;
+          timeMetrics.lastPageVisit[path] = currentTime;
 
           // Calculate total elapsed time
           if (updatedTransaction.createdAt) {
-            updatedTransaction.timeTracking.timeMetrics.totalTimeElapsed =
+            timeMetrics.totalTimeElapsed =
               new Date().getTime() - new Date(updatedTransaction.createdAt).getTime();
           }
 
@@ -304,11 +322,15 @@ export const WorkflowProvider = ({ children }: WorkflowProviderProps) => {
           updateTransaction(updatedTransaction).catch(err => {
             console.error('[WorkflowContext] Error updating page visit tracking:', err);
           });
+        } catch (err) {
+          // Catch any errors to prevent the app from crashing
+          console.error('[WorkflowContext] Error in page visit tracking:', err);
         }
       }
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, currentTransaction?.id, lastPageVisit]);
 
   const initializeTimeTracking = useCallback((transaction: Transaction) => {
@@ -317,21 +339,44 @@ export const WorkflowProvider = ({ children }: WorkflowProviderProps) => {
       transaction.createdAt = now;
     }
 
-    transaction.timeTracking = {
-      metrics: generateMetrics(transaction.id),
-      timeMetrics: {
-        createdAt: transaction.createdAt,
-        stageStartTimes: {
-          [transaction.currentStage]: now,
-        },
-        stageDurations: {},
-        lastPageVisit: {},
-        totalTimeSpent: {},
-        totalTimeElapsed: 0,
+    // Create a robust default timeMetrics object with all required properties
+    const defaultTimeMetrics: TimeMetrics = {
+      createdAt: transaction.createdAt,
+      stageStartTimes: {
+        [transaction.currentStage]: now,
       },
+      stageDurations: {},
+      lastPageVisit: {},
+      totalTimeSpent: {},
+      totalTimeElapsed: 0,
     };
 
+    // Create the timeTracking object with all defaults explicitly set
+    transaction.timeTracking = {
+      metrics: generateMetrics(transaction.id),
+      timeMetrics: defaultTimeMetrics,
+    };
+
+    // Add defensive check to ensure timeTracking was properly initialized
+    if (!transaction.timeTracking || !transaction.timeTracking.timeMetrics) {
+      console.error('[WorkflowContext] Failed to initialize timeTracking properly');
+      
+      // Force initialization of the minimal required structure
+      transaction.timeTracking = {
+        metrics: generateMetrics(transaction.id),
+        timeMetrics: {
+          createdAt: now,
+          stageStartTimes: {},
+          stageDurations: {},
+          lastPageVisit: {},
+          totalTimeSpent: {},
+          totalTimeElapsed: 0,
+        }
+      };
+    }
+
     return transaction;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const generateMetrics = useCallback(
@@ -431,7 +476,7 @@ export const WorkflowProvider = ({ children }: WorkflowProviderProps) => {
         transaction = transactionIdOrObject;
       }
 
-      if (!transaction?.timeTracking?.timeMetrics?.totalTimeElapsed && !transaction?.createdAt) {
+      if (!transaction || (!transaction?.timeTracking?.timeMetrics?.totalTimeElapsed && !transaction?.createdAt)) {
         return '0d 0h 0m';
       }
 
@@ -469,8 +514,9 @@ export const WorkflowProvider = ({ children }: WorkflowProviderProps) => {
       // Get the current stage
       const currentStage = transaction.currentStage;
 
-      // If we don't have time tracking data, return default
-      if (!transaction.timeTracking?.timeMetrics?.stageStartTimes?.[currentStage]) {
+      // If we don't have time tracking data or stageStartTimes isn't initialized, return default
+      if (!transaction.timeTracking?.timeMetrics?.stageStartTimes || 
+          !transaction.timeTracking?.timeMetrics?.stageStartTimes[currentStage]) {
         return '0d 0h 0m';
       }
 
@@ -623,18 +669,28 @@ export const WorkflowProvider = ({ children }: WorkflowProviderProps) => {
 
         // Update time tracking data for stages
         if (updatedTransaction.timeTracking) {
+          const timeMetrics = updatedTransaction.timeTracking.timeMetrics;
+          
+          // Ensure all required objects are initialized
+          if (!timeMetrics.stageStartTimes) {
+            timeMetrics.stageStartTimes = {};
+          }
+          
+          if (!timeMetrics.stageDurations) {
+            timeMetrics.stageDurations = {};
+          }
+          
           // Record stage duration for the previous stage
-          const stageStartTime =
-            updatedTransaction.timeTracking.timeMetrics.stageStartTimes[prevStage];
+          const stageStartTime = timeMetrics.stageStartTimes[prevStage];
           if (stageStartTime) {
             const stageEndTime = now;
             const stageDuration =
               new Date(stageEndTime).getTime() - new Date(stageStartTime).getTime();
-            updatedTransaction.timeTracking.timeMetrics.stageDurations[prevStage] = stageDuration;
+            timeMetrics.stageDurations[prevStage] = stageDuration;
           }
 
           // Set start time for the new stage
-          updatedTransaction.timeTracking.timeMetrics.stageStartTimes[stage] = now;
+          timeMetrics.stageStartTimes[stage] = now;
         }
 
         // Optimistically update our state
@@ -678,10 +734,6 @@ export const WorkflowProvider = ({ children }: WorkflowProviderProps) => {
   );
 
   // Navigate to risk assessment (using useMemo for stability)
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const navigateToRiskAssessment = useCallback((): Transaction | null => {
     navigateRef.current('/risk-assessment');
     return currentTransaction;

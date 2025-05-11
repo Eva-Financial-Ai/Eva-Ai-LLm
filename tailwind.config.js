@@ -2,7 +2,8 @@
 const colors = require('tailwindcss/colors');
 
 module.exports = {
-  content: ["./src/**/*.{js,jsx,ts,tsx}"],
+  content: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
+  darkMode: 'class', // Enable dark mode based on class
   theme: {
     extend: {
       fontFamily: {
@@ -15,16 +16,26 @@ module.exports = {
           dark: '#B71C1C',
         },
         primary: {
-          50: '#FFEBEE', // Lightest red
-          100: '#FFCDD2',
-          200: '#EF9A9A',
-          300: '#E57373',
-          400: '#EF5350',
-          500: '#D32F2F', // Main primary red
-          600: '#C62828', 
-          700: '#B71C1C',
-          800: '#8B0000',
-          900: '#700000',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
+          400: '#818cf8',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
+          800: '#3730a3',
+          900: '#312e81',
+        },
+        secondary: {
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
         },
         // Add silver lining colors and white
         'silver': {
@@ -36,11 +47,13 @@ module.exports = {
           600: '#757575',
         },
         // Keep light background variants
-        'light-bg': '#F8F9FA', // Very light gray
-        'light-bg-alt': '#F1F3F5', // Slightly darker light gray
+        'light-bg': '#f8f9fa', // Main background for light theme
+        'dark-bg': '#121212', // Main background for dark theme
         'light-border': '#E9ECEF', // Light border color
         'light-text': '#495057', // Main text color for light theme
+        'dark-text': '#f5f5f5', // Main text color for dark theme
         'light-text-secondary': '#6C757D', // Secondary text color
+        'dark-card': '#1e1e1e', // Card background for dark theme
       },
       // Add custom width and height values for the 21% larger sidebar
       width: {
@@ -64,5 +77,14 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Add plugins if you need them, but they must be installed
+  ],
+  variants: {
+    extend: {
+      backgroundColor: ['dark'],
+      textColor: ['dark'],
+      borderColor: ['dark'],
+    },
+  },
 }; 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DocumentGenerationService, {
   DealParticipants,
   ParticipantInfo,
@@ -21,6 +22,8 @@ const TermSheetGenerator: React.FC<TermSheetGeneratorProps> = ({
   termSheetData,
   onComplete,
 }) => {
+  const navigate = useNavigate();
+  
   // State
   const [step, setStep] = useState<'participants' | 'generating' | 'complete' | 'error'>(
     'participants'
@@ -193,6 +196,12 @@ const TermSheetGenerator: React.FC<TermSheetGeneratorProps> = ({
       setTermSheetDocument(document);
       setStep('complete');
       onComplete(document);
+      
+      // Prepare to navigate to transaction execution after a brief delay
+      setTimeout(() => {
+        // Navigate to transaction execution with this transaction
+        navigate(`/transactions/${termSheetData.transactionId}/execute`);
+      }, 500);
     } catch (err) {
       console.error('Error generating term sheet:', err);
       setError('An error occurred while generating the term sheet. Please try again.');
@@ -624,10 +633,14 @@ const TermSheetGenerator: React.FC<TermSheetGeneratorProps> = ({
         <div className="mt-6 flex justify-center">
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              onClose();
+              // Navigate to transaction execution with this transaction
+              navigate(`/transactions/${termSheetData.transactionId}/execute`);
+            }}
             className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none"
           >
-            Close and Continue
+            Proceed to Transaction Execution
           </button>
         </div>
       </div>

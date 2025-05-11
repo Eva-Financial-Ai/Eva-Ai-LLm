@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 interface MetricCardProps {
   title: string;
   value: string;
   subtitle: string;
-  icon?: string;
+  icon?: string | ReactNode;
   color?: string;
   trend?: {
     direction: 'up' | 'down' | 'stable';
@@ -128,7 +128,11 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       <div className="flex items-center">
         {icon && (
           <div className={`p-3 rounded-md ${colorClasses.iconBg} ${colorClasses.text}`}>
-            <img src={icon} alt={title} className="h-6 w-6" />
+            {typeof icon === 'string' ? (
+              <img src={icon} alt={title} className="h-6 w-6" />
+            ) : (
+              icon
+            )}
           </div>
         )}
         <div className={`ml-${icon ? '4' : '0'}`}>

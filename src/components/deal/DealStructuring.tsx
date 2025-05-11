@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, lazy } from 'react';
-import { useWorkflow, Transaction as WorkflowTransaction } from '../../contexts/WorkflowContext';
+import { useWorkflow, Transaction as WorkflowTransaction, WorkflowStage } from '../../contexts/WorkflowContext';
 import { useNavigate } from 'react-router-dom';
 import SmartMatchTool, { DealStructureMatch } from './SmartMatchTool';
 import TermSheetGenerator from './TermSheetGenerator';
@@ -106,7 +106,7 @@ const DealOptionsSelector = ({
 };
 
 const DealStructuring = () => {
-  const { currentTransaction, fetchTransactions } = useWorkflow();
+  const { currentTransaction, fetchTransactions, updateTransaction } = useWorkflow();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [dealOptions, setDealOptions] = useState<DealOption[]>([]);
@@ -501,8 +501,42 @@ const DealStructuring = () => {
 
       // Mark the document review checklist item as completed
       completeChecklist('doc-review');
+      
+      // Mark the deal as approved and other checklist items as complete
+      completeChecklist('risk-assessment');
+      completeChecklist('approval');
+      
+      // Advance the workflow to the document_execution stage if the current transaction exists
+      if (currentTransaction) {
+        try {
+          // Prepare the transaction for execution
+          const updatedTransaction = {
+            ...currentTransaction,
+            approvedDeal: {
+              optionId: selectedOptionId,
+              approvedAt: new Date().toISOString(),
+              approvedBy: 'System',
+              status: 'approved',
+              termSheetDocumentId: document.id
+            },
+            // Advance to the document_execution stage
+            currentStage: 'document_execution' as WorkflowStage
+          };
+          
+          // Update the transaction
+          updateTransaction(updatedTransaction)
+            .then(() => {
+              console.log('Transaction advanced to document_execution stage');
+            })
+            .catch(err => {
+              console.error('Failed to advance transaction stage:', err);
+            });
+        } catch (err) {
+          console.error('Error updating transaction for execution:', err);
+        }
+      }
     },
-    [completeChecklist]
+    [completeChecklist, currentTransaction, selectedOptionId, updateTransaction]
   );
 
   const handleViewDocumentStatus = useCallback(() => {
@@ -524,7 +558,10 @@ const DealStructuring = () => {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Deal Structure Options</h1>
             <button
-              onClick={() => setShowSmartMatchTool(true)}
+              onClick={() => {
+                // Navigate to the Smart Match page instead of toggling the tool
+                navigate('/deal-structuring/smart-match');
+              }}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               Smart Match
@@ -613,7 +650,10 @@ const DealStructuring = () => {
                   </p>
                   <button
                     type="button"
-                    onClick={() => setShowSmartMatchTool(true)}
+                    onClick={() => {
+                      // Navigate to the Smart Match page instead of toggling the tool
+                      navigate('/deal-structuring/smart-match');
+                    }}
                     className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                   >
                     <svg

@@ -632,9 +632,22 @@ const RiskAssessment: React.FC = () => {
   // Use location to determine which tab should be active
   const getInitialTabFromPath = () => {
     const path = location.pathname;
+    // First check for query parameter
+    const queryParams = new URLSearchParams(location.search);
+    const tabParam = queryParams.get('tab');
+    
+    if (tabParam) {
+      // If tab param exists, use it directly
+      if (['standard', 'report', 'lab', 'score'].includes(tabParam)) {
+        return tabParam as 'standard' | 'report' | 'lab' | 'score';
+      }
+    }
+    
+    // Fall back to path-based determination
     if (path.includes('/risk-assessment/report')) return 'report';
     if (path.includes('/risk-assessment/lab')) return 'lab';
     if (path.includes('/risk-assessment/score')) return 'score';
+    if (path.includes('/risk-assessment/standard')) return 'standard';
     return 'standard'; // Default tab
   };
 
@@ -657,8 +670,11 @@ const RiskAssessment: React.FC = () => {
 
   // Synchronize with URL changes (e.g., from sidebar navigation)
   useEffect(() => {
-    setAssessmentView(getInitialTabFromPath());
-  }, [location.pathname]);
+    const newView = getInitialTabFromPath();
+    if (newView !== assessmentView) {
+      setAssessmentView(newView);
+    }
+  }, [location.pathname, location.search]);
 
   // Loading state
   if (isLoading || storeLoading) {
@@ -733,45 +749,61 @@ const RiskAssessment: React.FC = () => {
         <div className="inline-flex rounded-md shadow-sm w-full sm:w-auto" role="group">
           <button
             type="button"
-            onClick={() => setAssessmentView('standard')}
+            onClick={() => {
+              setAssessmentView('standard');
+              navigate('/risk-assessment/standard', { replace: true });
+            }}
             className={`flex-1 sm:flex-auto px-3 py-2 text-sm font-medium border ${
               assessmentView === 'standard'
                 ? 'bg-primary-600 text-white border-primary-600'
                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             } rounded-l-md`}
+            aria-current={assessmentView === 'standard' ? 'page' : undefined}
           >
             Standard
           </button>
           <button
             type="button"
-            onClick={() => setAssessmentView('report')}
+            onClick={() => {
+              setAssessmentView('report');
+              navigate('/risk-assessment/report', { replace: true });
+            }}
             className={`flex-1 sm:flex-auto px-3 py-2 text-sm font-medium border ${
               assessmentView === 'report'
                 ? 'bg-primary-600 text-white border-primary-600'
                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             }`}
+            aria-current={assessmentView === 'report' ? 'page' : undefined}
           >
             Eva Risk Report
           </button>
           <button
             type="button"
-            onClick={() => setAssessmentView('lab')}
+            onClick={() => {
+              setAssessmentView('lab');
+              navigate('/risk-assessment/lab', { replace: true });
+            }}
             className={`flex-1 sm:flex-auto px-3 py-2 text-sm font-medium border ${
               assessmentView === 'lab'
                 ? 'bg-primary-600 text-white border-primary-600'
                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             }`}
+            aria-current={assessmentView === 'lab' ? 'page' : undefined}
           >
             RiskLab
           </button>
           <button
             type="button"
-            onClick={() => setAssessmentView('score')}
+            onClick={() => {
+              setAssessmentView('score');
+              navigate('/risk-assessment/score', { replace: true });
+            }}
             className={`flex-1 sm:flex-auto px-3 py-2 text-sm font-medium border ${
               assessmentView === 'score'
                 ? 'bg-primary-600 text-white border-primary-600'
                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             } rounded-r-md`}
+            aria-current={assessmentView === 'score' ? 'page' : undefined}
           >
             Eva Score
           </button>

@@ -138,23 +138,6 @@ const ShieldVaultDashboard: React.FC<ShieldVaultDashboardProps> = ({ transaction
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="bg-primary-600 px-6 py-4">
-        <h2 className="text-white font-medium text-xl flex items-center">
-          <svg className="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-            />
-          </svg>
-          Shield Document Escrow Vault Dashboard
-        </h2>
-        <p className="text-primary-100 mt-1">
-          Manage documents in secure escrow vault with retention policies
-        </p>
-      </div>
-
       <div className="border-b border-gray-200 px-6 py-3 bg-gray-50">
         <div className="flex flex-wrap items-center justify-between">
           <div className="flex space-x-4 mb-2 sm:mb-0">

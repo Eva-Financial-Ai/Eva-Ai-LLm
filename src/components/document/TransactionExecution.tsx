@@ -16,6 +16,25 @@ interface PartyDistribution {
   accountNumber: string;
 }
 
+// Add interface for custom document form
+interface CustomDocument {
+  id: string;
+  name: string;
+  description: string;
+  formFields: FormField[];
+  created: string;
+  status: 'draft' | 'pending' | 'completed';
+}
+
+interface FormField {
+  id: string;
+  type: 'text' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'date' | 'number' | 'file';
+  label: string;
+  required: boolean;
+  options?: string[]; // For select, radio, checkbox
+  placeholder?: string;
+}
+
 const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transactionId }) => {
   const { currentTransaction, fetchTransactions } = useWorkflow();
   const [loading, setLoading] = useState(true);
@@ -30,6 +49,18 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
   const [distributions, setDistributions] = useState<PartyDistribution[]>([]);
   const [showCovenantManager, setShowCovenantManager] = useState(false);
   const [covenants, setCovenants] = useState<any[]>([]);
+  
+  // Add state for custom document functionality
+  const [showCustomDocumentForm, setShowCustomDocumentForm] = useState(false);
+  const [customDocuments, setCustomDocuments] = useState<CustomDocument[]>([]);
+  const [newCustomDocument, setNewCustomDocument] = useState<CustomDocument>({
+    id: '',
+    name: '',
+    description: '',
+    formFields: [],
+    created: '',
+    status: 'draft'
+  });
 
   const effectiveTransactionId = transactionId || currentTransaction?.id || 'TX-102';
 
@@ -146,6 +177,256 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
     console.log('Saved covenants:', savedCovenants);
   };
 
+  // Handle custom document form submission
+  const handleCustomDocumentSubmit = () => {
+    // Generate document ID and create timestamp
+    const docId = `custom-doc-${Date.now()}`;
+    const now = new Date().toISOString();
+    
+    // Create the document
+    const document: CustomDocument = {
+      ...newCustomDocument,
+      id: docId,
+      created: now,
+      status: 'pending'
+    };
+    
+    // Add to documents list
+    setCustomDocuments(prev => [...prev, document]);
+    
+    // Reset form and close modal
+    setNewCustomDocument({
+      id: '',
+      name: '',
+      description: '',
+      formFields: [],
+      created: '',
+      status: 'draft'
+    });
+    setShowCustomDocumentForm(false);
+  };
+  
+  // Add a form field to the custom document
+  const addFormField = (type: FormField['type']) => {
+    const fieldId = `field-${Date.now()}`;
+    const newField: FormField = {
+      id: fieldId,
+      type,
+      label: `New ${type} field`,
+      required: false,
+      placeholder: type === 'text' || type === 'textarea' ? 'Enter value here' : undefined,
+      options: (type === 'select' || type === 'radio' || type === 'checkbox') ? ['Option 1', 'Option 2'] : undefined
+    };
+    
+    setNewCustomDocument(prev => ({
+      ...prev,
+      formFields: [...prev.formFields, newField]
+    }));
+  };
+  
+  // Update a form field
+  const updateFormField = (fieldId: string, updates: Partial<FormField>) => {
+    setNewCustomDocument(prev => ({
+      ...prev,
+      formFields: prev.formFields.map(field => 
+        field.id === fieldId ? { ...field, ...updates } : field
+      )
+    }));
+  };
+  
+  // Remove a form field
+  const removeFormField = (fieldId: string) => {
+    setNewCustomDocument(prev => ({
+      ...prev,
+      formFields: prev.formFields.filter(field => field.id !== fieldId)
+    }));
+  };
+
+  // Custom Document Form Component
+  const CustomDocumentForm = () => {
+    if (!showCustomDocumentForm) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-900">Create Custom Document</h2>
+              <button 
+                onClick={() => setShowCustomDocumentForm(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            <div className="space-y-6">
+              {/* Document Details */}
+              <div>
+                <label htmlFor="docName" className="block text-sm font-medium text-gray-700">Document Name</label>
+                <input
+                  type="text"
+                  id="docName"
+                  value={newCustomDocument.name}
+                  onChange={(e) => setNewCustomDocument(prev => ({ ...prev, name: e.target.value }))}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter document name"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="docDescription" className="block text-sm font-medium text-gray-700">Description</label>
+                <textarea
+                  id="docDescription"
+                  value={newCustomDocument.description}
+                  onChange={(e) => setNewCustomDocument(prev => ({ ...prev, description: e.target.value }))}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter document description"
+                  rows={3}
+                />
+              </div>
+              
+              {/* Form Fields */}
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">Form Fields</h3>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none"
+                      onClick={() => document.getElementById('fieldTypeDropdown')?.classList.toggle('hidden')}
+                    >
+                      Add Field
+                      <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    <div id="fieldTypeDropdown" className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10">
+                      <div className="py-1" role="menu" aria-orientation="vertical">
+                        <button onClick={() => { addFormField('text'); document.getElementById('fieldTypeDropdown')?.classList.add('hidden'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Text Field</button>
+                        <button onClick={() => { addFormField('textarea'); document.getElementById('fieldTypeDropdown')?.classList.add('hidden'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Text Area</button>
+                        <button onClick={() => { addFormField('select'); document.getElementById('fieldTypeDropdown')?.classList.add('hidden'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Dropdown</button>
+                        <button onClick={() => { addFormField('checkbox'); document.getElementById('fieldTypeDropdown')?.classList.add('hidden'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Checkbox</button>
+                        <button onClick={() => { addFormField('radio'); document.getElementById('fieldTypeDropdown')?.classList.add('hidden'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Radio Buttons</button>
+                        <button onClick={() => { addFormField('date'); document.getElementById('fieldTypeDropdown')?.classList.add('hidden'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Date</button>
+                        <button onClick={() => { addFormField('number'); document.getElementById('fieldTypeDropdown')?.classList.add('hidden'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Number</button>
+                        <button onClick={() => { addFormField('file'); document.getElementById('fieldTypeDropdown')?.classList.add('hidden'); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">File Upload</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Display form fields */}
+                {newCustomDocument.formFields.length === 0 ? (
+                  <div className="text-center py-6 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500">No form fields added yet. Click "Add Field" to create form elements.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {newCustomDocument.formFields.map((field, index) => (
+                      <div key={field.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <div className="flex justify-between items-center mb-2">
+                          <h4 className="text-sm font-medium text-gray-900">
+                            {field.type.charAt(0).toUpperCase() + field.type.slice(1)} Field
+                          </h4>
+                          <button 
+                            onClick={() => removeFormField(field.id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700">Field Label</label>
+                            <input
+                              type="text"
+                              value={field.label}
+                              onChange={(e) => updateFormField(field.id, { label: e.target.value })}
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                            />
+                          </div>
+                          
+                          {(field.type === 'text' || field.type === 'textarea' || field.type === 'number') && (
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700">Placeholder</label>
+                              <input
+                                type="text"
+                                value={field.placeholder || ''}
+                                onChange={(e) => updateFormField(field.id, { placeholder: e.target.value })}
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                              />
+                            </div>
+                          )}
+                          
+                          {(field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') && (
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700">Options (comma-separated)</label>
+                              <input
+                                type="text"
+                                value={field.options?.join(', ') || ''}
+                                onChange={(e) => updateFormField(field.id, { options: e.target.value.split(',').map(opt => opt.trim()) })}
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                              />
+                            </div>
+                          )}
+                          
+                          <div className="md:col-span-2">
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                id={`required-${field.id}`}
+                                checked={field.required}
+                                onChange={(e) => updateFormField(field.id, { required: e.target.checked })}
+                                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                              />
+                              <label htmlFor={`required-${field.id}`} className="ml-2 block text-xs font-medium text-gray-700">
+                                Required Field
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setShowCustomDocumentForm(false)}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none mr-3"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleCustomDocumentSubmit}
+              disabled={!newCustomDocument.name || newCustomDocument.formFields.length === 0}
+              className={`px-4 py-2 rounded-md shadow-sm text-sm font-medium text-white ${
+                !newCustomDocument.name || newCustomDocument.formFields.length === 0
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-primary-600 hover:bg-primary-700 focus:outline-none'
+              }`}
+            >
+              Create Document
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="p-6">
@@ -226,6 +507,175 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
             </button>
           </nav>
         </div>
+
+        {/* Documents Tab Content - Updated with Custom Document button */}
+        {activeTab === 'documents' && (
+          <div>
+            <div className="mb-6">
+              <div className="rounded-md bg-blue-50 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="h-5 w-5 text-blue-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3 flex-1 md:flex md:justify-between">
+                    <p className="text-sm text-blue-700">
+                      Transaction documents form the legal foundation of the deal. After documents
+                      are finalized, covenants can be defined and included in the closing contracts
+                      as smart contracts, which are then verified and published to the blockchain.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Add the Custom Document button in the header section */}
+            <div className="flex justify-between mb-6">
+              <h2 className="text-lg font-medium text-gray-900">Transaction Documents</h2>
+              <button
+                onClick={() => setShowCustomDocumentForm(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none"
+              >
+                <svg
+                  className="h-4 w-4 mr-1.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                Create Custom Document
+              </button>
+            </div>
+
+            {/* Document List */}
+            <div className="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+              <ul className="divide-y divide-gray-200">
+                {/* Existing Documents */}
+                <li>
+                  <div className="px-4 py-4 sm:px-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-primary-100 rounded-md">
+                          <svg
+                            className="h-6 w-6 text-primary-600"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-primary-600">Master Lease Agreement</p>
+                          <p className="text-xs text-gray-500">Required document</p>
+                        </div>
+                      </div>
+                      <div className="ml-2 flex-shrink-0 flex">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          Pending
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+
+                {/* Custom Documents */}
+                {customDocuments.map(doc => (
+                  <li key={doc.id}>
+                    <div className="px-4 py-4 sm:px-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-blue-100 rounded-md">
+                            <svg
+                              className="h-6 w-6 text-blue-600"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+                              />
+                            </svg>
+                          </div>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-blue-600">{doc.name}</p>
+                            <p className="text-xs text-gray-500">{doc.description}</p>
+                          </div>
+                        </div>
+                        <div className="ml-2 flex-shrink-0 flex">
+                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+
+                {/* Sample existing documents */}
+                <li>
+                  <div className="px-4 py-4 sm:px-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-primary-100 rounded-md">
+                          <svg
+                            className="h-6 w-6 text-primary-600"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-primary-600">Equipment Schedule</p>
+                          <p className="text-xs text-gray-500">Required document</p>
+                        </div>
+                      </div>
+                      <div className="ml-2 flex-shrink-0 flex">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          Pending
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        )}
 
         {/* Covenants Tab Content */}
         {activeTab === 'covenants' && (
@@ -713,7 +1163,7 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs leading-5 font-semibold bg-green-100 text-green-800">
                         Signed
                       </span>
                       <button className="text-gray-400 hover:text-gray-500">
@@ -922,6 +1372,9 @@ const TransactionExecution: React.FC<TransactionExecutionProps> = ({ transaction
         onCancel={() => setShowPasswordVerification(false)}
         isVisible={showPasswordVerification}
       />
+
+      {/* Custom Document Form Modal */}
+      <CustomDocumentForm />
     </div>
   );
 };

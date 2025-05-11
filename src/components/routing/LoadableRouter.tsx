@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import loadable from '@loadable/component';
 import PageLayout from '../layout/PageLayout';
+import PortfolioWalletPage from '../../pages/PortfolioWalletPage';
 
 // Loading spinner component
 const LoadingSpinner = ({ pageName = 'page' }: { pageName?: string }) => (
@@ -276,7 +277,7 @@ const LoadableRouter: React.FC = () => {
         path="/portfolio-wallet"
         element={
           <PageLayout title="Portfolio Wallet">
-            <PortfolioNavigatorPage />
+            <PortfolioWalletPage />
           </PageLayout>
         }
       />
@@ -341,6 +342,14 @@ const LoadableRouter: React.FC = () => {
         element={
           <PageLayout title="Commercial Market">
             <CommercialMarket />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/asset-marketplace"
+        element={
+          <PageLayout title="Asset Marketplace">
+            <PortfolioWalletPage />
           </PageLayout>
         }
       />

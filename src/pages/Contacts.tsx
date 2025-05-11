@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import PageLayout from '../components/layout/PageLayout';
 import TopNavigation from '../components/layout/TopNavigation';
 
 // Define the Contact interface
@@ -16,6 +18,20 @@ interface Contact {
 }
 
 const Contacts: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check if we're coming from the customer retention page
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const fromCRM = params.get('from');
+    
+    if (fromCRM === 'customer-retention') {
+      // Navigate to customer retention with contacts tab selected
+      navigate('/customer-retention?tab=contacts', { replace: true });
+    }
+  }, [location, navigate]);
+
   // Mock data for contacts
   const [contacts, setContacts] = useState<Contact[]>([
     {
@@ -117,9 +133,7 @@ const Contacts: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <TopNavigation title="Contacts" />
-
+    <PageLayout title="Contacts" showBackButton={true} backPath="/customer-retention?tab=contacts">
       <div className="container mx-auto px-4 py-6">
         {/* Page Header */}
         <div className="mb-6">
@@ -299,7 +313,7 @@ const Contacts: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

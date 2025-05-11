@@ -67,11 +67,23 @@ const OwnerManager: React.FC<OwnerManagerProps> = ({
     console.log('addOwner function called with type:', newOwnerType);
 
     try {
+      // Check if adding another owner would make sense based on current ownership
+      if (totalOwnership >= 100) {
+        alert('Total ownership already equals or exceeds 100%. Please adjust existing ownership percentages before adding another owner.');
+        return;
+      }
+
+      // Calculate suggested ownership percentage based on what's remaining
+      const suggestedOwnership = totalOwnership < 100 
+        ? Math.min(20, 100 - totalOwnership) 
+        : 0;
+      
+      // Create a new owner object with better defaults
       const newOwner: Owner = {
-        id: `owner-${Date.now()}`,
+        id: `owner-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         type: newOwnerType,
         name: '',
-        ownershipPercentage: '',
+        ownershipPercentage: suggestedOwnership.toString(),
         files: [],
         shares: '0',
         totalShares: '0',
@@ -121,6 +133,7 @@ const OwnerManager: React.FC<OwnerManagerProps> = ({
       console.log('Owner added successfully, new owner count:', newOwners.length);
     } catch (error) {
       console.error('Error adding owner:', error);
+      alert('An error occurred while adding the owner. Please try again.');
     }
   };
 
@@ -152,178 +165,273 @@ const OwnerManager: React.FC<OwnerManagerProps> = ({
     }
   };
 
+  // Check if owner has required fields filled out
+  const isOwnerComplete = (owner: Owner): boolean => {
+    // Common required fields for all owner types
+    const hasCommonFields = 
+      owner.name.trim() !== '' && 
+      owner.ownershipPercentage.trim() !== '' && 
+      owner.address.trim() !== '' && 
+      owner.city.trim() !== '' && 
+      owner.state.trim() !== '' && 
+      owner.zip.trim() !== '' && 
+      owner.phone.trim() !== '' && 
+      owner.email.trim() !== '';
+      
+    // Check type-specific required fields
+    if (owner.type === 'individual') {
+      return hasCommonFields && 
+        !!owner.ssn && 
+        owner.ssn.trim().length >= 9 && 
+        !!owner.dateOfBirth;
+    } else if (owner.type === 'business') {
+      return hasCommonFields && 
+        !!owner.businessEin && 
+        owner.businessEin.trim().length >= 9 && 
+        !!owner.primaryContactName && 
+        !!owner.primaryContactEmail;
+    } else if (owner.type === 'trust') {
+      return hasCommonFields && 
+        !!owner.trustEin && 
+        owner.trustEin.trim().length >= 9 && 
+        !!owner.trustFormationDate && 
+        !!owner.trustState;
+    }
+    
+    return false;
+  };
+  
+  // Update owner complete status
+  const updateOwnerCompleteStatus = (ownerId: string) => {
+    const owner = owners.find(o => o.id === ownerId);
+    if (!owner) return;
+    
+    const isComplete = isOwnerComplete(owner);
+    if (owner.isComplete !== isComplete) {
+      handleOwnerChange({
+        ...owner,
+        isComplete
+      });
+    }
+  };
+  
+  // Run completeness check on active owner
+  useEffect(() => {
+    if (owners.length > 0 && activeOwnerIndex >= 0 && activeOwnerIndex < owners.length) {
+      updateOwnerCompleteStatus(owners[activeOwnerIndex].id);
+    }
+  }, [owners, activeOwnerIndex]);
+
   // Modal for adding a new owner
   const AddOwnerModal = () => {
     if (!showAddOwnerModal) return null;
+    
+    const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+    const [formErrors, setFormErrors] = useState<string[]>([]);
 
     const handleOwnerTypeChange = (type: 'individual' | 'business' | 'trust') => {
       setNewOwnerType(type);
     };
+    
+    const validateAndSubmit = () => {
+      setHasAttemptedSubmit(true);
+      const errors: string[] = [];
+      
+      // Validate based on current total ownership
+      if (totalOwnership >= 100) {
+        errors.push("Total ownership already at 100%. Please adjust existing owner percentages first.");
+      }
+      
+      if (errors.length === 0) {
+        console.log('Adding owner with type:', newOwnerType);
+        addOwner();
+        setHasAttemptedSubmit(false);
+        setFormErrors([]);
+      } else {
+        setFormErrors(errors);
+      }
+    };
 
     return (
-      <div
-        className="fixed inset-0 z-50 overflow-y-auto"
-        aria-labelledby="modal-title"
-        role="dialog"
-        aria-modal="true"
-      >
-        <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          {/* Background overlay */}
-          <div
-            className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-            aria-hidden="true"
-            onClick={() => setShowAddOwnerModal(false)}
-          ></div>
-
-          {/* Modal panel */}
-          <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div className="sm:flex sm:items-start">
-                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-primary-100 sm:mx-0 sm:h-10 sm:w-10">
-                  <svg
-                    className="h-6 w-6 text-primary-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                </div>
-                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                    Add Additional Owner
-                  </h3>
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-500 mb-4">
-                      Adding an additional owner is necessary for businesses with multiple owners.
-                      Each owner with 20% or more ownership must be included in the application.
-                    </p>
-
-                    <div className="bg-blue-50 p-4 rounded-md mb-4">
-                      <div className="flex">
-                        <div className="flex-shrink-0">
-                          <svg
-                            className="h-5 w-5 text-blue-400"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
-                        <div className="ml-3">
-                          <p className="text-sm text-blue-700">
-                            Each additional owner will need to provide their personal information
-                            for the application.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Owner Type
-                      </label>
-                      <div className="grid grid-cols-1 gap-3">
-                        <div
-                          onClick={() => handleOwnerTypeChange('individual')}
-                          className={`flex items-center p-3 border rounded-md hover:bg-gray-50 transition-colors cursor-pointer ${newOwnerType === 'individual' ? 'ring-2 ring-primary-500 border-primary-500' : ''}`}
-                        >
-                          <div className="flex-shrink-0">
-                            <input
-                              type="radio"
-                              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-                              checked={newOwnerType === 'individual'}
-                              onChange={() => {}}
-                            />
-                          </div>
-                          <div className="ml-3">
-                            <h4 className="font-medium text-gray-900">Individual (Person)</h4>
-                            <p className="text-sm text-gray-500">
-                              Natural person who owns part of the business. Requires personal
-                              identification and contact information.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div
-                          onClick={() => handleOwnerTypeChange('business')}
-                          className={`flex items-center p-3 border rounded-md hover:bg-gray-50 transition-colors cursor-pointer ${newOwnerType === 'business' ? 'ring-2 ring-primary-500 border-primary-500' : ''}`}
-                        >
-                          <div className="flex-shrink-0">
-                            <input
-                              type="radio"
-                              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-                              checked={newOwnerType === 'business'}
-                              onChange={() => {}}
-                            />
-                          </div>
-                          <div className="ml-3">
-                            <h4 className="font-medium text-gray-900">Business Entity</h4>
-                            <p className="text-sm text-gray-500">
-                              Company, LLC, or corporation that owns part of the business. Requires
-                              EIN and primary contact.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div
-                          onClick={() => handleOwnerTypeChange('trust')}
-                          className={`flex items-center p-3 border rounded-md hover:bg-gray-50 transition-colors cursor-pointer ${newOwnerType === 'trust' ? 'ring-2 ring-primary-500 border-primary-500' : ''}`}
-                        >
-                          <div className="flex-shrink-0">
-                            <input
-                              type="radio"
-                              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-                              checked={newOwnerType === 'trust'}
-                              onChange={() => {}}
-                            />
-                          </div>
-                          <div className="ml-3">
-                            <h4 className="font-medium text-gray-900">Trust</h4>
-                            <p className="text-sm text-gray-500">
-                              Legal entity that holds assets for beneficiaries. Will require
-                              personal guarantor information from trustees for credit approval.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-600 bg-opacity-75 flex items-center justify-center">
+        <div className="relative bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 md:mx-auto">
+          {/* Modal header */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-gray-900">Add Additional Owner</h3>
+              <button 
+                onClick={() => {
+                  setShowAddOwnerModal(false);
+                  setHasAttemptedSubmit(false);
+                  setFormErrors([]);
+                }}
+                className="text-gray-400 hover:text-gray-500 focus:outline-none"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          {/* Modal body */}
+          <div className="px-6 py-4">
+            {/* Validation errors */}
+            {hasAttemptedSubmit && formErrors.length > 0 && (
+              <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">Please correct the following:</h3>
+                    <ul className="mt-1 text-sm text-red-700 list-disc list-inside">
+                      {formErrors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
+            )}
+            
+            <p className="text-sm text-gray-600 mb-4">
+              Adding an additional owner is necessary for businesses with multiple owners.
+              Each owner with 20% or more ownership must be included in the application.
+            </p>
+
+            <div className="bg-blue-50 rounded-md p-4 mb-6 flex">
+              <div className="flex-shrink-0 text-blue-500">
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-blue-700">
+                  Each additional owner will need to provide their personal information for the application.
+                </p>
+              </div>
             </div>
-            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-              <button
-                type="button"
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm"
-                onClick={e => {
-                  e.preventDefault();
-                  console.log('Add Owner button clicked');
-                  addOwner();
-                }}
-              >
-                Add Owner
-              </button>
-              <button
-                type="button"
-                className="mt-3 w-full inline-flex justify-center rounded-md border border-light-border shadow-sm px-4 py-2 bg-white text-base font-medium text-light-text hover:bg-light-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                onClick={() => setShowAddOwnerModal(false)}
-              >
-                Cancel
-              </button>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Owner Type
+              </label>
+              
+              <div className="space-y-3">
+                {/* Individual option */}
+                <label 
+                  className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
+                    newOwnerType === 'individual' 
+                      ? 'border-red-200 bg-red-50' 
+                      : 'border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="ownerType"
+                    value="individual"
+                    checked={newOwnerType === 'individual'}
+                    onChange={() => handleOwnerTypeChange('individual')}
+                    className="h-5 w-5 text-primary-600 focus:ring-primary-500 border-gray-300"
+                  />
+                  <div className="ml-3">
+                    <h4 className="font-medium text-gray-900">Individual (Person)</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Natural person who owns part of the business. Requires personal identification and contact information.
+                    </p>
+                  </div>
+                </label>
+                
+                {/* Business option */}
+                <label
+                  className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
+                    newOwnerType === 'business'
+                      ? 'border-red-200 bg-red-50'
+                      : 'border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="ownerType"
+                    value="business"
+                    checked={newOwnerType === 'business'}
+                    onChange={() => handleOwnerTypeChange('business')}
+                    className="h-5 w-5 text-primary-600 focus:ring-primary-500 border-gray-300"
+                  />
+                  <div className="ml-3">
+                    <h4 className="font-medium text-gray-900">Business Entity</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Company, LLC, or corporation that owns part of the business. Requires EIN and primary contact.
+                    </p>
+                  </div>
+                </label>
+                
+                {/* Trust option */}
+                <label
+                  className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
+                    newOwnerType === 'trust'
+                      ? 'border-red-200 bg-red-50'
+                      : 'border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="ownerType"
+                    value="trust"
+                    checked={newOwnerType === 'trust'}
+                    onChange={() => handleOwnerTypeChange('trust')}
+                    className="h-5 w-5 text-primary-600 focus:ring-primary-500 border-gray-300"
+                  />
+                  <div className="ml-3">
+                    <h4 className="font-medium text-gray-900">Trust</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Legal entity that holds assets for beneficiaries. Will require personal guarantor information from trustees for credit approval.
+                    </p>
+                  </div>
+                </label>
+              </div>
             </div>
+            
+            {totalOwnership >= 100 && (
+              <div className="bg-yellow-50 p-4 mb-4 flex">
+                <div className="flex-shrink-0 text-yellow-400">
+                  <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-yellow-800">Warning</h3>
+                  <div className="mt-1 text-sm text-yellow-700">
+                    <p>Total ownership already at {totalOwnership}%. You may need to redistribute ownership percentages to add another owner.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Modal footer */}
+          <div className="border-t border-gray-200 flex items-center justify-end p-4 space-x-3">
+            <button
+              type="button"
+              className="px-4 py-2 border border-gray-300 rounded-md text-base font-medium text-gray-700 bg-white hover:bg-gray-50"
+              onClick={() => {
+                setShowAddOwnerModal(false);
+                setHasAttemptedSubmit(false);
+                setFormErrors([]);
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2 border border-transparent rounded-md text-base font-medium text-white bg-primary-600 hover:bg-primary-700"
+              onClick={validateAndSubmit}
+            >
+              Add Owner
+            </button>
           </div>
         </div>
       </div>
@@ -359,6 +467,20 @@ const OwnerManager: React.FC<OwnerManagerProps> = ({
                 <span className="ml-1.5 text-xs text-light-text-secondary">
                   {owner.ownershipPercentage}%
                 </span>
+                {/* Completion status indicator */}
+                {owner.isComplete ? (
+                  <span className="ml-2 text-green-500" title="Complete">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                ) : (
+                  <span className="ml-2 text-yellow-500" title="Incomplete">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                )}
               </button>
             ))}
           </nav>
@@ -379,55 +501,123 @@ const OwnerManager: React.FC<OwnerManagerProps> = ({
       )}
 
       {/* Ownership summary */}
-      <div className="flex flex-wrap items-center justify-between mb-4 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-        <div className="space-y-1">
-          <div>
-            <span className="text-sm text-light-text-secondary mr-2">Total Ownership:</span>
-            <span
-              className={`font-medium ${totalOwnership > 100 ? 'text-risk-red' : totalOwnership === 100 ? 'text-success-green' : 'text-light-text'}`}
+      <div className="flex flex-col mb-6 p-4 rounded-lg border bg-white shadow-sm">
+        <h3 className="text-lg font-medium text-gray-900 mb-3">Ownership Summary</h3>
+        
+        <div className="mb-3">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-sm font-medium text-gray-700">Total Ownership</span>
+            <span 
+              className={`text-sm font-medium ${
+                totalOwnership > 100 
+                  ? 'text-red-600' 
+                  : totalOwnership === 100 
+                    ? 'text-green-600' 
+                    : totalOwnership >= 95 
+                      ? 'text-yellow-600' 
+                      : 'text-gray-600'
+              }`}
             >
               {totalOwnership}%
             </span>
-            {totalOwnership > 100 && (
-              <span className="text-xs text-risk-red ml-2">(Cannot exceed 100%)</span>
-            )}
-            {totalOwnership < 100 && totalOwnership > 0 && (
-              <span className="text-xs text-yellow-500 ml-2">
-                ({100 - totalOwnership}% remaining)
-              </span>
-            )}
           </div>
-
-          {totalShares > 0 && (
-            <div>
-              <span className="text-sm text-light-text-secondary mr-2">Total Shares:</span>
-              <span className="font-medium text-light-text">{totalShares.toLocaleString()}</span>
-            </div>
-          )}
-        </div>
-
-        <button
-          onClick={e => {
-            e.preventDefault();
-            console.log('Opening add owner modal');
-            setShowAddOwnerModal(true);
-          }}
-          className="w-full flex items-center justify-center px-4 py-2 border border-primary-300 text-sm font-medium rounded-md text-primary-700 bg-primary-50 hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-        >
-          <svg
-            className="h-5 w-5 mr-2"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-              clipRule="evenodd"
+          
+          {/* Progress bar */}
+          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              className={`h-full ${
+                totalOwnership > 100 
+                  ? 'bg-red-500' 
+                  : totalOwnership === 100 
+                    ? 'bg-green-500' 
+                    : totalOwnership >= 95 
+                      ? 'bg-yellow-500' 
+                      : 'bg-blue-500'
+              }`}
+              style={{ width: `${Math.min(totalOwnership, 100)}%` }}
             />
-          </svg>
-          Add Owner
-        </button>
+          </div>
+        </div>
+        
+        {/* Status message */}
+        {totalOwnership > 100 && (
+          <div className="p-3 bg-red-50 border border-red-100 rounded text-sm text-red-800 mb-3">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p>Total ownership exceeds 100%. Please adjust ownership percentages to total exactly 100%.</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {totalOwnership === 100 && (
+          <div className="p-3 bg-green-50 border border-green-100 rounded text-sm text-green-800 mb-3">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p>Perfect! Ownership distribution equals exactly 100%.</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {totalOwnership < 100 && totalOwnership > 0 && (
+          <div className="p-3 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800 mb-3">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p>
+                  <span className="font-medium">{100 - totalOwnership}%</span> of ownership remains to be allocated.
+                  {totalOwnership < 80 && (
+                    <span className="block mt-1">
+                      All owners with 20% or more ownership must be included for compliance.
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div className="flex justify-between items-center">
+          <div>
+            <span className="text-sm text-gray-500">
+              {owners.length} {owners.length === 1 ? 'owner' : 'owners'} added
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAddOwnerModal(true)}
+            className="flex items-center px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <svg
+              className="h-4 w-4 mr-1.5 text-gray-500"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Add Owner
+          </button>
+        </div>
       </div>
 
       {/* Owner type guide */}

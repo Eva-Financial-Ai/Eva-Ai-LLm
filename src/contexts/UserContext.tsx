@@ -6,6 +6,7 @@ export type AppUserRole = 'borrower' | 'lender' | 'admin' | 'broker' | 'vendor' 
 // Define UserContext interface
 export interface UserContextType {
   userRole: AppUserRole;
+  setUserRole: (role: AppUserRole) => void;
   showSmartMatching: boolean;
   setShowSmartMatching: (show: boolean) => void;
   showDataOrchestrator: boolean;
@@ -36,6 +37,9 @@ export interface UserContextType {
 // Create context with default value
 export const UserContext = createContext<UserContextType>({
   userRole: 'lender',
+  setUserRole: (role: AppUserRole) => {
+    /* Implementation not needed for default context */
+  },
   showSmartMatching: false,
   setShowSmartMatching: (show: boolean) => {
     /* Implementation not needed for default context */
@@ -103,7 +107,11 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [showCreditAnalysis, setShowCreditAnalysis] = useState(false);
   const [showAILifecycleAssistant, setShowAILifecycleAssistant] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState(() => {
+    // Get theme from localStorage or default to 'light'
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme || 'light';
+  });
 
   // Check for authentication on mount
   useEffect(() => {
@@ -113,6 +121,7 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const storedUserRole = localStorage.getItem('userRole');
     const storedUserId = localStorage.getItem('userId');
     const storedUserProfileImage = localStorage.getItem('userProfileImage');
+    const storedTheme = localStorage.getItem('theme');
 
     if (storedAuth === 'true' && storedUserName) {
       setIsAuthenticated(true);
@@ -137,12 +146,39 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     }
 
+    // Apply theme from localStorage if available
+    if (storedTheme) {
+      setTheme(storedTheme);
+      // Apply theme to document
+      if (storedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+
     // Check for PQC authentication
     const storedPQCAuth = localStorage.getItem('isPQCAuthenticated');
     if (storedPQCAuth === 'true') {
       setPQCAuthenticated(true);
     }
   }, []);
+
+  // Apply theme changes to document
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  // Modified setUserRole function that persists to localStorage
+  const handleSetUserRole = (role: AppUserRole) => {
+    setUserRole(role);
+    localStorage.setItem('userRole', role);
+  };
 
   // Toggle tool visibility
   const toggleTool = (tool: string) => {
@@ -183,6 +219,7 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     <UserContext.Provider
       value={{
         userRole,
+        setUserRole: handleSetUserRole,
         showSmartMatching,
         setShowSmartMatching,
         showDataOrchestrator,

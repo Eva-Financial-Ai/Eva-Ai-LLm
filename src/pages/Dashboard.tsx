@@ -23,7 +23,6 @@ import { DealActivityFilter } from '../components/dashboard/ActivityFilter';
 import { mockActivities } from '../api/mockData';
 import { FundingTrendsChart } from '../components/dashboard/FundingTrendsChart';
 import DashboardService from '../services/DashboardService';
-// Import our new component
 import DemoModeSwitcherPanel from '../components/DemoModeSwitcherPanel';
 
 // Register Chart.js components
@@ -274,7 +273,11 @@ const BusinessDashboard: React.FC = () => {
           value="Document Collection"
           subtitle="Next: Financial Review"
           trend={{ direction: 'up', value: '5%', text: 'faster than average' }}
-          icon="/icons/document-collection.svg"
+          icon={
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          }
           color="blue"
         />
       </div>
@@ -284,7 +287,11 @@ const BusinessDashboard: React.FC = () => {
           value="7 Days"
           subtitle="Based on current progress"
           trend={{ direction: 'down', value: '3 days', text: 'faster than similar loans' }}
-          icon="/icons/clock.svg"
+          icon={
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
           color="green"
         />
       </div>
@@ -293,181 +300,340 @@ const BusinessDashboard: React.FC = () => {
 };
 
 const VendorDashboard: React.FC = () => {
+  const navigate = useNavigate();
+  
+  // Sample data for assets
+  const assetInventory = [
+    { id: 'AST-001', name: 'CNC Milling Machine Model X500', category: 'Manufacturing', price: 125000, status: 'Available', interest: '3 inquiries' },
+    { id: 'AST-002', name: 'Industrial Conveyor System', category: 'Logistics', price: 78500, status: 'Financing Pending', interest: '1 application' },
+    { id: 'AST-003', name: 'Commercial Kitchen Equipment Package', category: 'Food Service', price: 95750, status: 'Available', interest: '5 inquiries' },
+    { id: 'AST-004', name: 'Diagnostic Imaging System', category: 'Healthcare', price: 235000, status: 'Available', interest: '2 inquiries' }
+  ];
+
+  // Sample data for financing options
+  const financingOptions = [
+    { id: 1, name: 'Equipment Leasing', description: 'Flexible leasing terms with options to buy at end of term', demand: 'High demand' },
+    { id: 2, name: 'Equipment Financing', description: 'Direct sale with financing options through our partner lenders', demand: 'Medium demand' },
+    { id: 3, name: 'Fair Market Value Lease', description: 'Lower payments with option to purchase at fair market value', demand: 'High demand' }
+  ];
+
+  // Sample data for recent activities
+  const recentActivities = [
+    { id: 1, user: 'John Smith', userType: 'Borrower', action: 'Requested information about CNC Machine', time: '2 hours ago' },
+    { id: 2, user: 'First Capital Bank', userType: 'Lender', action: 'Approved financing for Industrial Conveyor', time: '4 hours ago' },
+    { id: 3, user: 'Jane Doe', userType: 'Broker', action: 'Sent client application for Kitchen Package', time: '1 day ago' }
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
-        <div className="lg:col-span-3">
+      {/* Vendor Action Center - Top Row */}
+      <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium text-gray-900">Vendor Action Center</h3>
+          <div className="flex space-x-3">
+            <button 
+              onClick={() => navigate('/asset-listing', { state: { isNew: true } })}
+              className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add New Asset
+            </button>
+            <button className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-primary-600 bg-primary-50 hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+              <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              View Inquiries
+            </button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="border border-green-200 bg-green-50 rounded-md p-3">
+            <h4 className="text-sm font-medium text-green-800 flex items-center">
+              <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+              </svg>
+              New Financing Applications (3)
+            </h4>
+            <ul className="mt-2 space-y-2 text-sm">
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">Industrial Conveyor System</span>
+                <button className="text-xs bg-green-100 hover:bg-green-200 text-green-800 font-medium py-1 px-2 rounded">
+                  Review
+                </button>
+              </li>
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">Diagnostic Imaging System</span>
+                <button className="text-xs bg-green-100 hover:bg-green-200 text-green-800 font-medium py-1 px-2 rounded">
+                  Review
+                </button>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="border border-blue-200 bg-blue-50 rounded-md p-3">
+            <h4 className="text-sm font-medium text-blue-800 flex items-center">
+              <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clipRule="evenodd" />
+              </svg>
+              New Inquiries (5)
+            </h4>
+            <ul className="mt-2 space-y-2 text-sm">
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">CNC Milling Machine X500</span>
+                <button className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium py-1 px-2 rounded">
+                  Respond
+                </button>
+              </li>
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">Kitchen Equipment Package</span>
+                <button className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium py-1 px-2 rounded">
+                  Respond
+                </button>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="border border-purple-200 bg-purple-50 rounded-md p-3">
+            <h4 className="text-sm font-medium text-purple-800 flex items-center">
+              <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+              </svg>
+              Financing Status (2)
+            </h4>
+            <ul className="mt-2 space-y-2 text-sm">
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">Industrial Conveyor System</span>
+                <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                  In Progress
+                </span>
+              </li>
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">Forklift Fleet (3 units)</span>
+                <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                  Approved
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Key metrics row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-1">
           <MetricCard
             title="Listed Assets"
             value="14"
             subtitle="Active inventory items"
             trend={{ direction: 'up', value: '3', text: 'from last month' }}
-            icon="/icons/inventory.svg"
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            }
             color="green"
           />
         </div>
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-1">
           <MetricCard
             title="Pending Approvals"
             value="5"
             subtitle="Equipment financing requests"
             trend={{ direction: 'up', value: '2', text: 'new requests this week' }}
-            icon="/icons/pending.svg"
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            }
             color="blue"
           />
         </div>
-        <div className="lg:col-span-6">
+        <div className="lg:col-span-1">
+          <MetricCard
+            title="Total Financed"
+            value="$1.2M"
+            subtitle="Year to date"
+            trend={{ direction: 'up', value: '12%', text: 'higher than last year' }}
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+            color="purple"
+          />
+        </div>
+      </div>
+
+      {/* Asset inventory table */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Asset Inventory</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium text-gray-900">Asset Inventory</h3>
+          <div className="flex space-x-3">
+            <div className="relative">
+              <input 
+                type="text" 
+                placeholder="Search assets..." 
+                className="pl-8 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 text-sm"
+              />
+              <svg className="h-4 w-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <select className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500">
+              <option>All Categories</option>
+              <option>Manufacturing</option>
+              <option>Logistics</option>
+              <option>Food Service</option>
+              <option>Healthcare</option>
+            </select>
+          </div>
+        </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Equipment
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Category
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Price
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Interest
+                    </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  <tr>
+              {assetInventory.map((asset, idx) => (
+                <tr key={idx}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        CNC Milling Machine Model X500
+                      {asset.name}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">Manufacturing</div>
+                    <div className="text-sm text-gray-500">{asset.category}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">$125,000</div>
+                    <div className="text-sm text-gray-900">${asset.price.toLocaleString()}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        Available
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      asset.status === 'Available' ? 'bg-green-100 text-green-800' : 
+                      asset.status === 'Financing Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {asset.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      3 inquiries
+                    {asset.interest}
                     </td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        Industrial Conveyor System
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex space-x-2">
+                      <button className="text-xs bg-primary-50 hover:bg-primary-100 text-primary-600 font-medium py-1 px-2 rounded">
+                        Edit
+                      </button>
+                      <button className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-1 px-2 rounded">
+                        Promote
+                      </button>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">Logistics</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">$78,500</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                        Financing Pending
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      1 application
-                    </td>
                   </tr>
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        Commercial Kitchen Equipment Package
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">Food Service</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">$95,750</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        Available
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      5 inquiries
-                    </td>
-                  </tr>
+              ))}
                 </tbody>
               </table>
             </div>
-            <div className="mt-4 text-right">
+        <div className="flex justify-end mt-4">
               <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                Manage Inventory →
+            Manage All Inventory →
               </button>
-            </div>
-          </div>
         </div>
       </div>
 
+      {/* Financing Options and Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div>
-          <RecentActivities activities={mockActivities} />
-        </div>
-        <div>
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Financing Options to Offer</h3>
             <div className="space-y-4">
-              <div className="p-4 border border-gray-200 rounded-lg">
+            {financingOptions.map((option, idx) => (
+              <div key={idx} className="p-4 border border-gray-200 rounded-lg">
                 <div className="flex justify-between items-center">
-                  <h4 className="text-md font-medium">Equipment Leasing</h4>
-                  <span className="text-green-600 text-sm font-medium">High demand</span>
+                  <h4 className="text-md font-medium">{option.name}</h4>
+                  <span className={`text-sm font-medium ${
+                    option.demand === 'High demand' ? 'text-green-600' : 
+                    option.demand === 'Medium demand' ? 'text-blue-600' : 
+                    'text-yellow-600'
+                  }`}>{option.demand}</span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  Offer flexible leasing terms with options to buy at end of term.
+                  {option.description}
                 </p>
                 <div className="mt-3">
                   <button className="text-primary-600 hover:text-primary-700 text-sm">
                     Create offering →
                   </button>
+                </div>
+              </div>
+            ))}
                 </div>
               </div>
 
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <h4 className="text-md font-medium">Equipment Financing</h4>
-                  <span className="text-blue-600 text-sm font-medium">Medium demand</span>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
+          <div className="space-y-6">
+            {recentActivities.map((activity, idx) => (
+              <div key={idx} className="flex space-x-3">
+                <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${
+                  activity.userType === 'Borrower' ? 'bg-blue-100' : 
+                  activity.userType === 'Lender' ? 'bg-green-100' : 
+                  'bg-purple-100'
+                }`}>
+                  <span className={`text-xs font-medium ${
+                    activity.userType === 'Borrower' ? 'text-blue-800' : 
+                    activity.userType === 'Lender' ? 'text-green-800' : 
+                    'text-purple-800'
+                  }`}>
+                    {activity.user.charAt(0)}
+                  </span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
-                  Direct sale with financing options through our partner lenders.
-                </p>
-                <div className="mt-3">
-                  <button className="text-primary-600 hover:text-primary-700 text-sm">
-                    Create offering →
-                  </button>
+                <div>
+                  <div className="text-sm font-medium text-gray-900">
+                    {activity.user}
+                    <span className={`ml-2 text-xs font-medium px-2 py-0.5 rounded-full ${
+                      activity.userType === 'Borrower' ? 'bg-blue-100 text-blue-800' : 
+                      activity.userType === 'Lender' ? 'bg-green-100 text-green-800' : 
+                      'bg-purple-100 text-purple-800'
+                    }`}>
+                      {activity.userType}
+                    </span>
+                </div>
+                  <div className="text-sm text-gray-500">
+                    {activity.action}
+              </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {activity.time}
+                  </div>
                 </div>
               </div>
+            ))}
+            <div className="pt-4 border-t border-gray-200">
+              <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                View all activity →
+              </button>
             </div>
           </div>
         </div>
@@ -476,6 +642,7 @@ const VendorDashboard: React.FC = () => {
   );
 };
 
+// Restore the LenderDashboard component
 const LenderDashboard: React.FC = () => {
   const navigate = useNavigate();
 
@@ -485,8 +652,7 @@ const LenderDashboard: React.FC = () => {
 
   return (
     <div className="grid grid-cols-12 gap-6">
-      <div className="col-span-12 flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Lender Dashboard</h2>
+      <div className="col-span-12 flex justify-end mb-4">
         <button
           onClick={handleCreateNewDeal}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
@@ -509,18 +675,22 @@ const LenderDashboard: React.FC = () => {
         </button>
       </div>
       {/* Key metrics row */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-        <div className="lg:col-span-3">
+      <div className="col-span-12 grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        <div>
           <MetricCard
             title="Active Deals"
             value={mockMetrics.activeDeals.toString()}
             subtitle="Current Month"
             trend={{ direction: 'up', value: '3', text: 'from last month' }}
-            icon="/icons/deal-flow.svg"
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            }
             color="blue"
           />
         </div>
-        <div className="lg:col-span-3">
+        <div>
           <MetricCard
             title="Deal Volume"
             value={`$${(mockMetrics.dealVolume / 1000000).toFixed(1)}M`}
@@ -530,34 +700,46 @@ const LenderDashboard: React.FC = () => {
               value: `${mockMetrics.monthlyChange}%`,
               text: 'month over month',
             }}
-            icon="/icons/dollar.svg"
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
             color="green"
           />
         </div>
-        <div className="lg:col-span-3">
+        <div>
           <MetricCard
             title="Avg. Processing Time"
             value={`${mockMetrics.avgProcessingTime} days`}
             subtitle="From application to funding"
             trend={{ direction: 'down', value: '2.5 days', text: 'improvement' }}
-            icon="/icons/clock.svg"
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
             color="indigo"
           />
         </div>
-        <div className="lg:col-span-3">
+        <div>
           <MetricCard
             title="Completed Deals"
             value={mockMetrics.completedDeals.toString()}
             subtitle="Current Month"
             trend={{ direction: 'stable', value: '', text: 'on target' }}
-            icon="/icons/checkmark.svg"
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
             color="purple"
           />
         </div>
       </div>
 
       {/* Risk and Portfolio analytics section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Portfolio Risk Distribution</h3>
           <div className="flex justify-between mb-4">
@@ -693,7 +875,7 @@ const LenderDashboard: React.FC = () => {
       </div>
 
       {/* Due Diligence and Deal tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Due Diligence Status</h3>
           <DueDiligenceProgress title="Upcoming Deal Reviews" categories={mockDueDiligence} />
@@ -796,7 +978,7 @@ const LenderDashboard: React.FC = () => {
       </div>
 
       {/* Funding Trends Chart */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="col-span-12 bg-white rounded-lg shadow overflow-hidden">
         <FundingTrendsChart />
       </div>
     </div>
@@ -812,8 +994,459 @@ const DashboardActivityFilter: React.FC<{
   return null;
 };
 
-// Move BrokerageDashboard component to after all the required component definitions
-// It will be defined later in the file after LenderPerformanceMetricsEnhanced, CommissionForecastEnhanced, and DealStatusOverviewEnhanced
+// Add the missing BrokerageDashboard component
+const BrokerageDashboard: React.FC = () => {
+  const navigate = useNavigate();
+  
+  const handleNewDeal = () => {
+    navigate('/credit-application');
+  };
+  
+  // Sample data for broker dashboard
+  const pendingDeals = [
+    { id: 'DEL-3421', client: 'Starlight Manufacturing', amount: 320000, status: 'Application Submitted', days: 2 },
+    { id: 'DEL-2856', client: 'Northern Healthcare', amount: 175000, status: 'Awaiting Approval', days: 5 },
+    { id: 'DEL-3211', client: 'Coastal Properties LLC', amount: 650000, status: 'Document Collection', days: 3 }
+  ];
+  
+  // Sample data for lender performance
+  const lenderPerformance = [
+    { name: 'First National Bank', approvalRate: 78, avgTime: 4.5, deals: 12 },
+    { name: 'Capital Funding Group', approvalRate: 65, avgTime: 3.2, deals: 8 },
+    { name: 'Meridian Credit Union', approvalRate: 82, avgTime: 5.8, deals: 5 }
+  ];
+  
+  // Sample data for commissions
+  const commissionForecasts = [
+    { month: 'Current Month', amount: 28500, status: 'Projected' },
+    { month: 'Next Month', amount: 32000, status: 'Forecast' },
+    { month: 'Last Month', amount: 25750, status: 'Paid' }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Broker Action Center - Top Row */}
+      <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium text-gray-900">Broker Action Center</h3>
+          <button 
+            onClick={handleNewDeal}
+            className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Deal
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="border border-orange-200 bg-orange-50 rounded-md p-3">
+            <h4 className="text-sm font-medium text-orange-800 flex items-center">
+              <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z" />
+              </svg>
+              Priority Tasks (5)
+            </h4>
+            <ul className="mt-2 space-y-2 text-sm">
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">Submit additional docs for DEL-2856</span>
+                <span className="text-xs bg-red-100 text-red-800 font-medium py-0.5 px-2 rounded">
+                  Urgent
+                </span>
+              </li>
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">Client call with Starlight Manufacturing</span>
+                <span className="text-xs bg-yellow-100 text-yellow-800 font-medium py-0.5 px-2 rounded">
+                  Today
+                </span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="border border-blue-200 bg-blue-50 rounded-md p-3">
+            <h4 className="text-sm font-medium text-blue-800 flex items-center">
+              <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+              </svg>
+              Upcoming Deadlines (3)
+            </h4>
+            <ul className="mt-2 space-y-2 text-sm">
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">Coastal Properties application deadline</span>
+                <span className="text-xs bg-blue-100 text-blue-800 font-medium py-0.5 px-2 rounded">
+                  2 days
+                </span>
+              </li>
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">Northern Healthcare final approval</span>
+                <span className="text-xs bg-blue-100 text-blue-800 font-medium py-0.5 px-2 rounded">
+                  4 days
+                </span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="border border-green-200 bg-green-50 rounded-md p-3">
+            <h4 className="text-sm font-medium text-green-800 flex items-center">
+              <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Recently Funded Deals (2)
+            </h4>
+            <ul className="mt-2 space-y-2 text-sm">
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">Metro Logistics Equipment Lease</span>
+                <span className="text-xs bg-green-100 text-green-800 font-medium py-0.5 px-2 rounded">
+                  $425,000
+                </span>
+              </li>
+              <li className="flex justify-between items-center">
+                <span className="text-gray-700">Sunrise Medical Group Expansion</span>
+                <span className="text-xs bg-green-100 text-green-800 font-medium py-0.5 px-2 rounded">
+                  $275,000
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Key metrics row */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+        <div className="lg:col-span-1">
+          <MetricCard
+            title="Active Pipeline"
+            value="$2.4M"
+            subtitle="8 deals in progress"
+            trend={{ direction: 'up', value: '15%', text: 'from last month' }}
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            }
+            color="blue"
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <MetricCard
+            title="Avg Deal Size"
+            value="$298K"
+            subtitle="Current pipeline"
+            trend={{ direction: 'up', value: '8%', text: 'from previous quarter' }}
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+              </svg>
+            }
+            color="green"
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <MetricCard
+            title="Approval Rate"
+            value="72%"
+            subtitle="Last 30 days"
+            trend={{ direction: 'up', value: '5%', text: 'from previous period' }}
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+            color="purple"
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <MetricCard
+            title="Commission MTD"
+            value="$28.5K"
+            subtitle="Projected for month"
+            trend={{ direction: 'up', value: '12%', text: 'above target' }}
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+            color="indigo"
+          />
+        </div>
+      </div>
+
+      {/* Pipeline Visualization and Pending Deals */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-5 bg-white rounded-lg shadow overflow-hidden">
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">Pipeline Status</h3>
+          </div>
+          <div className="p-4">
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>New Applications</span>
+                  <span className="font-medium">3 deals - $845,000</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: '30%' }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Document Collection</span>
+                  <span className="font-medium">2 deals - $520,000</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div className="bg-yellow-500 h-2.5 rounded-full" style={{ width: '25%' }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Underwriting</span>
+                  <span className="font-medium">1 deal - $380,000</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div className="bg-orange-500 h-2.5 rounded-full" style={{ width: '15%' }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Approval</span>
+                  <span className="font-medium">2 deals - $655,000</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div className="bg-purple-500 h-2.5 rounded-full" style={{ width: '25%' }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Closing</span>
+                  <span className="font-medium">1 deal - $425,000</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '20%' }}></div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Pipeline donut chart */}
+            <div className="mt-6 flex justify-center">
+              <div className="w-36 h-36 rounded-full border-8 border-blue-500 relative flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center text-center">
+                  <div>
+                    <div className="text-2xl font-bold">$2.4M</div>
+                    <div className="text-xs text-gray-500">Total Pipeline</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="lg:col-span-7 bg-white rounded-lg shadow">
+          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 className="text-lg font-medium text-gray-900">Pending Deals</h3>
+            <div className="flex space-x-2">
+              <select className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                <option>All Statuses</option>
+                <option>Application Submitted</option>
+                <option>Document Collection</option>
+                <option>Awaiting Approval</option>
+              </select>
+              <select className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                <option>All Lenders</option>
+                <option>First National Bank</option>
+                <option>Capital Funding Group</option>
+                <option>Meridian Credit Union</option>
+              </select>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Deal ID
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Client
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Days Active
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {pendingDeals.map((deal, idx) => (
+                  <tr key={idx}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-600">
+                      {deal.id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {deal.client}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      ${deal.amount.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${deal.status === 'Application Submitted' ? 'bg-blue-100 text-blue-800' : 
+                          deal.status === 'Awaiting Approval' ? 'bg-purple-100 text-purple-800' : 
+                          'bg-yellow-100 text-yellow-800'}`}>
+                        {deal.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {deal.days} {deal.days === 1 ? 'day' : 'days'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button className="text-primary-600 hover:text-primary-900 font-medium">
+                        Manage
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-6 py-3 border-t border-gray-200 flex justify-between items-center text-sm">
+            <span className="text-gray-700">Showing 3 of 8 total deals</span>
+            <div className="flex space-x-2">
+              <button className="px-3 py-1 bg-gray-100 rounded-md text-gray-600 hover:bg-gray-200">
+                Previous
+              </button>
+              <button className="px-3 py-1 bg-primary-50 text-primary-600 rounded-md hover:bg-primary-100">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Lender performance and commission sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">Lender Performance</h3>
+          </div>
+          <div className="p-4">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Lender
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Approval Rate
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Avg. Time
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Deals
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {lenderPerformance.map((lender, idx) => (
+                  <tr key={idx}>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {lender.name}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm">
+                      <div className="flex items-center">
+                        <span className={`mr-2 font-medium ${
+                          lender.approvalRate >= 80 ? 'text-green-600' : 
+                          lender.approvalRate >= 70 ? 'text-blue-600' : 
+                          'text-yellow-600'
+                        }`}>{lender.approvalRate}%</span>
+                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                          <div className={`h-1.5 rounded-full ${
+                            lender.approvalRate >= 80 ? 'bg-green-500' : 
+                            lender.approvalRate >= 70 ? 'bg-blue-500' : 
+                            'bg-yellow-500'
+                          }`} style={{ width: `${lender.approvalRate}%` }}></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                      {lender.avgTime} days
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                      {lender.deals}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="mt-4 text-sm text-right">
+              <button className="text-primary-600 hover:text-primary-800 font-medium">
+                View all lenders →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">Commission Forecast</h3>
+          </div>
+          <div className="p-4">
+            <div className="flex justify-between mb-6">
+              <div className="text-center px-4">
+                <div className="text-3xl font-bold text-gray-900">$86.2K</div>
+                <div className="text-sm text-gray-500">Annual to Date</div>
+              </div>
+              <div className="text-center px-4">
+                <div className="text-3xl font-bold text-primary-600">$28.5K</div>
+                <div className="text-sm text-gray-500">Current Month</div>
+              </div>
+              <div className="text-center px-4">
+                <div className="text-3xl font-bold text-green-600">$32K</div>
+                <div className="text-sm text-gray-500">Forecast Next Month</div>
+              </div>
+            </div>
+            
+            <div className="mt-6 space-y-4">
+              {commissionForecasts.map((forecast, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">{forecast.month}</div>
+                    <div className="text-sm text-gray-500">{forecast.status}</div>
+                  </div>
+                  <div className={`text-lg font-bold ${
+                    forecast.status === 'Paid' ? 'text-green-600' : 
+                    forecast.status === 'Projected' ? 'text-primary-600' : 
+                    'text-indigo-600'
+                  }`}>
+                    ${forecast.amount.toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-700">Annual Target: $350,000</span>
+                <span className="text-sm font-medium text-green-600">25% Complete</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '25%' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /**
  * Dashboard Page Component
@@ -1113,78 +1746,7 @@ const Dashboard: React.FC = () => {
     setIsLoading(true);
   };
 
-  // Remove the old EnhancedUserTypeSwitcher component
-  const EnhancedUserTypeSwitcher: React.FC = () => {
-    const userTypeOptions = [
-      {
-        value: UserType.BUSINESS,
-        label: 'Business (Borrower)',
-        description: 'Companies seeking financing for equipment, real estate, or operations',
-      },
-      {
-        value: UserType.VENDOR,
-        label: 'Vendor (Asset Seller)',
-        description: 'Equipment manufacturers, dealers, and private party sellers',
-      },
-      {
-        value: UserType.BROKERAGE,
-        label: 'Broker/Originator',
-        description: 'Loan brokers and originators connecting borrowers with lenders',
-      },
-      {
-        value: UserType.LENDER,
-        label: 'Lender/Lessor',
-        description: 'Direct lenders, banks, and companies holding assets for lease',
-      },
-    ];
-
-    return (
-      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-md">
-        <div className="flex flex-col md:flex-row md:items-center">
-          <div className="flex items-center mb-2 md:mb-0">
-            <svg
-              className="h-5 w-5 text-blue-500 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-            <span className="text-sm font-medium text-blue-700">Demo Mode: Switch User Type</span>
-          </div>
-          <div className="md:ml-auto space-y-2 md:space-y-0 flex flex-col md:flex-row md:space-x-3">
-            {userTypeOptions.map(option => (
-              <button
-                key={option.value}
-                onClick={() => handleUserTypeSwitch(option.value)}
-                className={`px-3 py-2 rounded-md text-sm flex flex-col items-center ${
-                  currentUserType === option.value
-                    ? 'bg-blue-600 text-white font-medium'
-                    : 'bg-white border border-blue-300 text-blue-600 hover:bg-blue-50'
-                }`}
-              >
-                <span>{option.label}</span>
-                {currentUserType === option.value && (
-                  <span className="text-xs mt-1 text-blue-100">{option.description}</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-        <p className="text-xs text-blue-600 mt-2">
-          Each user type represents a different stakeholder in the credit origination process.
-          Switch between them to see customized dashboards and workflows.
-        </p>
-      </div>
-    );
-  };
-
-  // Add the getUserTypeString function
+  // Get the user type string for the demo mode switcher
   const getUserTypeString = (userType: UserType): string => {
     switch (userType) {
       case UserType.BUSINESS:
@@ -1337,643 +1899,25 @@ const Dashboard: React.FC = () => {
     );
   };
 
-  // Add a new component for the enhanced Lender Performance Metrics
-  const LenderPerformanceMetricsEnhanced = () => {
-    // Mock lenders data
-    const lenders = [
-      { id: 'all', name: 'All Lenders' },
-      { id: 'firstCapital', name: 'First Capital Bank' },
-      { id: 'equipmentFinance', name: 'Equipment Finance Co.' },
-      { id: 'regionalLeasing', name: 'Regional Leasing Corp' },
-      { id: 'midwestBank', name: 'Midwest Bank & Trust' },
-      { id: 'commercialFinanciers', name: 'Commercial Financiers Inc.' },
-    ];
-
-    return (
-      <div className="bg-white rounded-lg shadow p-6 h-full flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Lender Performance Metrics</h3>
-
-          {/* Filter options */}
-          <div className="flex space-x-2">
-            <select
-              value={selectedLenderFilter}
-              onChange={e => setSelectedLenderFilter(e.target.value)}
-              className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-            >
-              {lenders.map(lender => (
-                <option key={lender.id} value={lender.id}>
-                  {lender.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto flex-1">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  LENDER
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  SUBMISSION TO BOOK
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  APPROVAL TO ACCEPT
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  ACCEPT TO FUND
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  ACTIONS
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap">First Capital Bank</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  78% <span className="text-green-500">↑</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  92% <span className="text-green-500">↑</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  95% <span className="text-green-500">↑</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div className="relative">
-                    <button className="text-primary-600 hover:text-primary-800">
-                      <span>Options ▼</span>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap">Equipment Finance Co.</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  65% <span className="text-yellow-500">→</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  88% <span className="text-green-500">↑</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  90% <span className="text-green-500">↑</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div className="relative">
-                    <button className="text-primary-600 hover:text-primary-800">
-                      <span>Options ▼</span>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap">Regional Leasing Corp</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  58% <span className="text-red-500">↓</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  74% <span className="text-red-500">↓</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  85% <span className="text-yellow-500">→</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div className="relative">
-                    <button className="text-primary-600 hover:text-primary-800">
-                      <span>Options ▼</span>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  };
-
-  // Add a new component for the enhanced Commission Forecast
-  const CommissionForecastEnhanced = () => {
-    // Time period options
-    const timePeriods = [
-      { id: 'thisMonth', name: 'This Month' },
-      { id: 'nextMonth', name: 'Next Month' },
-      { id: 'threeMonths', name: '3 Months' },
-      { id: 'sixMonths', name: '6 Months' },
-      { id: 'nineMonths', name: '9 Months' },
-      { id: 'twelveMonths', name: '12 Months' },
-      { id: 'lastYear', name: 'Last Year' },
-      { id: 'yearBefore', name: 'Year Before' },
-    ];
-
-    return (
-      <div className="bg-white rounded-lg shadow p-6 h-full flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Commission Forecast</h3>
-
-          {/* Filter options */}
-          <div className="flex space-x-2">
-            <select
-              value={selectedTimeFilter}
-              onChange={e => setSelectedTimeFilter(e.target.value)}
-              className="text-sm border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-            >
-              {timePeriods.map(period => (
-                <option key={period.id} value={period.id}>
-                  {period.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="flex-1" style={{ minHeight: '260px' }}>
-          <Bar
-            data={{
-              labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-              datasets: [
-                {
-                  label: 'Projected Commission',
-                  data: [12500, 15000, 17500, 22000, 18000, 24000],
-                  backgroundColor: 'rgba(79, 70, 229, 0.6)',
-                },
-                {
-                  label: 'Actual Commission',
-                  data: [11000, 16000, 15000, 20000, 17000, 0],
-                  backgroundColor: 'rgba(16, 185, 129, 0.6)',
-                },
-              ],
-            }}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    callback: function (value) {
-                      return '$' + value.toLocaleString();
-                    },
-                  },
-                },
-              },
-            }}
-          />
-        </div>
-      </div>
-    );
-  };
-
-  // Add a new component for the enhanced Deal Status Overview
-  const DealStatusOverviewEnhanced = () => {
-    // Mock deal data
-    const deals = [
-      {
-        id: 'TX-12345',
-        borrower: 'QRS Manufacturing',
-        amount: 250000,
-        status: 'Document Collection',
-        statusClass: 'blue',
-        lender: 'First Capital Bank',
-        commission: 3750,
-        isReady: true,
-      },
-      {
-        id: 'TX-12347',
-        borrower: 'XYZ Properties',
-        amount: 750000,
-        status: 'Credit Analysis',
-        statusClass: 'yellow',
-        lender: 'Equipment Finance Co.',
-        commission: 11250,
-        isReady: false,
-      },
-      {
-        id: 'TX-12350',
-        borrower: 'LMN Construction',
-        amount: 425000,
-        status: 'Approved',
-        statusClass: 'green',
-        lender: 'Regional Leasing Corp',
-        commission: 6375,
-        isReady: true,
-      },
-    ];
-
-    // State for the dropdown menus
-    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-    const [showMicroView, setShowMicroView] = useState<string | null>(null);
-
-    // Function to toggle dropdown
-    const toggleDropdown = (id: string) => {
-      if (openDropdownId === id) {
-        setOpenDropdownId(null);
-      } else {
-        setOpenDropdownId(id);
-      }
-    };
-
-    // Function to progress a deal to the next stage
-    const progressDeal = (dealId: string) => {
-      console.log(`Progressing deal ${dealId} to next stage`);
-      // In a real implementation, this would call an API to update the deal status
-      alert(`Deal ${dealId} progressed to next stage!`);
-      setOpenDropdownId(null);
-    };
-
-    // Function to view the deal in Risk Map Navigator
-    const viewInRiskMap = (dealId: string) => {
-      // Navigate to Risk Map Navigator with the deal ID
-      navigate(`/risk-assessment?dealId=${dealId}`);
-    };
-
-    // Dropdown actions menu
-    const ActionDropdown = ({ dealId, isReady }: { dealId: string; isReady: boolean }) => {
-      if (openDropdownId !== dealId) return null;
-
-      return (
-        <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-          <div className="py-1" role="menu" aria-orientation="vertical">
-            <button
-              onClick={() => viewInRiskMap(dealId)}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              role="menuitem"
-            >
-              View Full Profile
-            </button>
-            <button
-              onClick={() => setShowMicroView(dealId)}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              role="menuitem"
-            >
-              View Micro Details
-            </button>
-            {isReady && (
-              <button
-                onClick={() => progressDeal(dealId)}
-                className="block w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-green-50"
-                role="menuitem"
-              >
-                Progress to Next Stage
-              </button>
-            )}
-            <button
-              className="block w-full text-left px-4 py-2 text-sm text-blue-700 hover:bg-blue-50"
-              role="menuitem"
-            >
-              Manage Contacts
-            </button>
-            <button
-              className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
-              role="menuitem"
-            >
-              Flag for Review
-            </button>
-          </div>
-        </div>
-      );
-    };
-
-    // Micro view modal
-    const MicroViewModal = () => {
-      if (!showMicroView) return null;
-
-      const deal = deals.find(d => d.id === showMicroView);
-      if (!deal) return null;
-
-      return (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">
-                      {deal.borrower} - {deal.id}
-                    </h3>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">Detailed deal information</p>
-                      <div className="mt-4 space-y-3">
-                        <div>
-                          <span className="text-xs text-gray-500">Deal Amount:</span>
-                          <span className="ml-2 text-sm font-medium">
-                            ${deal.amount.toLocaleString()}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-xs text-gray-500">Status:</span>
-                          <span className={`ml-2 text-sm font-medium text-${deal.statusClass}-600`}>
-                            {deal.status}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-xs text-gray-500">Lender:</span>
-                          <span className="ml-2 text-sm font-medium">{deal.lender}</span>
-                        </div>
-                        <div>
-                          <span className="text-xs text-gray-500">Commission:</span>
-                          <span className="ml-2 text-sm font-medium">
-                            ${deal.commission.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  type="button"
-                  onClick={() => setShowMicroView(null)}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    };
-
-    return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Deal Status Overview</h3>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  DEAL ID
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  BORROWER
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  AMOUNT
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  STATUS
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  LENDER
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  COMMISSION
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  ACTIONS
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {deals.map(deal => (
-                <tr key={deal.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-600">
-                    {deal.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {deal.borrower}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${deal.amount.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-${deal.statusClass}-100 text-${deal.statusClass}-800`}
-                    >
-                      {deal.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {deal.lender}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${deal.commission.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="relative">
-                      <button
-                        onClick={() => toggleDropdown(deal.id)}
-                        className="text-primary-600 hover:text-primary-800"
-                      >
-                        <span>Options ▼</span>
-                      </button>
-                      <ActionDropdown dealId={deal.id} isReady={deal.isReady} />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Modal view for detailed information */}
-        <MicroViewModal />
-      </div>
-    );
-  };
-
-  // Now define the BrokerageDashboard component that uses the enhanced components
-  const BrokerageDashboard: React.FC = () => {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-1">
-            <MetricCard
-              title="Active Deals"
-              value="8"
-              subtitle="In progress originated deals"
-              trend={{ direction: 'up', value: '2', text: 'from last month' }}
-              icon="/icons/deals.svg"
-              color="blue"
-            />
-          </div>
-          <div className="lg:col-span-1">
-            <MetricCard
-              title="Total Submissions"
-              value="23"
-              subtitle="Applications sent to lenders"
-              trend={{ direction: 'up', value: '5', text: 'from last month' }}
-              icon="/icons/document-collection.svg"
-              color="green"
-            />
-          </div>
-          <div className="lg:col-span-1">
-            <MetricCard
-              title="Approval Rate"
-              value="62%"
-              subtitle="Approved from submissions"
-              trend={{ direction: 'up', value: '7%', text: 'from previous rate' }}
-              icon="/icons/checkmark.svg"
-              color="purple"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <LenderPerformanceMetricsEnhanced />
-          </div>
-          <div>
-            <CommissionForecastEnhanced />
-          </div>
-        </div>
-        <div className="mt-6">
-          <DealStatusOverviewEnhanced />
-        </div>
-      </div>
-    );
-  };
-
   // Show loading state
   if (isLoading) {
     return (
-      <div className="bg-gray-100 min-h-screen">
-        <TopNavigation title="Dashboard" />
-        <main className="container mx-auto px-4 py-8">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-              <p className="text-gray-600">Loading {userTypeString} view...</p>
-            </div>
-            <div className="animate-pulse bg-gray-200 h-12 w-48 rounded"></div>
-          </div>
-          <div className="bg-white rounded-lg p-6 shadow mb-8">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              <div className="border-t border-gray-200 pt-4"></div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 h-10">
-                <div className="bg-gray-200 rounded"></div>
-                <div className="bg-gray-200 rounded"></div>
-                <div className="bg-gray-200 rounded"></div>
-                <div className="bg-gray-200 rounded"></div>
-              </div>
+      <div className="flex flex-col h-full">
+        <div className="flex-1 overflow-auto px-4 py-6 space-y-6">
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mb-4"></div>
+            <p className="text-primary-600 text-lg">Loading dashboard data...</p>
             </div>
           </div>
-          <div className="animate-pulse space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="h-32 bg-gray-200 rounded-lg"></div>
-              <div className="h-32 bg-gray-200 rounded-lg"></div>
-              <div className="h-32 bg-gray-200 rounded-lg"></div>
-              <div className="h-32 bg-gray-200 rounded-lg"></div>
-            </div>
-            <div className="h-96 bg-gray-200 rounded-lg"></div>
-          </div>
-        </main>
       </div>
     );
   }
 
   // Show error state
   if (error) {
-    return (
-      <div className="bg-gray-100 min-h-screen">
-        <TopNavigation title="Dashboard" />
-        <main className="container mx-auto px-4 py-8">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-              <p className="text-gray-600">Error loading data</p>
-            </div>
-            <EnhancedUserTypeSwitcher />
-          </div>
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <div className="text-red-500 mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-16 w-16 mx-auto mb-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <h2 className="text-xl font-bold mb-2">Error Loading Dashboard</h2>
-              <p className="mb-4">{error}</p>
-            </div>
-            <button
-              onClick={handleRetry}
-              className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            >
-              Retry
-            </button>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-full">
-      <TopNavigation title="Dashboard" />
       <div className="flex-1 overflow-auto px-4 py-6 space-y-6">
-        {/* Demo Mode Switcher */}
-        <DemoModeSwitcherPanel
-          currentUserType={getUserTypeString(userType || UserType.BUSINESS)}
-          onUserTypeChange={handleUserTypeSwitch}
-        />
-
-        {/* Main Dashboard content - without redundant Dashboard title */}
-        <div className="space-y-6">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mb-4"></div>
-              <p className="text-primary-600 text-lg">Loading dashboard data...</p>
-            </div>
-          ) : error ? (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
               <div className="flex-shrink-0">
                 <svg
@@ -2000,18 +1944,31 @@ const Dashboard: React.FC = () => {
                 </button>
               </div>
             </div>
-          ) : (
-            <>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-auto px-4 py-6 space-y-6">
+        {/* Demo Mode Switcher */}
+        <DemoModeSwitcherPanel
+          currentUserType={getUserTypeString(userType || UserType.BUSINESS)}
+          onUserTypeChange={handleUserTypeSwitch}
+        />
+
               {/* Dashboard content based on user type */}
+        <div className="space-y-6">
               {userType === UserType.BUSINESS && <BusinessDashboard />}
               {userType === UserType.VENDOR && <VendorDashboard />}
               {userType === UserType.BROKERAGE && <BrokerageDashboard />}
               {userType === UserType.LENDER && <LenderDashboard />}
-              {/* ... Other user type dashboards */}
-            </>
-          )}
         </div>
       </div>
+
+      {/* Dialog for new deal options */}
+      <NewDealDialog />
     </div>
   );
 };

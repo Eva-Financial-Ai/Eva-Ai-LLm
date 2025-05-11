@@ -346,3 +346,7 @@ See the detailed migration plan in `ESLINT-MIGRATION-PLAN.md` that outlines:
 - Timeline for addressing all issues
 
 This approach allows development to continue while we gradually improve code quality. 
+## Backend Repository
+
+The backend code has been moved to a separate repository: https://github.com/your-organization/eva-platform-backend
+

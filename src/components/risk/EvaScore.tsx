@@ -25,6 +25,9 @@ const EvaScore: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'summary' | 'details' | 'history'>('summary');
   const [loading, setLoading] = useState<boolean>(true);
   const [scoreType, setScoreType] = useState<ScoreType>('unsecured');
+  
+  // Add debug log to verify the component is being rendered
+  console.log('EvaScore component rendering');
 
   // Simulate data loading
   useEffect(() => {

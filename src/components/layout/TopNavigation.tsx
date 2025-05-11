@@ -10,14 +10,19 @@ interface BreadcrumbItem {
 interface TopNavigationProps {
   title?: string;
   breadcrumbs?: BreadcrumbItem[];
+  showBackButton?: boolean;
+  backPath?: string;
 }
 
-const TopNavigation: React.FC<TopNavigationProps> = ({ title, breadcrumbs }) => {
+const TopNavigation: React.FC<TopNavigationProps> = ({ title, breadcrumbs, showBackButton, backPath }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Always show back button except on dashboard
-  const showBackButton = location.pathname !== '/' && location.pathname !== '/dashboard';
+  // Determine if back button should be shown
+  // If showBackButton is explicitly provided, use that, otherwise show back button except on dashboard
+  const shouldShowBackButton = showBackButton !== undefined 
+    ? showBackButton 
+    : location.pathname !== '/' && location.pathname !== '/dashboard';
 
   // Generate breadcrumbs automatically if not provided
   const generatedBreadcrumbs = React.useMemo(() => {
@@ -42,7 +47,11 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ title, breadcrumbs }) => 
   }, [location.pathname, breadcrumbs]);
 
   const handleBack = () => {
-    navigate(-1); // Go back in history
+    if (backPath) {
+      navigate(backPath);
+    } else {
+      navigate(-1); // Go back in history if no specific path is provided
+    }
   };
 
   const handleExit = () => {
@@ -50,36 +59,38 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ title, breadcrumbs }) => 
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4 mb-6 flex flex-col rounded-lg shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          {showBackButton && (
-            <button
-              onClick={handleBack}
-              className="p-2 rounded-full text-gray-600 hover:bg-gray-100 hover:text-primary-600 transition-colors flex items-center"
-              title="Go back"
-              aria-label="Go back to previous page"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+    <div className="bg-white p-4 shadow-sm">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          {/* Title with optional back button */}
+          <div className="flex items-center">
+            {shouldShowBackButton && (
+              <button
+                onClick={handleBack}
+                className="mr-3 p-1 rounded-full hover:bg-gray-100"
+                title="Go back"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
-              <span className="ml-2 text-base font-medium">Back</span>
-            </button>
-          )}
-          {title && <h1 className="text-xl font-semibold text-gray-900">{title}</h1>}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-gray-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+              </button>
+            )}
+            <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+          </div>
         </div>
 
+        {/* Exit to dashboard button - only show when not on dashboard */}
         {location.pathname !== '/' && location.pathname !== '/dashboard' && (
           <button
             onClick={handleExit}
@@ -104,41 +115,6 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ title, breadcrumbs }) => 
           </button>
         )}
       </div>
-
-      {/* Breadcrumbs */}
-      {generatedBreadcrumbs.length > 0 && (
-        <nav className="mt-3" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2 text-gray-500">
-            <li>
-              <Link to="/dashboard" className="text-gray-500 hover:text-primary-600 text-base">
-                Dashboard
-              </Link>
-            </li>
-            {generatedBreadcrumbs.map((crumb, index) => (
-              <li key={crumb.href} className="flex items-center">
-                <svg className="h-5 w-5 text-gray-400 mx-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <Link
-                  to={crumb.href}
-                  className={`${
-                    crumb.current
-                      ? 'text-primary-600 font-medium'
-                      : 'text-gray-500 hover:text-primary-600'
-                  } text-base`}
-                  aria-current={crumb.current ? 'page' : undefined}
-                >
-                  {crumb.name}
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      )}
     </div>
   );
 };

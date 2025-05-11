@@ -424,7 +424,7 @@ const SideNavigation: React.FC = () => {
           href: '/risk-assessment/standard',
           onClick: () => {
             console.log('Navigating to Standard Risk Assessment - DEBUG LOG');
-            navigate('/risk-assessment/standard?tab=standard');
+            navigate('/risk-assessment/standard');
           },
           icon: active => (
             <svg
@@ -452,7 +452,7 @@ const SideNavigation: React.FC = () => {
           href: '/risk-assessment/report',
           onClick: () => {
             console.log('Navigating to Eva Risk Report - DEBUG LOG');
-            navigate('/risk-assessment/report?tab=report');
+            navigate('/risk-assessment/report');
           },
           icon: active => (
             <svg
@@ -477,7 +477,7 @@ const SideNavigation: React.FC = () => {
           href: '/risk-assessment/lab',
           onClick: () => {
             console.log('Navigating to RiskLab - DEBUG LOG');
-            navigate('/risk-assessment/lab?tab=lab');
+            navigate('/risk-assessment/lab');
           },
           icon: active => (
             <svg
@@ -502,7 +502,7 @@ const SideNavigation: React.FC = () => {
           href: '/risk-assessment/score',
           onClick: () => {
             console.log('Navigating to Eva Score - DEBUG LOG');
-            navigate('/risk-assessment/score?tab=score');
+            navigate('/risk-assessment/score');
           },
           icon: active => (
             <svg
@@ -978,32 +978,52 @@ const SideNavigation: React.FC = () => {
           ) : item.name === 'Commercial Truck & Equipment Market' ? (
             <Link
               to={item.href}
-              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+              className={`flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                 item.current
                   ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
             >
               <span className="mr-3">{item.icon(item.current)}</span>
-              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                {item.name}
-              </span>
-              {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
+              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
+              {item.badge && !sidebarCollapsed && (
+                <span
+                  className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                    item.badge === 'New'
+                      ? 'bg-green-100 text-green-800'
+                      : item.badge === 'Beta'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {item.badge}
+                </span>
+              )}
             </Link>
           ) : (
             <Link
               to={item.href}
-              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+              className={`flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                 item.current
                   ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
             >
               <span className="mr-3">{item.icon(item.current)}</span>
-              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                {item.name}
-              </span>
-              {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
+              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
+              {item.badge && !sidebarCollapsed && (
+                <span
+                  className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                    item.badge === 'New'
+                      ? 'bg-green-100 text-green-800'
+                      : item.badge === 'Beta'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {item.badge}
+                </span>
+              )}
             </Link>
           )}
         </li>
@@ -1049,7 +1069,7 @@ const SideNavigation: React.FC = () => {
           ) : item.name === 'Commercial Truck & Equipment Market' ? (
             <Link
               to={item.href}
-              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+              className={`flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                 item.current
                   ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -1059,12 +1079,24 @@ const SideNavigation: React.FC = () => {
               <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
                 {item.name}
               </span>
-              {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
+              {item.badge && !sidebarCollapsed && (
+                <span
+                  className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                    item.badge === 'New'
+                      ? 'bg-green-100 text-green-800'
+                      : item.badge === 'Beta'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {item.badge}
+                </span>
+              )}
             </Link>
           ) : (
             <Link
               to={href}
-              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+              className={`flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                 item.current
                   ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -1210,9 +1242,7 @@ const SideNavigation: React.FC = () => {
                                     }
                                   }}
                                   className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                                    subItem.current
-                                      ? 'bg-primary-50'
-                                      : 'hover:bg-gray-50'
+                                    subItem.current ? 'bg-primary-50' : 'hover:bg-gray-50'
                                   }`}
                                   title={subItem.name}
                                 >
@@ -1225,9 +1255,7 @@ const SideNavigation: React.FC = () => {
                                 <Link
                                   to={subItem.href}
                                   className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                                    subItem.current
-                                      ? 'bg-primary-50'
-                                      : 'hover:bg-gray-50'
+                                    subItem.current ? 'bg-primary-50' : 'hover:bg-gray-50'
                                   }`}
                                   title={subItem.name}
                                   onClick={e => {
@@ -1369,43 +1397,4 @@ const SideNavigation: React.FC = () => {
                     ) : item.name === 'Commercial Truck & Equipment Market' ? (
                       <Link
                         to={item.href}
-                        className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                          item.current
-                            ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                      >
-                        <span className="mr-3">{item.icon(item.current)}</span>
-                        <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                          {item.name}
-                        </span>
-                        {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
-                      </Link>
-                    ) : (
-                      <Link
-                        to={item.href}
-                        className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                          item.current
-                            ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                      >
-                        <span className="mr-3">{item.icon(item.current)}</span>
-                        <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                          {item.name}
-                        </span>
-                        {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
-                      </Link>
-                    )}
-                  </li>
-                ))
-              )}
-            </nav>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default SideNavigation;
+                        className={`

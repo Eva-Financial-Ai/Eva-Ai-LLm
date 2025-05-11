@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import ViewSwitcher from './common/ViewSwitcher';
+import React from 'react';
 
 interface DemoModeSwitcherPanelProps {
   onUserTypeChange: (userType: string) => void;
@@ -10,36 +9,6 @@ const DemoModeSwitcherPanel: React.FC<DemoModeSwitcherPanelProps> = ({
   onUserTypeChange,
   currentUserType,
 }) => {
-  const userTypeOptions = [
-    { id: 'borrower', label: 'Business (Borrower)', value: 'borrower' },
-    { id: 'vendor', label: 'Vendor (Asset Seller)', value: 'vendor' },
-    { id: 'broker', label: 'Broker/Originator', value: 'broker' },
-    { id: 'lender', label: 'Lender/Lessor', value: 'lender' },
-    { id: 'investor', label: 'Investor (Coming Soon)', value: 'investor', disabled: true },
-    {
-      id: 'commercial-bank',
-      label: 'Commercial Bank (Coming Soon)',
-      value: 'commercial-bank',
-      disabled: true,
-    },
-    {
-      id: 'investment-bank',
-      label: 'Investment Bank (Coming Soon)',
-      value: 'investment-bank',
-      disabled: true,
-    },
-    {
-      id: 'insurance',
-      label: 'Insurance Provider (Coming Soon)',
-      value: 'insurance',
-      disabled: true,
-    },
-  ];
-
-  const handleUserTypeChange = (value: string) => {
-    onUserTypeChange(value);
-  };
-
   return (
     <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
       <div className="flex flex-col md:flex-row items-center">
@@ -60,20 +29,52 @@ const DemoModeSwitcherPanel: React.FC<DemoModeSwitcherPanelProps> = ({
           <span className="text-sm font-medium text-blue-700">Demo Mode: Switch User Type</span>
         </div>
 
-        <div className="w-full md:w-64">
-          <ViewSwitcher
-            options={userTypeOptions}
-            selectedOption={currentUserType}
-            onChange={handleUserTypeChange}
-            label=""
-            className="w-full"
-          />
+        <div className="md:ml-auto space-y-2 md:space-y-0 flex flex-col md:flex-row md:space-x-3">
+          <button
+            onClick={() => onUserTypeChange('borrower')}
+            className={`px-3 py-2 rounded-md text-sm ${
+              currentUserType === 'borrower'
+                ? 'bg-blue-600 text-white font-medium'
+                : 'bg-white border border-blue-300 text-blue-600 hover:bg-blue-50'
+            }`}
+          >
+            Business (Borrower)
+          </button>
+          <button
+            onClick={() => onUserTypeChange('vendor')}
+            className={`px-3 py-2 rounded-md text-sm ${
+              currentUserType === 'vendor'
+                ? 'bg-blue-600 text-white font-medium'
+                : 'bg-white border border-blue-300 text-blue-600 hover:bg-blue-50'
+            }`}
+          >
+            Vendor (Asset Seller)
+          </button>
+          <button
+            onClick={() => onUserTypeChange('broker')}
+            className={`px-3 py-2 rounded-md text-sm ${
+              currentUserType === 'broker'
+                ? 'bg-blue-600 text-white font-medium'
+                : 'bg-white border border-blue-300 text-blue-600 hover:bg-blue-50'
+            }`}
+          >
+            Broker/Originator
+          </button>
+          <button
+            onClick={() => onUserTypeChange('lender')}
+            className={`px-3 py-2 rounded-md text-sm ${
+              currentUserType === 'lender'
+                ? 'bg-blue-600 text-white font-medium'
+                : 'bg-white border border-blue-300 text-blue-600 hover:bg-blue-50'
+            }`}
+          >
+            Lender/Lessor
+          </button>
         </div>
       </div>
-
       <p className="text-xs text-blue-600 mt-2">
-        Each user type represents a different stakeholder in the credit origination process. Switch
-        between them to see customized dashboards and workflows.
+        Each user type represents a different stakeholder in the credit origination process.
+        Switch between them to see customized dashboards and workflows.
       </p>
     </div>
   );

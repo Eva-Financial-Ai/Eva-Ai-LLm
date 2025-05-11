@@ -4,7 +4,7 @@ import PageLayout from '../components/layout/PageLayout';
 
 const AutoOriginationsPage: React.FC = () => {
   return (
-    <PageLayout title="Auto Originations">
+    <PageLayout title="Auto Originations" showBackButton={true} backPath="/credit-application">
       <div className="flex-grow overflow-hidden">
         <AutoOriginationsDashboard />
       </div>

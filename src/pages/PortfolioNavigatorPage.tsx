@@ -6,6 +6,7 @@ import { Asset, AssetClass, PortfolioUserRole, VerificationStatus } from '../typ
 import { AssetCardGrid } from '../components/blockchain/AssetCardGrid';
 import TopNavigation from '../components/layout/TopNavigation';
 import { v4 as uuidv4 } from 'uuid';
+import { Link } from 'react-router-dom';
 
 // Define the AssetClassNames mapping
 const AssetClassNames: Record<AssetClass, string> = {
@@ -231,6 +232,7 @@ const getOwnerName = (): string => {
   return names[Math.floor(Math.random() * names.length)];
 };
 
+// Component that shows a dashboard/overview of all portfolio assets
 export const PortfolioNavigatorPage: React.FC = () => {
   const { userType } = useUserType();
   const { userRole } = React.useContext(UserContext);
@@ -250,6 +252,12 @@ export const PortfolioNavigatorPage: React.FC = () => {
       marketUpdates: false,
     },
   });
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [totalValue, setTotalValue] = useState(0);
+  const [verifiedValue, setVerifiedValue] = useState(0);
+  const [pendingValue, setPendingValue] = useState(0);
+  const [unverifiedValue, setUnverifiedValue] = useState(0);
 
   // Map user type to portfolio role
   useEffect(() => {
@@ -286,6 +294,53 @@ export const PortfolioNavigatorPage: React.FC = () => {
       }
     }
   }, [userType, userRole]);
+
+  // Load mock data
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Generate mock assets
+      const mockAssets = generateMockAssets();
+      setAssets(mockAssets);
+      
+      // Calculate portfolio totals
+      calculatePortfolioTotals(mockAssets);
+      
+      setIsLoading(false);
+    };
+    
+    loadData();
+  }, []);
+
+  // Calculate portfolio value totals
+  const calculatePortfolioTotals = (assets: Asset[]) => {
+    let total = 0;
+    let verified = 0;
+    let pending = 0;
+    let unverified = 0;
+    
+    assets.forEach(asset => {
+      const value = asset.financialData.marketValue;
+      total += value;
+      
+      if (asset.blockchainVerification?.status === VerificationStatus.VERIFIED) {
+        verified += value;
+      } else if (asset.blockchainVerification?.status === VerificationStatus.PENDING) {
+        pending += value;
+      } else {
+        unverified += value;
+      }
+    });
+    
+    setTotalValue(total);
+    setVerifiedValue(verified);
+    setPendingValue(pending);
+    setUnverifiedValue(unverified);
+  };
 
   // Format currency
   const formatCurrency = (value: number) => {
@@ -376,396 +431,134 @@ export const PortfolioNavigatorPage: React.FC = () => {
     };
   }, [mockAssets]);
 
+  // Show loading spinner if data is still loading
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        <span className="ml-4 text-lg text-gray-700">Loading Portfolio Navigator...</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-8">
       <TopNavigation title="Portfolio Navigator" />
 
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Portfolio Navigator</h1>
-            <p className="text-gray-600">Manage and analyze your asset portfolio</p>
-          </div>
-
-          <div className="mt-4 md:mt-0 flex items-center">
-            {/* Add Asset Button */}
-            <button
-              onClick={() => setShowNewAssetModal(true)}
-              className="mr-3 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 flex items-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              Add Asset
-            </button>
-
-            <div className="inline-flex rounded-md shadow-sm">
-              <button
-                onClick={() => setActiveTab('assets')}
-                className={`px-4 py-2 text-sm font-medium rounded-l-md ${
-                  activeTab === 'assets'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                Assets
-              </button>
-              <button
-                onClick={() => setActiveTab('analytics')}
-                className={`px-4 py-2 text-sm font-medium ${
-                  activeTab === 'analytics'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                Analytics
-              </button>
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`px-4 py-2 text-sm font-medium rounded-r-md ${
-                  activeTab === 'settings'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                Settings
-              </button>
-            </div>
-          </div>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Portfolio Navigator</h1>
+          <p className="text-gray-600">Manage and analyze your asset portfolio</p>
         </div>
-
-        {/* Display role-based view message */}
-        <div className="bg-blue-50 p-4 mb-6 rounded-lg border border-blue-200">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3 flex-1 md:flex md:justify-between">
-              <p className="text-sm text-blue-700">
-                You are viewing this portfolio as a{' '}
-                <span className="font-bold">
-                  {portfolioRole === PortfolioUserRole.OWNER
-                    ? 'Portfolio Owner'
-                    : portfolioRole === PortfolioUserRole.MANAGER
-                      ? 'Portfolio Manager'
-                      : portfolioRole === PortfolioUserRole.SERVICER
-                        ? 'Asset Servicer'
-                        : 'Vendor'}
-                </span>
-                .
-                {portfolioRole === PortfolioUserRole.OWNER &&
-                  ' You have full access to manage and verify all assets.'}
-                {portfolioRole === PortfolioUserRole.MANAGER &&
-                  ' You can manage portfolio composition and initiate verification.'}
-                {portfolioRole === PortfolioUserRole.SERVICER &&
-                  ' You can view and verify serviceable assets.'}
-                {portfolioRole === PortfolioUserRole.VENDOR &&
-                  ' You have limited view access to certain asset classes.'}
-              </p>
-            </div>
-          </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setShowNewAssetModal(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Asset
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
+          >
+            Settings
+          </button>
         </div>
+      </div>
 
-        {/* Portfolio Summary */}
-        {activeTab === 'assets' && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500">Total Portfolio Value</h3>
-                <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(portfolioSummary.totalValue)}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {portfolioSummary.assetCount} total assets
-                </p>
+      <div className="p-4 bg-blue-50 rounded-lg mb-8">
+        <p className="text-blue-700">
+          <svg className="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          You are viewing this portfolio as a <strong>Portfolio Owner</strong>. You have full access to manage and verify all assets.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-lg text-gray-500 font-medium">Total Portfolio Value</h2>
+          <p className="text-3xl font-bold text-gray-900">{formatCurrency(totalValue)}</p>
+          <p className="text-sm text-gray-600">{assets.length} total assets</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-lg text-gray-500 font-medium">Verified Assets</h2>
+          <p className="text-3xl font-bold text-green-600">{formatCurrency(verifiedValue)}</p>
+          <p className="text-sm text-gray-600">{assets.filter(a => a.blockchainVerification?.status === VerificationStatus.VERIFIED).length} assets on Shield Ledger</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-lg text-gray-500 font-medium">Pending Verification</h2>
+          <p className="text-3xl font-bold text-yellow-600">{formatCurrency(pendingValue)}</p>
+          <p className="text-sm text-gray-600">{assets.filter(a => a.blockchainVerification?.status === VerificationStatus.PENDING).length} assets in process</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-lg text-gray-500 font-medium">Unverified Assets</h2>
+          <p className="text-3xl font-bold text-gray-600">{formatCurrency(unverifiedValue)}</p>
+          <p className="text-sm text-gray-600">{assets.filter(a => a.blockchainVerification?.status === VerificationStatus.UNVERIFIED).length} assets need verification</p>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-900">All Portfolio Assets</h2>
+        <div className="flex">
+          <button className="px-3 py-1 bg-white border border-gray-300 text-gray-700 rounded-l hover:bg-gray-50">
+            All Asset Classes
+          </button>
+          <button className="px-3 py-1 bg-white border-t border-b border-gray-300 text-gray-700 hover:bg-gray-50">
+            Value: High to Low
+          </button>
+          <button className="px-3 py-1 bg-white border border-gray-300 text-gray-700 rounded-r hover:bg-gray-50">
+            Filters
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {assets.map(asset => (
+          <div key={asset.id} className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="p-5">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-lg font-medium text-gray-900">{asset.name}</h3>
+                <div className={`px-2 py-1 rounded text-xs font-medium 
+                  ${asset.blockchainVerification?.status === VerificationStatus.VERIFIED 
+                    ? 'bg-green-100 text-green-800' 
+                    : asset.blockchainVerification?.status === VerificationStatus.PENDING 
+                      ? 'bg-yellow-100 text-yellow-800' 
+                      : 'bg-gray-100 text-gray-800'}`}>
+                  {asset.blockchainVerification?.status || 'UNVERIFIED'}
+                </div>
               </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500">Verified Assets</h3>
-                <p className="text-2xl font-bold text-green-600">
-                  {formatCurrency(portfolioSummary.verifiedValue)}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {portfolioSummary.verifiedCount} assets on Shield Ledger
-                </p>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500">Pending Verification</h3>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {formatCurrency(portfolioSummary.pendingValue)}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {portfolioSummary.pendingCount} assets in process
-                </p>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500">Unverified Assets</h3>
-                <p className="text-2xl font-bold text-gray-600">
-                  {formatCurrency(portfolioSummary.unverifiedValue)}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {portfolioSummary.unverifiedCount} assets need verification
-                </p>
-              </div>
-            </div>
-
-            {/* Asset Grid Component */}
-            <AssetCardGrid
-              assets={mockAssets}
-              onSelectAsset={handleSelectAsset}
-              portfolioRole={portfolioRole}
-            />
-
-            {/* Floating Add Asset Button for Mobile */}
-            <div className="md:hidden fixed bottom-6 right-6">
-              <button
-                onClick={() => setShowNewAssetModal(true)}
-                className="h-14 w-14 rounded-full bg-primary-600 text-white shadow-lg flex items-center justify-center hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* Analytics Tab */}
-        {activeTab === 'analytics' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500">Average Performance</h3>
-                <p
-                  className={`text-2xl font-bold ${performanceMetrics.averagePerformance > 0 ? 'text-green-600' : 'text-red-600'}`}
-                >
-                  {performanceMetrics.averagePerformance > 0 ? '+' : ''}
-                  {performanceMetrics.averagePerformance.toFixed(2)}%
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Portfolio average</p>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500">Positive Performers</h3>
-                <p className="text-2xl font-bold text-green-600">
-                  {performanceMetrics.positivePerformerCount}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {performanceMetrics.positivePerformerPercentage.toFixed(1)}% of portfolio
-                </p>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500">Verification Rate</h3>
-                <p className="text-2xl font-bold text-blue-600">
-                  {((portfolioSummary.verifiedCount / portfolioSummary.assetCount) * 100).toFixed(
-                    1
-                  )}
-                  %
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Assets verified on blockchain</p>
+              <p className="text-gray-500 text-sm mb-3">{asset.assetClass} • {asset.assetSubclass || 'General'}</p>
+              <div className="flex justify-between items-end">
+                <div>
+                  <p className="text-xs text-gray-500">Market Value</p>
+                  <p className="text-xl font-bold text-gray-900">{formatCurrency(asset.financialData.marketValue)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">Performance</p>
+                  <p className={`text-sm font-medium ${(asset.performance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {(asset.performance || 0) >= 0 ? '+' : ''}{(asset.performance || 0).toFixed(1)}%
+                  </p>
+                </div>
               </div>
             </div>
-
-            <div className="mt-8 p-6 bg-gray-50 rounded-lg text-center">
-              <svg
-                className="h-16 w-16 text-gray-400 mx-auto"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
-                Advanced analytics coming soon
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Our team is building more powerful analytics tools for your portfolio.
-              </p>
-              <button
-                onClick={() => setShowNewAssetModal(true)}
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-                Add New Asset
-              </button>
+            <div className="bg-gray-50 px-5 py-3 border-t border-gray-200 flex justify-between">
+              <div className="flex items-center">
+                <span className="text-xs text-gray-500 mr-2">Risk:</span>
+                <span className={`text-xs font-medium ${
+                  asset.risk === 'Low' ? 'text-green-600' : 
+                  asset.risk === 'Medium' ? 'text-yellow-600' : 'text-red-600'
+                }`}>{asset.risk}</span>
+              </div>
+              <Link to="/portfolio-wallet" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                Manage
+              </Link>
             </div>
           </div>
-        )}
-
-        {/* Settings Tab */}
-        {activeTab === 'settings' && (
-          <div className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="text-lg font-medium mb-4">Portfolio Settings</h3>
-              <p className="text-gray-600 mb-4">
-                Configure your portfolio settings and preferences.
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Default currency
-                  </label>
-                  <select
-                    className="block w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    value={portfolioSettings.currency}
-                    onChange={e => handleSettingChange('currency', e.target.value)}
-                  >
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
-                    <option value="JPY">JPY</option>
-                    <option value="CAD">CAD</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Risk tolerance
-                  </label>
-                  <select
-                    className="block w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    value={portfolioSettings.riskTolerance}
-                    onChange={e => handleSettingChange('riskTolerance', e.target.value)}
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Target return
-                  </label>
-                  <div className="flex items-center">
-                    <input
-                      type="number"
-                      className="block w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                      placeholder="8.5"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={portfolioSettings.targetReturn}
-                      onChange={e =>
-                        handleSettingChange('targetReturn', parseFloat(e.target.value))
-                      }
-                    />
-                    <span className="ml-2">%</span>
-                  </div>
-                </div>
-              </div>
-
-              <h3 className="text-lg font-medium mt-8 mb-4">Notifications</h3>
-
-              <div className="space-y-3">
-                <div className="flex items-center">
-                  <input
-                    id="performance-alerts"
-                    type="checkbox"
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    checked={portfolioSettings.notifications.performanceAlerts}
-                    onChange={e =>
-                      handleSettingChange('notifications.performanceAlerts', e.target.checked)
-                    }
-                  />
-                  <label htmlFor="performance-alerts" className="ml-2 block text-sm text-gray-700">
-                    Performance alerts
-                  </label>
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    id="risk-level-changes"
-                    type="checkbox"
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    checked={portfolioSettings.notifications.riskLevelChanges}
-                    onChange={e =>
-                      handleSettingChange('notifications.riskLevelChanges', e.target.checked)
-                    }
-                  />
-                  <label htmlFor="risk-level-changes" className="ml-2 block text-sm text-gray-700">
-                    Risk level changes
-                  </label>
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    id="market-updates"
-                    type="checkbox"
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    checked={portfolioSettings.notifications.marketUpdates}
-                    onChange={e =>
-                      handleSettingChange('notifications.marketUpdates', e.target.checked)
-                    }
-                  />
-                  <label htmlFor="market-updates" className="ml-2 block text-sm text-gray-700">
-                    Market updates
-                  </label>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={handleSaveSettings}
-                  type="button"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                >
-                  Save Settings
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        ))}
       </div>
 
       {/* Asset Details Modal */}

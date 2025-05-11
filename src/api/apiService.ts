@@ -5,6 +5,9 @@ import axiosRetry from 'axios-retry';
 // @ts-ignore
 import { setupCache } from 'axios-cache-interceptor';
 
+// NOTE: This service connects to the eva-platform-backend repository
+// which is now maintained separately from the frontend codebase.
+
 type AxiosRetryConfig = {
   retries?: number;
   retryDelay?: (retryCount: number) => number;
@@ -28,7 +31,7 @@ type CachedAxiosInstance = any & {
   };
 };
 
-// API base URL
+// API base URL - points to the separate backend service
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
 // Request timeout in milliseconds

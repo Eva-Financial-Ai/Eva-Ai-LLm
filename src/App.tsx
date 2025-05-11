@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { WorkflowProvider } from './contexts/WorkflowContext';
 import { RiskConfigProvider } from './contexts/RiskConfigContext';
@@ -13,6 +13,7 @@ import SmartMatching from './components/SmartMatching';
 import { PQCryptographyProvider } from './components/security/PQCryptographyProvider';
 import { UserContext } from './contexts/UserContext';
 import ChatWidget from './components/communications/ChatWidget';
+import useEnvValidation from './hooks/useEnvValidation';
 
 // Import Portfolio Navigator Page
 import { PortfolioNavigatorPage } from './pages/PortfolioNavigatorPage';
@@ -27,7 +28,60 @@ import TransactionExecutionPage from './pages/TransactionExecutionPage';
 // Define user role type
 type AppUserRole = 'borrower' | 'lender' | 'admin' | 'broker' | 'vendor' | '';
 
+// Environment Error Component
+const EnvironmentError: React.FC<{ missingVars: string[] }> = ({ missingVars }) => (
+  <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+    <div className="max-w-md p-6 bg-white rounded-lg shadow-lg">
+      <div className="flex items-center mb-4 text-red-600">
+        <svg className="w-8 h-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <h2 className="text-xl font-bold">Configuration Error</h2>
+      </div>
+      
+      <p className="mb-4 text-gray-700">
+        The application is missing required environment variables and cannot start properly:
+      </p>
+      
+      <ul className="mb-4 ml-5 list-disc text-red-600">
+        {missingVars.map(variable => (
+          <li key={variable}>{variable}</li>
+        ))}
+      </ul>
+      
+      <p className="text-sm text-gray-600">
+        Please check your environment configuration and restart the application.
+      </p>
+      
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-4 p-3 bg-gray-100 rounded text-sm text-gray-700">
+          <p className="font-medium">Development Info:</p>
+          <p>Create or update the <code className="px-1 bg-gray-200 rounded">.env.local</code> file with the missing variables.</p>
+        </div>
+      )}
+    </div>
+  </div>
+);
+
 function App() {
+  // Force set environment variables in development mode
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      if (!process.env.REACT_APP_AUTH_DOMAIN) {
+        (process.env as any).REACT_APP_AUTH_DOMAIN = 'eva-platform.us.auth0.com';
+      }
+      if (!process.env.REACT_APP_AUTH_CLIENT_ID) {
+        (process.env as any).REACT_APP_AUTH_CLIENT_ID = 'EVAPlatformAuth2023';
+      }
+      if (!process.env.REACT_APP_ENVIRONMENT) {
+        (process.env as any).REACT_APP_ENVIRONMENT = 'development';
+      }
+    }
+  }, []);
+
+  // Validate environment variables
+  const { isValid, missingVars, isLoading } = useEnvValidation();
+  
   const [showSmartMatching, setShowSmartMatching] = useState(false);
   const [showDataOrchestrator, setShowDataOrchestrator] = useState(false);
   const [showDocVerification, setShowDocVerification] = useState(false);
@@ -36,6 +90,26 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState('light');
   const [userRole, setUserRole] = useState<AppUserRole>('lender');
+
+  // Use UserContext values directly rather than duplicating state
+  const userContext = useContext(UserContext);
+
+  // If environment validation is still loading, show a loading screen
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto border-t-4 border-b-4 border-primary-600 rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-700">Loading application configuration...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If environment validation failed, show an error
+  if (!isValid && process.env.NODE_ENV === 'production') {
+    return <EnvironmentError missingVars={missingVars} />;
+  }
 
   // Toggle tool visibility
   const toggleTool = (tool: string) => {
@@ -72,95 +146,66 @@ function App() {
     return 'lender';
   };
 
+  // Override environment validation for development mode
+  const overriddenIsValid = process.env.NODE_ENV === 'development' ? true : isValid;
+  const overriddenMissingVars = process.env.NODE_ENV === 'development' ? [] : missingVars;
+
   return (
     <AuthProvider>
-      <UserContext.Provider
-        value={{
-          userRole,
-          showSmartMatching,
-          setShowSmartMatching,
-          showDataOrchestrator,
-          setShowDataOrchestrator,
-          showDocVerification,
-          setShowDocVerification,
-          showCreditAnalysis,
-          setShowCreditAnalysis,
-          showAILifecycleAssistant,
-          setShowAILifecycleAssistant,
-          toggleTool,
-          sidebarCollapsed,
-          setSidebarCollapsed,
-          theme,
-          setTheme,
-          isPQCAuthenticated: true, // Default to true for now
-          setPQCAuthenticated: () => {}, // No-op
-          isAuthenticated: true, // Use AuthContext now instead
-          setIsAuthenticated: () => {}, // No-op
-          userName: '', // Use AuthContext
-          setUserName: () => {}, // No-op
-          userId: '', // Use AuthContext
-          setUserId: () => {}, // No-op
-          userProfileImage: '/avatars/default-avatar.png',
-          setUserProfileImage: () => {}, // No-op
-        }}
-      >
-        <PQCryptographyProvider>
-          <RiskConfigProvider>
-            <UserTypeProvider>
-              <Router>
-                <WorkflowProvider>
-                  <div className={`app ${theme} text-sm`}>
-                    <div className="min-h-screen bg-gray-100">
-                      <div className="flex h-screen overflow-hidden">
-                        <SideNavigation />
-                        <div
-                          className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-14' : 'ml-72'}`}
-                        >
-                          <Navbar />
-                          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4">
-                            <LoadableRouter />
+      <RiskConfigProvider>
+        <UserTypeProvider>
+          <Router>
+            <WorkflowProvider>
+              <div className={`app ${userContext.theme} text-sm`}>
+                <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+                  <div className="flex h-screen overflow-hidden">
+                    <SideNavigation />
+                    <div
+                      className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${userContext.sidebarCollapsed ? 'ml-14' : 'ml-72'}`}
+                    >
+                      <Navbar />
+                      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900 p-4">
+                        <LoadableRouter />
 
-                            {/* Chat widgets */}
-                            <div className="fixed bottom-4 right-4 flex flex-col space-y-4 z-40">
-                              <ChatWidget
-                                mode="communications"
-                                initialPosition={{ x: 24, y: -240 }}
-                                zIndexBase={50}
-                              />
-                              <ChatWidget
-                                mode="eva"
-                                initialPosition={{ x: 24, y: 0 }}
-                                zIndexBase={45}
-                              />
-                            </div>
-                          </main>
-
-                          {/* Smart Matching Component */}
-                          {showSmartMatching && (
-                            <SmartMatching
-                              isOpen={showSmartMatching}
-                              onClose={() => setShowSmartMatching(false)}
-                              userRole={getSmartMatchingUserRole(userRole)}
-                            />
-                          )}
-
-                          {/* AI Lifecycle Assistant Component */}
-                          {showAILifecycleAssistant && (
-                            <AILifecycleAssistant
-                              isOpen={showAILifecycleAssistant}
-                              onClose={() => setShowAILifecycleAssistant(false)}
-                            />
-                          )}
+                        {/* Chat widgets */}
+                        <div className="fixed bottom-4 right-4 flex flex-col space-y-4 z-40">
+                          <ChatWidget
+                            mode="communications"
+                            initialPosition={{ x: 24, y: -240 }}
+                            zIndexBase={50}
+                          />
+                          <ChatWidget
+                            mode="eva"
+                            initialPosition={{ x: 24, y: 0 }}
+                            zIndexBase={45}
+                          />
                         </div>
-                      </div>
+                      </main>
+
+                      {/* Smart Matching Component */}
+                      {showSmartMatching && (
+                        <SmartMatching
+                          isOpen={showSmartMatching}
+                          onClose={() => setShowSmartMatching(false)}
+                          userRole={getSmartMatchingUserRole(userRole)}
+                        />
+                      )}
+
+                      {/* AI Lifecycle Assistant Component */}
+                      {showAILifecycleAssistant && (
+                        <AILifecycleAssistant
+                          isOpen={showAILifecycleAssistant}
+                          onClose={() => setShowAILifecycleAssistant(false)}
+                        />
+                      )}
                     </div>
                   </div>
-                </WorkflowProvider>
-              </Router>
-            </UserTypeProvider>
-          </RiskConfigProvider>
-        </PQCryptographyProvider>
-      </UserContext.Provider>
+                </div>
+              </div>
+            </WorkflowProvider>
+          </Router>
+        </UserTypeProvider>
+      </RiskConfigProvider>
     </AuthProvider>
   );
 }
