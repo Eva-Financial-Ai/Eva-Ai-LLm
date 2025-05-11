@@ -1,0 +1,323 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "EVA Platform Transaction Decisions API",
+    "description": "API for managing transaction decisions in the EVA Platform",
+    "version": "1.0.0",
+    "contact": {
+      "name": "EVA Platform Support",
+      "email": "support@evaplatform.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.evaplatform.com/v1",
+      "description": "Production API Server"
+    },
+    {
+      "url": "https://api-staging.evaplatform.com/v1",
+      "description": "Staging API Server"
+    },
+    {
+      "url": "https://localhost:3003",
+      "description": "Local Development"
+    }
+  ],
+  "tags": [
+    {
+      "name": "transactions",
+      "description": "Transaction operations"
+    },
+    {
+      "name": "decisions",
+      "description": "Decision engine operations"
+    }
+  ],
+  "paths": {
+    "/transactions": {
+      "get": {
+        "tags": ["transactions"],
+        "summary": "List all transactions",
+        "description": "Returns a list of transactions",
+        "operationId": "listTransactions",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by transaction status",
+            "schema": {
+              "type": "string",
+              "enum": ["pending", "approved", "rejected", "completed"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of transactions to return",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Transaction"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status value"
+          }
+        }
+      },
+      "post": {
+        "tags": ["transactions"],
+        "summary": "Create a new transaction",
+        "description": "Creates a new transaction in the system",
+        "operationId": "createTransaction",
+        "requestBody": {
+          "description": "Transaction object to be created",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Transaction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transaction created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/transactions/{transactionId}": {
+      "get": {
+        "tags": ["transactions"],
+        "summary": "Find transaction by ID",
+        "description": "Returns a single transaction",
+        "operationId": "getTransactionById",
+        "parameters": [
+          {
+            "name": "transactionId",
+            "in": "path",
+            "description": "ID of transaction to return",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Transaction not found"
+          }
+        }
+      }
+    },
+    "/decisions": {
+      "post": {
+        "tags": ["decisions"],
+        "summary": "Request a decision for a transaction",
+        "description": "Submits transaction data to the decision engine and returns a decision",
+        "operationId": "requestDecision",
+        "requestBody": {
+          "description": "Decision request data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Decision returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Decision"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Transaction": {
+        "type": "object",
+        "required": [
+          "amount",
+          "currency",
+          "borrowerId"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true,
+            "description": "Unique identifier for the transaction"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double",
+            "description": "Transaction amount"
+          },
+          "currency": {
+            "type": "string",
+            "description": "Transaction currency code (ISO 4217)",
+            "example": "USD"
+          },
+          "status": {
+            "type": "string",
+            "description": "Transaction status",
+            "enum": ["pending", "approved", "rejected", "completed"],
+            "default": "pending"
+          },
+          "borrowerId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the borrower"
+          },
+          "lenderId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the lender"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "description": "Transaction creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "description": "Transaction last update timestamp"
+          }
+        }
+      },
+      "DecisionRequest": {
+        "type": "object",
+        "required": [
+          "transactionId",
+          "borrowerData"
+        ],
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the transaction requiring a decision"
+          },
+          "borrowerData": {
+            "type": "object",
+            "description": "Borrower information for decision making",
+            "properties": {
+              "creditScore": {
+                "type": "integer",
+                "description": "Borrower's credit score"
+              },
+              "annualIncome": {
+                "type": "number",
+                "description": "Borrower's annual income"
+              },
+              "debtToIncomeRatio": {
+                "type": "number",
+                "description": "Borrower's debt-to-income ratio"
+              }
+            }
+          }
+        }
+      },
+      "Decision": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the evaluated transaction"
+          },
+          "decision": {
+            "type": "string",
+            "enum": ["approved", "rejected", "manual_review"],
+            "description": "Decision result"
+          },
+          "score": {
+            "type": "number",
+            "format": "float",
+            "description": "Risk score (0-100, higher is less risky)"
+          },
+          "reasons": {
+            "type": "array",
+            "description": "Reasons for the decision",
+            "items": {
+              "type": "string"
+            }
+          },
+          "suggestedTerms": {
+            "type": "object",
+            "description": "Suggested terms if approved",
+            "properties": {
+              "interestRate": {
+                "type": "number",
+                "description": "Suggested interest rate"
+              },
+              "term": {
+                "type": "integer",
+                "description": "Suggested term in months"
+              },
+              "maxAmount": {
+                "type": "number",
+                "description": "Maximum suggested amount"
+              }
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the decision was made"
+          }
+        }
+      }
+    }
+  }
+} 

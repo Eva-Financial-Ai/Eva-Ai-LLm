@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="140" height="30" viewBox="0 0 140 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- E -->
+  <path d="M22.5 5H9V25H22.5" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- V -->
+  <path d="M30 5L40 25L50 5" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- A -->
+  <path d="M57.5 5L67.5 25" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M57.5 5L47.5 25" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M51.5 17.5H63.5" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- F -->
+  <path d="M72.5 5H90" stroke="#777777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M72.5 15H85" stroke="#777777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M72.5 5V25" stroke="#777777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- I -->
+  <path d="M97.5 5V25" stroke="#777777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- N -->
+  <path d="M107.5 5V25" stroke="#777777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M107.5 5L122.5 25" stroke="#777777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M137.5 5V25" stroke="#777777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg> 

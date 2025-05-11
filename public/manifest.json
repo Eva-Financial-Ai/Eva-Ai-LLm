@@ -1,0 +1,51 @@
+{
+  "short_name": "EVAFIN",
+  "name": "EVAFIN Agentic Broker System",
+  "icons": [
+    {
+      "src": "eva-favicon.svg",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icons/logo192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/logo512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#4338ca",
+  "background_color": "#ffffff",
+  "description": "AI-powered financial services platform",
+  "categories": ["finance", "business", "productivity"],
+  "screenshots": [
+    {
+      "src": "screenshots/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    },
+    {
+      "src": "screenshots/credit-application.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/",
+      "icons": [{ "src": "shortcuts/dashboard.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Credit Application",
+      "url": "/credit-application",
+      "icons": [{ "src": "shortcuts/credit.png", "sizes": "96x96" }]
+    }
+  ]
+} 

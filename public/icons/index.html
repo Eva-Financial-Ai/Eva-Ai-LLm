@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVA Platform - Logo Preview</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background-color: #f9fafb;
+    }
+    h1 {
+      color: #4338ca;
+      border-bottom: 2px solid #4338ca;
+      padding-bottom: 0.5rem;
+    }
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+    .icon-card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+    .icon-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .icon-display {
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 150px;
+    }
+    .icon-display img, .icon-display svg {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .icon-info {
+      text-align: center;
+    }
+    .icon-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .icon-meta {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    .dark-bg {
+      background-color: #1f2937;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    .logo-section {
+      margin-bottom: 3rem;
+    }
+    .logo-row {
+      display: flex;
+      gap: 2rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>EVA Platform - Logo & Icon Preview</h1>
+  
+  <section class="logo-section">
+    <h2>Primary Logo</h2>
+    <div class="logo-row">
+      <div>
+        <h3>Full Color</h3>
+        <img src="/eva-logo.svg" alt="EVA Logo" style="height: 100px;">
+      </div>
+      <div class="dark-bg">
+        <h3 style="color: white;">On Dark Background</h3>
+        <img src="/eva-logo.svg" alt="EVA Logo" style="height: 100px;">
+      </div>
+    </div>
+  </section>
+
+  <section class="logo-section">
+    <h2>App Icons</h2>
+    <div class="icon-grid">
+      <div class="icon-card">
+        <div class="icon-display">
+          <img src="/icons/favicon.svg" alt="Favicon">
+        </div>
+        <div class="icon-info">
+          <div class="icon-title">Favicon</div>
+          <div class="icon-meta">SVG - Vector Format</div>
+        </div>
+      </div>
+      
+      <div class="icon-card">
+        <div class="icon-display">
+          <img src="/icons/logo192.svg" alt="App Icon - 192px">
+        </div>
+        <div class="icon-info">
+          <div class="icon-title">App Icon - 192px</div>
+          <div class="icon-meta">SVG - Vector Format</div>
+        </div>
+      </div>
+      
+      <div class="icon-card">
+        <div class="icon-display">
+          <img src="/icons/logo512.svg" alt="App Icon - 512px">
+        </div>
+        <div class="icon-info">
+          <div class="icon-title">App Icon - 512px</div>
+          <div class="icon-meta">SVG - Vector Format</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="text-align: center; margin-top: 3rem; color: #6b7280; font-size: 0.875rem;">
+    <p>EVA Platform - 2023 | Smarter Credit for Everyone</p>
+  </footer>
+</body>
+</html> 

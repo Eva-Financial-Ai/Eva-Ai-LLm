@@ -285,7 +285,17 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
             New Folder
           </button>
 
-          <label className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer">
+          <input
+            type="file"
+            id="file-upload"
+            className="hidden"
+            multiple
+            onChange={e => e.target.files && onUpload(e.target.files)}
+          />
+          <button
+            onClick={() => document.getElementById('file-upload')?.click()}
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
             <svg
               className="-ml-1 mr-1 h-4 w-4 text-gray-500"
               fill="currentColor"
@@ -298,13 +308,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
               />
             </svg>
             Upload
-            <input
-              type="file"
-              className="hidden"
-              multiple
-              onChange={e => e.target.files && onUpload(e.target.files)}
-            />
-          </label>
+          </button>
 
           {/* Cloud Storage Import Button */}
           <button

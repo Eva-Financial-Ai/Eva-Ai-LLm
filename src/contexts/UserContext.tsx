@@ -3,6 +3,9 @@ import React, { createContext, useState, useEffect } from 'react';
 // Define user role type
 export type AppUserRole = 'borrower' | 'lender' | 'admin' | 'broker' | 'vendor' | '';
 
+// Define color scheme type
+export type ColorScheme = 'light' | 'dark' | 'system';
+
 // Define UserContext interface
 export interface UserContextType {
   userRole: AppUserRole;
@@ -22,6 +25,10 @@ export interface UserContextType {
   setSidebarCollapsed: (collapsed: boolean) => void;
   theme: string;
   setTheme: (theme: string) => void;
+  colorScheme: ColorScheme;
+  setColorScheme: (scheme: ColorScheme) => void;
+  highContrast: boolean;
+  setHighContrast: (enabled: boolean) => void;
   isPQCAuthenticated: boolean;
   setPQCAuthenticated: (authenticated: boolean) => void;
   isAuthenticated: boolean;
@@ -71,6 +78,14 @@ export const UserContext = createContext<UserContextType>({
   setTheme: (theme: string) => {
     /* Implementation not needed for default context */
   },
+  colorScheme: 'light',
+  setColorScheme: (scheme: ColorScheme) => {
+    /* Implementation not needed for default context */
+  },
+  highContrast: false,
+  setHighContrast: (enabled: boolean) => {
+    /* Implementation not needed for default context */
+  },
   isPQCAuthenticated: false,
   setPQCAuthenticated: (authenticated: boolean) => {
     /* Implementation not needed for default context */
@@ -107,10 +122,23 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [showCreditAnalysis, setShowCreditAnalysis] = useState(false);
   const [showAILifecycleAssistant, setShowAILifecycleAssistant] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  // Enhanced theme management
   const [theme, setTheme] = useState(() => {
     // Get theme from localStorage or default to 'light'
     const savedTheme = localStorage.getItem('theme');
     return savedTheme || 'light';
+  });
+  
+  const [colorScheme, setColorScheme] = useState<ColorScheme>(() => {
+    // Get color scheme from localStorage or default to 'light'
+    const savedScheme = localStorage.getItem('colorScheme') as ColorScheme;
+    return savedScheme || 'light';
+  });
+  
+  const [highContrast, setHighContrast] = useState(() => {
+    // Get high contrast setting from localStorage or default to false
+    return localStorage.getItem('highContrast') === 'true';
   });
 
   // Check for authentication on mount
@@ -122,6 +150,8 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const storedUserId = localStorage.getItem('userId');
     const storedUserProfileImage = localStorage.getItem('userProfileImage');
     const storedTheme = localStorage.getItem('theme');
+    const storedColorScheme = localStorage.getItem('colorScheme');
+    const storedHighContrast = localStorage.getItem('highContrast');
 
     if (storedAuth === 'true' && storedUserName) {
       setIsAuthenticated(true);
@@ -149,12 +179,24 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     // Apply theme from localStorage if available
     if (storedTheme) {
       setTheme(storedTheme);
-      // Apply theme to document
-      if (storedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+    }
+    
+    // Apply color scheme
+    if (storedColorScheme) {
+      setColorScheme(storedColorScheme as ColorScheme);
+    }
+    
+    // Apply high contrast
+    if (storedHighContrast) {
+      setHighContrast(storedHighContrast === 'true');
+    }
+    
+    // Check for system color scheme preference
+    if (colorScheme === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyThemeToDocument(prefersDark ? 'dark' : 'light', highContrast);
+    } else {
+      applyThemeToDocument(colorScheme, highContrast);
     }
 
     // Check for PQC authentication
@@ -164,15 +206,45 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, []);
 
-  // Apply theme changes to document
-  useEffect(() => {
-    if (theme === 'dark') {
+  // Function to apply theme to document
+  const applyThemeToDocument = (mode: string, isHighContrast: boolean) => {
+    if (mode === 'dark') {
       document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
     }
+    
+    if (isHighContrast) {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
+  };
+
+  // Apply theme changes to document
+  useEffect(() => {
+    if (colorScheme === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyThemeToDocument(prefersDark ? 'dark' : 'light', highContrast);
+      
+      // Listen for system theme changes
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handler = (e: MediaQueryListEvent) => {
+        applyThemeToDocument(e.matches ? 'dark' : 'light', highContrast);
+      };
+      
+      mediaQuery.addEventListener('change', handler);
+      return () => mediaQuery.removeEventListener('change', handler);
+    } else {
+      applyThemeToDocument(colorScheme, highContrast);
+    }
+    
     localStorage.setItem('theme', theme);
-  }, [theme]);
+    localStorage.setItem('colorScheme', colorScheme);
+    localStorage.setItem('highContrast', highContrast.toString());
+  }, [theme, colorScheme, highContrast]);
 
   // Modified setUserRole function that persists to localStorage
   const handleSetUserRole = (role: AppUserRole) => {
@@ -235,6 +307,10 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setSidebarCollapsed,
         theme,
         setTheme,
+        colorScheme,
+        setColorScheme,
+        highContrast,
+        setHighContrast,
         isPQCAuthenticated,
         setPQCAuthenticated,
         isAuthenticated,

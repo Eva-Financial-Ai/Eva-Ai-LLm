@@ -11,6 +11,7 @@ import LenderPaymentInstructions from './LenderPaymentInstructions';
 import BrokerCommissionSplit from './BrokerCommissionSplit';
 import LenderCommissionSplit from './LenderCommissionSplit';
 import NYCALenderDisclosure from './NYCALenderDisclosure';
+import SafeForms from '../SafeForms';
 
 export {
   CreditApplication,
@@ -27,3 +28,5 @@ export {
   LenderCommissionSplit,
   NYCALenderDisclosure,
 };
+
+export default SafeForms;

@@ -710,7 +710,7 @@ const Sidebar: React.FC = () => {
       >
         <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center">
-            <img src="/logo.svg" alt="EVA" className="h-8 w-auto" />
+            <img src="/eva-logo.svg" alt="EVAFIN" className="h-8 w-auto" />
             {!isSidebarActuallyCollapsed && (
               <>
                 <span className="ml-2.5 text-lg font-bold text-primary-600">EVA</span>

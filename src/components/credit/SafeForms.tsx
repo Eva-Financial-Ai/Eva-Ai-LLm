@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formTemplates, FormTemplate } from './SafeForms/FormTemplates';
 
 // Add interface for business and owner data
 interface BusinessProfile {
@@ -44,21 +45,13 @@ interface FormOption {
   forUserTypes: string[];
 }
 
-interface FormTemplate {
-  id: string;
-  name: string;
-  description: string;
-  formType: string;
-  data: Record<string, string>;
-}
-
 const SafeForms: React.FC<SafeFormsProps> = ({
   userType,
   requestMode = false,
   onApplicationFormSelected,
 }) => {
   const [selectedForm, setSelectedForm] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<Record<string, any>>({});
   const [businessProfiles, setBusinessProfiles] = useState<BusinessProfile[]>([]);
   const [ownerProfiles, setOwnerProfiles] = useState<OwnerProfile[]>([]);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
@@ -90,117 +83,6 @@ const SafeForms: React.FC<SafeFormsProps> = ({
       name: 'General Credit Application',
       description: 'General credit application for all purposes',
       forUserTypes: ['borrower', 'broker', 'lender', 'admin'],
-    },
-  ];
-
-  // Available form templates - in a real app, this would come from an API
-  const formTemplates: FormTemplate[] = [
-    {
-      id: 'equipment_finance_template_1',
-      name: 'Construction Equipment Finance',
-      description: 'Template for construction companies financing heavy equipment',
-      formType: 'equipment_finance',
-      data: {
-        businessName: 'ABC Construction',
-        businessType: 'Corporation',
-        taxId: '12-3456789',
-        yearEstablished: '2010',
-        contactFirstName: 'John',
-        contactLastName: 'Smith',
-        contactTitle: 'CEO',
-        contactPhone: '(555) 123-4567',
-        contactEmail: 'john@abcconstruction.com',
-        streetAddress: '123 Builder Ave',
-        city: 'Construction City',
-        state: 'CA',
-        zipCode: '90210',
-        equipmentType: 'Excavator',
-        equipmentCost: '250000',
-        downPayment: '50000',
-        loanTerm: '60',
-        equipmentDescription: 'CAT 320 Excavator with extended warranty',
-      },
-    },
-    {
-      id: 'equipment_finance_template_2',
-      name: 'Medical Equipment Finance',
-      description: 'Template for healthcare providers financing medical equipment',
-      formType: 'equipment_finance',
-      data: {
-        businessName: 'City Medical Center',
-        businessType: 'Non-Profit',
-        taxId: '45-6789123',
-        yearEstablished: '1995',
-        contactFirstName: 'Sarah',
-        contactLastName: 'Johnson',
-        contactTitle: 'CFO',
-        contactPhone: '(555) 987-6543',
-        contactEmail: 'sarah@citymedical.org',
-        streetAddress: '456 Health Blvd',
-        city: 'Wellness',
-        state: 'NY',
-        zipCode: '10001',
-        equipmentType: 'Imaging System',
-        equipmentCost: '500000',
-        downPayment: '100000',
-        loanTerm: '72',
-        equipmentDescription: 'Full digital imaging system with 5-year service agreement',
-      },
-    },
-    {
-      id: 'working_capital_template_1',
-      name: 'Retail Working Capital',
-      description: 'Template for retail businesses seeking working capital',
-      formType: 'working_capital',
-      data: {
-        businessName: 'Fashion First Boutique',
-        businessType: 'LLC',
-        taxId: '78-9123456',
-        yearEstablished: '2018',
-        contactFirstName: 'Emily',
-        contactLastName: 'Brown',
-        contactTitle: 'Owner',
-        contactPhone: '(555) 456-7890',
-        contactEmail: 'emily@fashionfirst.com',
-        streetAddress: '789 Retail Row',
-        city: 'Style',
-        state: 'FL',
-        zipCode: '33101',
-        loanAmount: '75000',
-        purposeOfFunds: 'Inventory purchase for holiday season',
-        currentMonthlyRevenue: '35000',
-        timeInBusiness: '4',
-      },
-    },
-    {
-      id: 'commercial_real_estate_template_1',
-      name: 'Office Building Purchase',
-      description: 'Template for office building acquisition',
-      formType: 'commercial_real_estate',
-      data: {
-        businessName: 'Tech Innovations LLC',
-        businessType: 'LLC',
-        taxId: '98-7654321',
-        yearEstablished: '2015',
-        contactFirstName: 'Michael',
-        contactLastName: 'Wilson',
-        contactTitle: 'Managing Partner',
-        contactPhone: '(555) 789-0123',
-        contactEmail: 'michael@techinnovations.com',
-        streetAddress: '101 Tech Blvd',
-        city: 'Innovation',
-        state: 'CA',
-        zipCode: '94105',
-        propertyAddress: '200 Office Park Drive',
-        propertyCity: 'Innovation',
-        propertyState: 'CA',
-        propertyZipCode: '94105',
-        purchasePrice: '1200000',
-        downPayment: '300000',
-        loanTerm: '240',
-        propertyType: 'Office',
-        propertySquareFeet: '5000',
-      },
     },
   ];
 
@@ -319,14 +201,11 @@ const SafeForms: React.FC<SafeFormsProps> = ({
 
   // Handle form selection
   const handleFormSelect = (formId: string) => {
-    const selectedFormName = availableForms.find(form => form.id === formId)?.name || '';
     setSelectedForm(formId);
-    console.log(`Selected form: ${formId}, ${selectedFormName}`);
-
-    // When a form is selected, pass it up to the parent component
-    if (onApplicationFormSelected && selectedFormName) {
-      onApplicationFormSelected(selectedFormName);
-    }
+    setShowTemplates(true);
+    
+    // Reset form data when switching forms
+    setFormData({});
   };
 
   const handleInputChange = (
@@ -355,16 +234,47 @@ const SafeForms: React.FC<SafeFormsProps> = ({
 
   // Handle loading a template
   const handleLoadTemplate = (templateId: string) => {
-    const template = formTemplates.find(t => t.id === templateId);
-    if (template) {
-      setSelectedForm(template.formType);
-      setFormData(template.data);
+    // Find the template across all form type arrays
+    let foundTemplate: FormTemplate | undefined;
+    
+    // Get all templates from each form type
+    Object.values(formTemplates).forEach(templatesArray => {
+      const template = templatesArray.find(t => t.id === templateId);
+      if (template) {
+        foundTemplate = template;
+      }
+    });
+    
+    if (foundTemplate) {
+      setSelectedForm(foundTemplate.formType);
+      setFormData(foundTemplate.data);
       setShowTemplates(false);
 
       // If there's a callback, call it with the form name
-      const formName = availableForms.find(form => form.id === template.formType)?.name;
+      const formType = foundTemplate.formType;
+      const formName = availableForms.find(form => form.id === formType)?.name;
       if (onApplicationFormSelected && formName) {
         onApplicationFormSelected(formName);
+      }
+    }
+  };
+
+  // Handle template selection
+  const handleTemplateSelect = (formType: string, templateId: string) => {
+    // Find the selected template from the imported formTemplates
+    const templates = formTemplates[formType];
+    if (!templates) return;
+    
+    const template = templates.find(t => t.id === templateId);
+    
+    if (template) {
+      // Load the template data
+      setFormData(template.data);
+      setShowTemplates(false);
+      
+      // If callback provided, notify parent component
+      if (onApplicationFormSelected) {
+        onApplicationFormSelected(template.name);
       }
     }
   };
@@ -394,43 +304,168 @@ const SafeForms: React.FC<SafeFormsProps> = ({
 
   // Render form selection UI with improved click handling
   const renderFormSelection = () => (
-    <div>
-      <h2 className="text-xl font-medium text-gray-900 mb-4">Select Application Form</h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredForms.map(form => (
-          <div
-            key={form.id}
-            className={`border rounded-lg p-4 cursor-pointer ${
-              selectedForm === form.id
-                ? 'border-primary-500 bg-primary-50'
-                : 'border-gray-200 hover:border-primary-300'
-            }`}
-            onClick={() => handleFormSelect(form.id)}
+    <div className="space-y-6">
+      <h3 className="text-xl font-medium text-gray-900 mb-4">Safe Forms Templates</h3>
+      <p className="text-gray-600 mb-6">Select a form template to get started</p>
+      
+      <div className="mb-6">
+        <h4 className="text-lg font-medium text-gray-700 mb-4">View templates as:</h4>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => {}} // Filter by user type
+            className="px-4 py-2 bg-blue-600 text-white rounded-md"
           >
-            <div className="flex items-center">
-              <input
-                type="radio"
-                name="formSelection"
-                id={form.id}
-                checked={selectedForm === form.id}
-                onChange={() => handleFormSelect(form.id)}
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-              />
-              <label
-                htmlFor={form.id}
-                className="ml-3 flex flex-col cursor-pointer w-full"
-                onClick={e => {
-                  e.preventDefault(); // Prevent default to ensure the click is handled properly
-                  handleFormSelect(form.id);
-                }}
-              >
-                <span className="block text-sm font-medium text-gray-900">{form.name}</span>
-                <span className="block text-sm text-gray-500">{form.description}</span>
-              </label>
+            Borrower
+          </button>
+          <button
+            onClick={() => {}} // Filter by user type
+            className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Broker
+          </button>
+          <button
+            onClick={() => {}} // Filter by user type
+            className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Lender
+          </button>
+          <button
+            onClick={() => {}} // Filter by user type
+            className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Vendor
+          </button>
+        </div>
+        <p className="text-sm text-gray-600 mt-3">Showing templates available for Borrower users</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Credit Application */}
+        <div 
+          className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all cursor-pointer"
+          onClick={() => handleFormSelect('credit-application')}
+        >
+          <div className="flex items-start mb-4">
+            <div className="flex-shrink-0 mr-4 text-blue-500">
+              <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">Credit Application</h3>
+              <p className="text-sm text-gray-600 mt-1">Standard credit application form</p>
             </div>
           </div>
-        ))}
+        </div>
+        
+        {/* Additional Owner (Individual) */}
+        <div 
+          className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all cursor-pointer"
+          onClick={() => handleFormSelect('additional-owner-individual')}
+        >
+          <div className="flex items-start mb-4">
+            <div className="flex-shrink-0 mr-4 text-blue-500">
+              <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">Additional Owner (Individual)</h3>
+              <p className="text-sm text-gray-600 mt-1">Form for additional individual owners</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Additional Owner (Business) */}
+        <div 
+          className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all cursor-pointer"
+          onClick={() => handleFormSelect('additional-owner-business')}
+        >
+          <div className="flex items-start mb-4">
+            <div className="flex-shrink-0 mr-4 text-blue-500">
+              <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2a1 1 0 00-1-1H7a1 1 0 00-1 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">Additional Owner (Business)</h3>
+              <p className="text-sm text-gray-600 mt-1">Form for business entity owners</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Additional Owner (Trust) */}
+        <div 
+          className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all cursor-pointer"
+          onClick={() => handleFormSelect('additional-owner-trust')}
+        >
+          <div className="flex items-start mb-4">
+            <div className="flex-shrink-0 mr-4 text-blue-500">
+              <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">Additional Owner (Trust)</h3>
+              <p className="text-sm text-gray-600 mt-1">Form for trust entity owners</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Business Debt Schedule */}
+        <div 
+          className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all cursor-pointer"
+          onClick={() => handleFormSelect('business-debt-schedule')}
+        >
+          <div className="flex items-start mb-4">
+            <div className="flex-shrink-0 mr-4 text-blue-500">
+              <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">Business Debt Schedule</h3>
+              <p className="text-sm text-gray-600 mt-1">Table template for business debt</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Personal Finance Statement */}
+        <div 
+          className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all cursor-pointer"
+          onClick={() => handleFormSelect('personal-finance-statement')}
+        >
+          <div className="flex items-start mb-4">
+            <div className="flex-shrink-0 mr-4 text-blue-500">
+              <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V8a2 2 0 00-2-2h-5L9 4H4zm7 5a1 1 0 10-2 0v1H8a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">Personal Finance Statement</h3>
+              <p className="text-sm text-gray-600 mt-1">SBA Form 413 compliant template</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Asset Ledger */}
+        <div 
+          className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all cursor-pointer"
+          onClick={() => handleFormSelect('asset-ledger')}
+        >
+          <div className="flex items-start mb-4">
+            <div className="flex-shrink-0 mr-4 text-blue-500">
+              <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">Asset Ledger</h3>
+              <p className="text-sm text-gray-600 mt-1">Asset details verification table</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -943,32 +978,42 @@ const SafeForms: React.FC<SafeFormsProps> = ({
 
   // Render template selection
   const renderTemplateSelection = () => (
-    <div className="bg-white shadow-sm rounded-lg overflow-hidden mb-6">
-      <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900">Form Templates</h3>
-        <p className="mt-1 text-sm text-gray-600">
-          Select a template to quickly populate the form with sample data
-        </p>
+    <div className="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-medium text-gray-900">Select a Template</h3>
+        <button
+          onClick={() => setShowTemplates(false)}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
-      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {formTemplates
-          .filter(template => !selectedForm || template.formType === selectedForm)
-          .map(template => (
+      
+      {selectedForm && formTemplates[selectedForm] ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {formTemplates[selectedForm].map((template) => (
             <div
               key={template.id}
-              className="border border-gray-200 rounded-lg p-4 hover:border-primary-300 hover:bg-primary-50 cursor-pointer transition"
-              onClick={() => handleLoadTemplate(template.id)}
+              onClick={() => handleTemplateSelect(selectedForm, template.id)}
+              className="border border-gray-200 rounded-lg p-4 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all"
             >
-              <h4 className="font-medium text-gray-900">{template.name}</h4>
-              <p className="mt-1 text-sm text-gray-600">{template.description}</p>
-              <div className="mt-2">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                  {availableForms.find(form => form.id === template.formType)?.name}
-                </span>
-              </div>
+              <h4 className="text-lg font-medium text-gray-800 mb-2">{template.name}</h4>
+              <p className="text-sm text-gray-600 mb-3">{template.description}</p>
+              <button
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Use this template
+              </button>
             </div>
           ))}
-      </div>
+        </div>
+      ) : (
+        <div className="p-6 text-center">
+          <p className="text-gray-600">No templates available for this form type.</p>
+        </div>
+      )}
     </div>
   );
 

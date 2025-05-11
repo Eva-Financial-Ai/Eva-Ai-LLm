@@ -1,0 +1,38 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "creditApplication": "Credit Application",
+    "autoOriginations": "Auto Originations",
+    "riskAssessment": "Risk Assessment",
+    "documents": "Documents",
+    "deals": "Deals",
+    "transactions": "Transactions",
+    "settings": "Settings"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "profile": "Profile"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "submit": "Submit",
+    "approve": "Approve",
+    "reject": "Reject"
+  },
+  "forms": {
+    "required": "Required",
+    "optional": "Optional",
+    "invalidInput": "Invalid input"
+  },
+  "notifications": {
+    "success": "Success",
+    "error": "Error",
+    "info": "Information",
+    "warning": "Warning"
+  }
+} 

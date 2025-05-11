@@ -1,0 +1,38 @@
+{
+  "common": {
+    "dashboard": "Tableau de Bord",
+    "creditApplication": "Demande de Crédit",
+    "autoOriginations": "Originations Automatiques",
+    "riskAssessment": "Évaluation des Risques",
+    "documents": "Documents",
+    "deals": "Accords",
+    "transactions": "Transactions",
+    "settings": "Paramètres"
+  },
+  "auth": {
+    "signIn": "Connexion",
+    "signOut": "Déconnexion",
+    "profile": "Profil"
+  },
+  "actions": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "view": "Afficher",
+    "submit": "Soumettre",
+    "approve": "Approuver",
+    "reject": "Rejeter"
+  },
+  "forms": {
+    "required": "Obligatoire",
+    "optional": "Facultatif",
+    "invalidInput": "Entrée invalide"
+  },
+  "notifications": {
+    "success": "Succès",
+    "error": "Erreur",
+    "info": "Information",
+    "warning": "Avertissement"
+  }
+} 

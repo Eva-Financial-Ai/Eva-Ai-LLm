@@ -224,10 +224,11 @@ const OwnerManager: React.FC<OwnerManagerProps> = ({
 
   // Modal for adding a new owner
   const AddOwnerModal = () => {
-    if (!showAddOwnerModal) return null;
-    
+    // Move useState hooks outside the conditional rendering to follow React Hooks rules
     const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
     const [formErrors, setFormErrors] = useState<string[]>([]);
+    
+    if (!showAddOwnerModal) return null;
 
     const handleOwnerTypeChange = (type: 'individual' | 'business' | 'trust') => {
       setNewOwnerType(type);

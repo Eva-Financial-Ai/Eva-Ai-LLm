@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUserType } from '../../contexts/UserTypeContext';
 import { UserType } from '../../types/UserTypes';
+import { useTranslation } from 'react-i18next';
 
 interface NavigationItem {
   name: string;
@@ -19,31 +20,10 @@ const SideNavigation: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { userType } = useUserType();
-  // Initialize with Credit Application, Customer Retention, and other important sections open by default
-  const [expandedItems, setExpandedItems] = useState<string[]>([
-    'Credit Application',
-    'Customer Retention',
-    'Risk Map Navigator',
-    'Deal Structuring',
-    'Portfolio Navigator',
-    'Filelock Drive',
-  ]);
+  const { t } = useTranslation();
+  // Initialize with no items expanded by default
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  // Detect if we're on a submenu route and expand the parent menu automatically
-  useEffect(() => {
-    const currentPath = location.pathname;
-    const needsExpanding = navigation.filter(
-      item =>
-        item.children &&
-        item.children.some(child => currentPath.startsWith(child.href)) &&
-        !expandedItems.includes(item.name)
-    );
-
-    if (needsExpanding.length > 0) {
-      setExpandedItems([...expandedItems, ...needsExpanding.map(item => item.name)]);
-    }
-  }, [location.pathname]);
 
   const toggleItem = (name: string) => {
     if (expandedItems.includes(name)) {
@@ -76,10 +56,9 @@ const SideNavigation: React.FC = () => {
 
   const navigation: NavigationItem[] = [
     {
-      name: 'Dashboard',
+      name: t('common.dashboard'),
       href: '/',
       onClick: () => {
-        console.log('Navigating to Dashboard');
         navigate('/');
       },
       icon: active => (
@@ -101,10 +80,9 @@ const SideNavigation: React.FC = () => {
       current: location.pathname === '/' || location.pathname === '/dashboard',
     },
     {
-      name: 'Credit Application',
+      name: t('common.creditApplication'),
       href: '/credit-application',
       onClick: () => {
-        console.log('Navigating to Credit Application - DEBUG LOG');
         navigate('/credit-application');
       },
       icon: active => (
@@ -125,13 +103,12 @@ const SideNavigation: React.FC = () => {
       ),
       current:
         location.pathname === '/credit-application' || location.pathname === '/auto-originations',
-      isOpen: expandedItems.includes('Credit Application'),
+      isOpen: expandedItems.includes(t('common.creditApplication')),
       children: [
         {
-          name: 'Application Form',
+          name: t('common.applicationForm', 'Application Form'),
           href: '/credit-application',
           onClick: () => {
-            console.log('Navigating to Application Form - DEBUG LOG');
             navigate('/credit-application');
           },
           icon: active => (
@@ -153,10 +130,9 @@ const SideNavigation: React.FC = () => {
           current: location.pathname === '/credit-application',
         },
         {
-          name: 'Auto Originations',
+          name: t('common.autoOriginations'),
           href: '/auto-originations',
           onClick: () => {
-            console.log('Navigating to Auto Originations - DEBUG LOG');
             navigate('/auto-originations');
           },
           icon: active => (
@@ -183,7 +159,6 @@ const SideNavigation: React.FC = () => {
       name: 'Customer Retention',
       href: '/customer-retention',
       onClick: () => {
-        console.log('Navigating to Customer Retention - DEBUG LOG');
         navigate('/customer-retention');
       },
       icon: active => (
@@ -209,10 +184,9 @@ const SideNavigation: React.FC = () => {
       isOpen: expandedItems.includes('Customer Retention'),
       children: [
         {
-          name: 'Dashboard',
+          name: 'Overview',
           href: '/customer-retention',
           onClick: () => {
-            console.log('Navigating to Customer Retention Dashboard - DEBUG LOG');
             navigate('/customer-retention');
           },
           icon: active => (
@@ -237,7 +211,6 @@ const SideNavigation: React.FC = () => {
           name: 'Contacts',
           href: '/contacts',
           onClick: () => {
-            console.log('Navigating to Contacts - DEBUG LOG');
             navigate('/contacts');
           },
           icon: active => (
@@ -262,7 +235,6 @@ const SideNavigation: React.FC = () => {
           name: 'Commitments',
           href: '/commitments',
           onClick: () => {
-            console.log('Navigating to Commitments - DEBUG LOG');
             navigate('/commitments');
           },
           icon: active => (
@@ -289,7 +261,6 @@ const SideNavigation: React.FC = () => {
       name: 'Filelock Drive',
       href: '/documents',
       onClick: () => {
-        console.log('Navigating to Filelock Drive - DEBUG LOG');
         navigate('/documents');
       },
       icon: active => (
@@ -318,7 +289,6 @@ const SideNavigation: React.FC = () => {
           name: 'Document Management',
           href: '/documents',
           onClick: () => {
-            console.log('Navigating to Document Management - DEBUG LOG');
             navigate('/documents');
           },
           icon: active => (
@@ -343,7 +313,6 @@ const SideNavigation: React.FC = () => {
           name: 'Shield Vault',
           href: '/shield-vault',
           onClick: () => {
-            console.log('Navigating to Shield Vault - DEBUG LOG');
             navigate('/shield-vault');
           },
           icon: active => (
@@ -368,7 +337,6 @@ const SideNavigation: React.FC = () => {
           name: 'Safe Forms',
           href: '/forms',
           onClick: () => {
-            console.log('Navigating to Safe Forms - DEBUG LOG');
             navigate('/forms');
           },
           icon: active => (
@@ -395,7 +363,6 @@ const SideNavigation: React.FC = () => {
       name: 'Risk Map Navigator',
       href: '/risk-assessment',
       onClick: () => {
-        console.log('Navigating to Risk Assessment - DEBUG LOG');
         navigate('/risk-assessment/standard');
       },
       icon: active => (
@@ -423,7 +390,6 @@ const SideNavigation: React.FC = () => {
           name: 'Standard',
           href: '/risk-assessment/standard',
           onClick: () => {
-            console.log('Navigating to Standard Risk Assessment - DEBUG LOG');
             navigate('/risk-assessment/standard?tab=standard');
           },
           icon: active => (
@@ -451,7 +417,6 @@ const SideNavigation: React.FC = () => {
           name: 'Eva Risk Report',
           href: '/risk-assessment/report',
           onClick: () => {
-            console.log('Navigating to Eva Risk Report - DEBUG LOG');
             navigate('/risk-assessment/report?tab=report');
           },
           icon: active => (
@@ -476,7 +441,6 @@ const SideNavigation: React.FC = () => {
           name: 'RiskLab',
           href: '/risk-assessment/lab',
           onClick: () => {
-            console.log('Navigating to RiskLab - DEBUG LOG');
             navigate('/risk-assessment/lab?tab=lab');
           },
           icon: active => (
@@ -501,7 +465,6 @@ const SideNavigation: React.FC = () => {
           name: 'Eva Score',
           href: '/risk-assessment/score',
           onClick: () => {
-            console.log('Navigating to Eva Score - DEBUG LOG');
             navigate('/risk-assessment/score?tab=score');
           },
           icon: active => (
@@ -528,7 +491,6 @@ const SideNavigation: React.FC = () => {
       name: 'Deal Structuring',
       href: '/deal-structuring',
       onClick: () => {
-        console.log('Navigating to Deal Structuring - DEBUG LOG');
         navigate('/deal-structuring');
       },
       icon: active => (
@@ -554,7 +516,6 @@ const SideNavigation: React.FC = () => {
           name: 'Structure Editor',
           href: '/deal-structuring',
           onClick: () => {
-            console.log('Navigating to Structure Editor - DEBUG LOG');
             navigate('/deal-structuring');
           },
           icon: active => (
@@ -585,7 +546,6 @@ const SideNavigation: React.FC = () => {
           name: 'Smart Match',
           href: '/deal-structuring/smart-match',
           onClick: () => {
-            console.log('Navigating to Smart Match - DEBUG LOG');
             navigate('/deal-structuring/smart-match');
           },
           icon: active => (
@@ -611,7 +571,6 @@ const SideNavigation: React.FC = () => {
           name: 'Transaction Execution',
           href: '/transactions',
           onClick: () => {
-            console.log('Navigating to Transaction Execution - DEBUG LOG');
             navigate('/transactions');
           },
           icon: active => (
@@ -639,7 +598,6 @@ const SideNavigation: React.FC = () => {
       name: 'Asset Press',
       href: '/asset-press',
       onClick: () => {
-        console.log('Navigating to Asset Press - DEBUG LOG');
         navigate('/asset-press');
       },
       icon: active => (
@@ -666,7 +624,6 @@ const SideNavigation: React.FC = () => {
           name: 'Asset Press',
           href: '/asset-press',
           onClick: () => {
-            console.log('Navigating to Asset Press - DEBUG LOG');
             navigate('/asset-press');
           },
           icon: active => (
@@ -691,7 +648,6 @@ const SideNavigation: React.FC = () => {
           name: 'Asset Marketplace',
           href: '/asset-marketplace',
           onClick: () => {
-            console.log('Navigating to Asset Marketplace - DEBUG LOG');
             navigate('/asset-marketplace');
           },
           icon: active => (
@@ -718,8 +674,7 @@ const SideNavigation: React.FC = () => {
       name: 'Portfolio Navigator',
       href: '/portfolio-wallet',
       onClick: () => {
-        console.log('Navigating to Portfolio Navigator - DEBUG LOG');
-        navigate('/portfolio-wallet');
+        toggleItem('Portfolio Navigator'); // Toggle dropdown instead of navigation
       },
       icon: active => (
         <svg
@@ -733,12 +688,13 @@ const SideNavigation: React.FC = () => {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2M7 7h10"
           />
         </svg>
       ),
       current:
-        location.pathname === '/portfolio-wallet' || location.pathname === '/asset-portfolio',
+        location.pathname === '/portfolio-wallet' || 
+        location.pathname === '/asset-portfolio',
       isOpen: expandedItems.includes('Portfolio Navigator'),
       badge: 'Beta',
       children: [
@@ -746,7 +702,6 @@ const SideNavigation: React.FC = () => {
           name: 'Portfolio Wallet',
           href: '/portfolio-wallet',
           onClick: () => {
-            console.log('Navigating to Portfolio Wallet - DEBUG LOG');
             navigate('/portfolio-wallet');
           },
           icon: active => (
@@ -771,7 +726,6 @@ const SideNavigation: React.FC = () => {
           name: 'Asset Portfolio',
           href: '/asset-portfolio',
           onClick: () => {
-            console.log('Navigating to Asset Portfolio - DEBUG LOG');
             navigate('/asset-portfolio');
           },
           icon: active => (
@@ -910,19 +864,12 @@ const SideNavigation: React.FC = () => {
                     <li key={subItem.name} className="mt-1">
                       {subItem.onClick ? (
                         <button
-                          onClick={e => {
-                            e.preventDefault();
-                            console.log(`Collapsed View Child: Clicking ${subItem.name} - DEBUG`);
-                            if (subItem.onClick) {
-                              subItem.onClick();
-                            }
-                          }}
+                          onClick={subItem.onClick}
                           className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                             subItem.current
                               ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
                               : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                           }`}
-                          title={subItem.name}
                         >
                           <span className="mr-3">{subItem.icon(subItem.current)}</span>
                           <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
@@ -1018,7 +965,6 @@ const SideNavigation: React.FC = () => {
             <button
               onClick={e => {
                 e.preventDefault();
-                console.log(`Collapsed View: Clicking ${item.name} - DEBUG`);
                 if (item.onClick) {
                   item.onClick();
                 }
@@ -1130,234 +1076,119 @@ const SideNavigation: React.FC = () => {
   );
 
   return (
-    <div
-      className={`md:flex md:flex-shrink-0 relative transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:w-16' : 'md:w-56'}`}
-    >
-      <div className="flex flex-col h-full">
-        <div className="flex flex-col h-0 flex-1 bg-white border-r border-gray-200 relative">
-          {renderSidebarToggle()}
-          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <div
-              className={`flex items-center flex-shrink-0 px-4 mb-5 ${sidebarCollapsed ? 'justify-center' : ''}`}
-            >
-              {sidebarCollapsed ? (
-                <img className="h-8 w-8" src="/logo-icon.svg" alt="EVA Platform" />
-              ) : (
-                <img className="h-8 w-auto" src="/logo-full.svg" alt="EVA Platform Logo" />
-              )}
-            </div>
-            <nav className="flex-1 px-2 bg-white space-y-0">
-              {sidebarCollapsed ? (
-                // Collapsed view with visible sub-items
-                <ul className="space-y-1">
-                  {navigation.map(item => (
-                    <li key={item.name}>
-                      {item.onClick ? (
-                        <button
-                          onClick={e => {
-                            e.preventDefault();
-                            console.log(`Collapsed View: Clicking ${item.name} - DEBUG`);
-                            if (item.onClick) {
-                              item.onClick();
-                            }
-                          }}
-                          className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                            item.current ? 'bg-pink-50' : 'hover:bg-gray-50'
-                          }`}
-                          title={item.name}
-                        >
-                          {item.icon(item.current)}
-                          {item.badge && (
-                            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-                          )}
-                        </button>
-                      ) : (
-                        <Link
-                          to={item.href}
-                          className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                            item.current ? 'bg-pink-50' : 'hover:bg-gray-50'
-                          }`}
-                          title={item.name}
-                          onClick={e => {
-                            console.log(`Collapsed View (Link): Clicking ${item.name} - DEBUG`);
-                            if (item.onClick) {
+    <>
+      <nav
+        className={`fixed h-full bg-white dark:bg-gray-900 z-20 overflow-y-auto transition-all duration-300 border-r border-gray-200 dark:border-gray-800 ${
+          sidebarCollapsed ? 'w-14' : 'w-56'
+        }`}
+        style={{
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+        }}
+      >
+        <div className="flex flex-col h-full">
+          <div className="flex flex-col h-0 flex-1 bg-white border-r border-gray-200 relative">
+            {renderSidebarToggle()}
+            <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+              <div
+                className={`flex items-center flex-shrink-0 px-4 mb-5 ${sidebarCollapsed ? 'justify-center' : ''}`}
+              >
+                {sidebarCollapsed ? (
+                  <img className="h-8 w-8" src="/eva-favicon.svg" alt="EVA Platform" />
+                ) : (
+                  <img className="h-8 w-auto" src="/eva-logo.svg" alt="EVA Platform Logo" />
+                )}
+              </div>
+              <nav className="flex-1 px-2 bg-white space-y-0">
+                {sidebarCollapsed ? (
+                  // Collapsed view with visible sub-items
+                  <ul className="space-y-1">
+                    {navigation.map(item => (
+                      <li key={item.name}>
+                        {item.onClick ? (
+                          <button
+                            onClick={e => {
                               e.preventDefault();
-                              item.onClick();
-                            }
-                          }}
-                        >
-                          {item.icon(item.current)}
-                          {item.badge && (
-                            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-                          )}
-                        </Link>
-                      )}
-
-                      {/* Show children even when collapsed */}
-                      {item.children && expandedItems.includes(item.name) && (
-                        <ul className="pl-3 mt-1">
-                          {item.children.map(subItem => (
-                            <li key={subItem.name}>
-                              {subItem.onClick ? (
-                                <button
-                                  onClick={e => {
-                                    e.preventDefault();
-                                    console.log(
-                                      `Collapsed View Child: Clicking ${subItem.name} - DEBUG`
-                                    );
-                                    if (subItem.onClick) {
-                                      subItem.onClick();
-                                    }
-                                  }}
-                                  className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                                    subItem.current
-                                      ? 'bg-primary-50'
-                                      : 'hover:bg-gray-50'
-                                  }`}
-                                  title={subItem.name}
-                                >
-                                  {subItem.icon(subItem.current)}
-                                  {subItem.badge && (
-                                    <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-                                  )}
-                                </button>
-                              ) : (
-                                <Link
-                                  to={subItem.href}
-                                  className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                                    subItem.current
-                                      ? 'bg-primary-50'
-                                      : 'hover:bg-gray-50'
-                                  }`}
-                                  title={subItem.name}
-                                  onClick={e => {
-                                    console.log(
-                                      `Collapsed View Child (Link): Clicking ${subItem.name} - DEBUG`
-                                    );
-                                    if (subItem.onClick) {
-                                      e.preventDefault();
-                                      subItem.onClick();
-                                    }
-                                  }}
-                                >
-                                  {subItem.icon(subItem.current)}
-                                  {subItem.badge && (
-                                    <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-                                  )}
-                                </Link>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                // Regular expanded view
-                navigation.map(item => (
-                  <li key={item.name}>
-                    {item.children ? (
-                      <>
-                        <button
-                          onClick={() => toggleItem(item.name)}
-                          className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md ${
-                            item.current
-                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                        >
-                          <div className="flex items-center">
-                            <span className="mr-3">{item.icon(item.current)}</span>
-                            <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                              {item.name}
-                            </span>
-                            {item.badge && !sidebarCollapsed && (
-                              <span
-                                className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                  item.badge === 'New'
-                                    ? 'bg-green-100 text-green-800'
-                                    : item.badge === 'Beta'
-                                      ? 'bg-blue-100 text-blue-800'
-                                      : 'bg-amber-100 text-amber-800'
-                                }`}
-                              >
-                                {item.badge}
-                              </span>
-                            )}
-                          </div>
-                          <svg
-                            className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
-                              expandedItems.includes(item.name) ? 'rotate-90' : ''
+                              if (item.children && item.children.length) {
+                                toggleItem(item.name);
+                              } else if (item.onClick) {
+                                item.onClick();
+                              }
+                            }}
+                            className={`flex justify-center items-center p-2 my-1 rounded-md ${
+                              item.current ? 'bg-pink-50' : 'hover:bg-gray-50'
                             }`}
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
+                            title={item.name}
                           >
-                            <path
-                              fillRule="evenodd"
-                              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
-                        {expandedItems.includes(item.name) && (
-                          <ul className="mt-1 pl-4 space-y-1">
+                            {item.icon(item.current)}
+                            {item.badge && (
+                              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                            )}
+                          </button>
+                        ) : (
+                          <Link
+                            to={item.href}
+                            className={`flex justify-center items-center p-2 my-1 rounded-md ${
+                              item.current ? 'bg-pink-50' : 'hover:bg-gray-50'
+                            }`}
+                            title={item.name}
+                            onClick={e => {
+                              if (item.onClick) {
+                                e.preventDefault();
+                                item.onClick();
+                              }
+                            }}
+                          >
+                            {item.icon(item.current)}
+                            {item.badge && (
+                              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                            )}
+                          </Link>
+                        )}
+
+                        {/* Show children even when collapsed */}
+                        {item.children && expandedItems.includes(item.name) && (
+                          <ul className="pl-3 mt-1">
                             {item.children.map(subItem => (
-                              <li key={subItem.name} className="mt-1">
+                              <li key={subItem.name}>
                                 {subItem.onClick ? (
                                   <button
-                                    onClick={subItem.onClick}
-                                    className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                                    onClick={e => {
+                                      e.preventDefault();
+                                      if (subItem.onClick) {
+                                        subItem.onClick();
+                                      }
+                                    }}
+                                    className={`flex justify-center items-center p-2 my-1 rounded-md ${
                                       subItem.current
-                                        ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                        ? 'bg-primary-50'
+                                        : 'hover:bg-gray-50'
                                     }`}
+                                    title={subItem.name}
                                   >
-                                    <span className="mr-3">{subItem.icon(subItem.current)}</span>
-                                    <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                                      {subItem.name}
-                                    </span>
-                                    {subItem.badge && !sidebarCollapsed && (
-                                      <span
-                                        className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                          subItem.badge === 'New'
-                                            ? 'bg-green-100 text-green-800'
-                                            : subItem.badge === 'Beta'
-                                              ? 'bg-blue-100 text-blue-800'
-                                              : 'bg-amber-100 text-amber-800'
-                                        }`}
-                                      >
-                                        {subItem.badge}
-                                      </span>
+                                    {subItem.icon(subItem.current)}
+                                    {subItem.badge && (
+                                      <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
                                     )}
                                   </button>
                                 ) : (
                                   <Link
                                     to={subItem.href}
-                                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                                    className={`flex justify-center items-center p-2 my-1 rounded-md ${
                                       subItem.current
-                                        ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                        ? 'bg-primary-50'
+                                        : 'hover:bg-gray-50'
                                     }`}
+                                    title={subItem.name}
+                                    onClick={e => {
+                                      if (subItem.onClick) {
+                                        e.preventDefault();
+                                        subItem.onClick();
+                                      }
+                                    }}
                                   >
-                                    <span className="mr-3">{subItem.icon(subItem.current)}</span>
-                                    <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                                      {subItem.name}
-                                    </span>
-                                    {subItem.badge && !sidebarCollapsed && (
-                                      <span
-                                        className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                          subItem.badge === 'New'
-                                            ? 'bg-green-100 text-green-800'
-                                            : subItem.badge === 'Beta'
-                                              ? 'bg-blue-100 text-blue-800'
-                                              : 'bg-amber-100 text-amber-800'
-                                        }`}
-                                      >
-                                        {subItem.badge}
-                                      </span>
+                                    {subItem.icon(subItem.current)}
+                                    {subItem.badge && (
+                                      <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
                                     )}
                                   </Link>
                                 )}
@@ -1365,46 +1196,162 @@ const SideNavigation: React.FC = () => {
                             ))}
                           </ul>
                         )}
-                      </>
-                    ) : item.name === 'Commercial Truck & Equipment Market' ? (
-                      <Link
-                        to={item.href}
-                        className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                          item.current
-                            ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                      >
-                        <span className="mr-3">{item.icon(item.current)}</span>
-                        <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                          {item.name}
-                        </span>
-                        {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
-                      </Link>
-                    ) : (
-                      <Link
-                        to={item.href}
-                        className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                          item.current
-                            ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                      >
-                        <span className="mr-3">{item.icon(item.current)}</span>
-                        <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                          {item.name}
-                        </span>
-                        {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
-                      </Link>
-                    )}
-                  </li>
-                ))
-              )}
-            </nav>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  // Regular expanded view
+                  navigation.map(item => (
+                    <li key={item.name}>
+                      {item.children ? (
+                        <>
+                          <button
+                            onClick={() => toggleItem(item.name)}
+                            className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md ${
+                              item.current
+                                ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            }`}
+                          >
+                            <div className="flex items-center">
+                              <span className="mr-3">{item.icon(item.current)}</span>
+                              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                                {item.name}
+                              </span>
+                              {item.badge && !sidebarCollapsed && (
+                                <span
+                                  className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                                    item.badge === 'New'
+                                      ? 'bg-green-100 text-green-800'
+                                      : item.badge === 'Beta'
+                                        ? 'bg-blue-100 text-blue-800'
+                                        : 'bg-amber-100 text-amber-800'
+                                  }`}
+                                >
+                                  {item.badge}
+                                </span>
+                              )}
+                            </div>
+                            <svg
+                              className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
+                                expandedItems.includes(item.name) ? 'rotate-90' : ''
+                              }`}
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              aria-hidden="true"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                          {expandedItems.includes(item.name) && (
+                            <ul className="mt-1 pl-4 space-y-1">
+                              {item.children.map(subItem => (
+                                <li key={subItem.name} className="mt-1">
+                                  {subItem.onClick ? (
+                                    <button
+                                      onClick={subItem.onClick}
+                                      className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                                        subItem.current
+                                          ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                      }`}
+                                    >
+                                      <span className="mr-3">{subItem.icon(subItem.current)}</span>
+                                      <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                                        {subItem.name}
+                                      </span>
+                                      {subItem.badge && !sidebarCollapsed && (
+                                        <span
+                                          className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                                            subItem.badge === 'New'
+                                              ? 'bg-green-100 text-green-800'
+                                              : subItem.badge === 'Beta'
+                                                ? 'bg-blue-100 text-blue-800'
+                                                : 'bg-amber-100 text-amber-800'
+                                          }`}
+                                        >
+                                          {subItem.badge}
+                                        </span>
+                                      )}
+                                    </button>
+                                  ) : (
+                                    <Link
+                                      to={subItem.href}
+                                      className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                                        subItem.current
+                                          ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                      }`}
+                                    >
+                                      <span className="mr-3">{subItem.icon(subItem.current)}</span>
+                                      <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                                        {subItem.name}
+                                      </span>
+                                      {subItem.badge && !sidebarCollapsed && (
+                                        <span
+                                          className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                                            subItem.badge === 'New'
+                                              ? 'bg-green-100 text-green-800'
+                                              : subItem.badge === 'Beta'
+                                                ? 'bg-blue-100 text-blue-800'
+                                                : 'bg-amber-100 text-amber-800'
+                                          }`}
+                                        >
+                                          {subItem.badge}
+                                        </span>
+                                      )}
+                                    </Link>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      ) : item.name === 'Commercial Truck & Equipment Market' ? (
+                        <Link
+                          to={item.href}
+                          className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                            item.current
+                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
+                        >
+                          <span className="mr-3">{item.icon(item.current)}</span>
+                          <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                            {item.name}
+                          </span>
+                          {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
+                        </Link>
+                      ) : (
+                        <Link
+                          to={item.href}
+                          className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                            item.current
+                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
+                        >
+                          <span className="mr-3">{item.icon(item.current)}</span>
+                          <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                            {item.name}
+                          </span>
+                          {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
+                        </Link>
+                      )}
+                    </li>
+                  ))
+                )}
+              </nav>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </nav>
+    </>
   );
 };
 
