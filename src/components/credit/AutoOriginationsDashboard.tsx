@@ -860,19 +860,9 @@ const AutoOriginationsDashboard: React.FC = () => {
       </div>
       <div className="mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {userRole === 'lender'
-              ? 'Auto Originations Dashboard'
-              : userRole === 'vendor'
-                ? 'Vendor Equipment Financing Dashboard'
-                : userRole === 'broker'
-                  ? 'Broker Originations Dashboard'
-                  : 'Your Financing Dashboard'}
-          </h1>
-
           {/* Only show search and filters for lender and broker views */}
           {(userRole === 'lender' || userRole === 'broker') && (
-            <div className="mt-4 md:mt-0 flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
+            <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
               <div className="relative">
                 <input
                   type="text"

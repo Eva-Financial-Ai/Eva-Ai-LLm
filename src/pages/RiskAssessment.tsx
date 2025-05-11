@@ -352,7 +352,16 @@ const RiskAssessment: React.FC = () => {
   // Modal handlers
   const handleOrchestratorOpen = () => setShowDataOrchestrator(true);
   const handleOrchestratorClose = () => setShowDataOrchestrator(false);
-  const handleDocumentVerificationOpen = () => setShowDocumentVerification(true);
+  const handleDocumentVerificationOpen = () => {
+    // Dispatch an event to open the AI Chat with document verification prompt
+    const event = new CustomEvent('eva:ai:prompt', {
+      detail: { prompt: 'I need to verify documents for this transaction' },
+    });
+    window.dispatchEvent(event);
+
+    // No longer opening the modal
+    // setShowDocumentVerification(true);
+  };
   const handleDocumentVerificationClose = () => setShowDocumentVerification(false);
   const handleRiskMitigationOpen = () => setShowRiskMitigationStrategies(true);
   const handleRiskMitigationClose = () => setShowRiskMitigationStrategies(false);
@@ -635,14 +644,14 @@ const RiskAssessment: React.FC = () => {
     // First check for query parameter
     const queryParams = new URLSearchParams(location.search);
     const tabParam = queryParams.get('tab');
-    
+
     if (tabParam) {
       // If tab param exists, use it directly
       if (['standard', 'report', 'lab', 'score'].includes(tabParam)) {
         return tabParam as 'standard' | 'report' | 'lab' | 'score';
       }
     }
-    
+
     // Fall back to path-based determination
     if (path.includes('/risk-assessment/report')) return 'report';
     if (path.includes('/risk-assessment/lab')) return 'lab';
@@ -1462,13 +1471,14 @@ const RiskAssessment: React.FC = () => {
         />
       )}
 
-      {/* Document Verification Modal */}
+      {/* Document Verification Modal - REMOVED
       {showDocumentVerification && (
         <DocumentVerificationWrapper
           isOpen={showDocumentVerification}
           onClose={handleDocumentVerificationClose}
         />
       )}
+      */}
 
       {/* Risk Mitigation Modal */}
       {showRiskMitigationStrategies && (

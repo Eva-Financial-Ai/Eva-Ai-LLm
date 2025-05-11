@@ -7,6 +7,30 @@ interface FileChatPanelProps {
 }
 
 const FileChatPanel: React.FC<FileChatPanelProps> = ({ file, onClose }) => {
+  // Check if this is a cloud-imported file
+  const isCloudImported = file.tags?.some(
+    tag =>
+      tag.includes('Imported from google-drive') ||
+      tag.includes('Imported from onedrive') ||
+      tag.includes('Imported from icloud')
+  );
+
+  // Get the cloud source if it's a cloud-imported file
+  const getCloudSource = (): string | null => {
+    if (!isCloudImported || !file.tags) return null;
+
+    const importTag = file.tags.find(tag => tag.includes('Imported from'));
+    if (!importTag) return null;
+
+    if (importTag.includes('google-drive')) return 'Google Drive';
+    if (importTag.includes('onedrive')) return 'Microsoft OneDrive';
+    if (importTag.includes('icloud')) return 'Apple iCloud';
+
+    return null;
+  };
+
+  const cloudSource = getCloudSource();
+
   const [messages, setMessages] = useState<
     Array<{
       id: string;
@@ -17,7 +41,9 @@ const FileChatPanel: React.FC<FileChatPanelProps> = ({ file, onClose }) => {
   >([
     {
       id: 'welcome',
-      text: `Hello! I'm your AI assistant. I can help you understand and analyze the content of "${file.name}". What would you like to know about this file?`,
+      text: `Hello! I'm your AI assistant. I can help you understand and analyze the content of "${file.name}"${
+        cloudSource ? ` that was imported from ${cloudSource}` : ''
+      }. What would you like to know about this file?`,
       sender: 'ai',
       timestamp: new Date().toISOString(),
     },
@@ -55,11 +81,21 @@ const FileChatPanel: React.FC<FileChatPanelProps> = ({ file, onClose }) => {
       const fileType = file.type;
       let aiResponse = '';
 
+      // Handle cloud-specific questions
       if (
+        isCloudImported &&
+        (inputValue.toLowerCase().includes('cloud') ||
+          inputValue.toLowerCase().includes('import') ||
+          inputValue.toLowerCase().includes('source'))
+      ) {
+        aiResponse = `This file was imported from ${cloudSource}. I can analyze its contents just like any other file in your FileLock system. Is there something specific about the file you'd like to know?`;
+      } else if (
         inputValue.toLowerCase().includes('summary') ||
         inputValue.toLowerCase().includes('summarize')
       ) {
-        aiResponse = `Here's a summary of "${file.name}": This document appears to contain information related to a loan application. It includes sections on terms and conditions, applicant information, and financial details.`;
+        aiResponse = `Here's a summary of "${file.name}"${
+          cloudSource ? ` (imported from ${cloudSource})` : ''
+        }: This document appears to contain information related to a loan application. It includes sections on terms and conditions, applicant information, and financial details.`;
       } else if (
         inputValue.toLowerCase().includes('key points') ||
         inputValue.toLowerCase().includes('highlights')
@@ -110,6 +146,10 @@ const FileChatPanel: React.FC<FileChatPanelProps> = ({ file, onClose }) => {
               <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
               </svg>
+            ) : file.type === 'folder' ? (
+              <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+              </svg>
             ) : (
               <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
@@ -118,6 +158,9 @@ const FileChatPanel: React.FC<FileChatPanelProps> = ({ file, onClose }) => {
           </div>
           <div className="file-info">
             <h3 className="text-sm font-medium text-gray-700 truncate max-w-xs">{file.name}</h3>
+            {cloudSource && (
+              <span className="text-xs text-gray-500">Imported from {cloudSource}</span>
+            )}
           </div>
         </div>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600">

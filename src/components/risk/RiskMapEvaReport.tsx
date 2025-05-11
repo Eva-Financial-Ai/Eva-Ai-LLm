@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import useTransactionStore from '../../hooks/useTransactionStore';
+import { useRiskConfig, RiskConfigType } from '../../contexts/RiskConfigContext';
 
 type RiskCategory = 'character' | 'capacity' | 'collateral' | 'capital' | 'conditions' | 'credit';
 type CreditSectionView = 'all' | 'business' | 'owner';
@@ -161,6 +162,7 @@ export const RiskMapEvaReport: React.FC<RiskMapEvaReportProps> = ({
     error: storeError,
     fetchTransactions,
   } = useTransactionStore();
+  const { configType, loadConfigForType } = useRiskConfig();
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>('credit');
   const [selectedCreditView, setSelectedCreditView] = useState<CreditSectionView>('all');
   const [selectedRiskMapType, setSelectedRiskMapType] = useState<RiskMapType>(riskMapType);
@@ -573,6 +575,23 @@ export const RiskMapEvaReport: React.FC<RiskMapEvaReportProps> = ({
       setSelectedRiskMapType(riskMapType);
     }
   }, [riskMapType]);
+
+  // Update risk config type based on the risk map type
+  useEffect(() => {
+    // Map the riskMapType to a RiskConfigType
+    let newConfigType: RiskConfigType = 'general';
+
+    if (riskMapType === 'equipment') {
+      newConfigType = 'equipment_vehicles';
+    } else if (riskMapType === 'realestate') {
+      newConfigType = 'real_estate';
+    }
+
+    // Load the appropriate config if it's different
+    if (newConfigType !== configType) {
+      loadConfigForType(newConfigType);
+    }
+  }, [riskMapType, configType, loadConfigForType]);
 
   // Render the risk map type selector
   const renderRiskMapTypeSelector = () => {

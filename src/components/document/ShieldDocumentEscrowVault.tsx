@@ -160,7 +160,7 @@ const VirtualizedRow = React.memo<VirtualizedRowProps>(
         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
           {!isVerified && !lockStatus?.isLocked && (
             <button
-              className="text-green-600 hover:text-green-900 mr-3"
+              className="text-red-600 hover:text-red-900 mr-3"
               onClick={() => handleDocumentVerify(doc.id)}
             >
               Verify & Lock
@@ -274,7 +274,8 @@ const ShieldDocumentEscrowVault: React.FC<ShieldDocumentVaultProps> = ({
   instrumentType = 'lease',
   onUpdateDocuments,
 }) => {
-  const { userName } = useContext(UserContext);
+  const userContext = useContext(UserContext);
+  const userName = userContext?.userName || 'System User';
   const [lockedDocuments, setLockedDocuments] = useState<Record<string, DocumentLockStatus>>({});
   const [retentionPolicies, setRetentionPolicies] = useState<RetentionPolicy[]>([]);
   const [isLockingAll, setIsLockingAll] = useState(false);

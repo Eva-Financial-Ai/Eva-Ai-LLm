@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { useRiskConfig, RiskFactorWeight, RiskLevel } from '../../contexts/RiskConfigContext';
+import {
+  useRiskConfig,
+  RiskFactorWeight,
+  RiskLevel,
+  RiskConfigType,
+} from '../../contexts/RiskConfigContext';
 
 const RiskConfiguration: React.FC = () => {
   const {
@@ -12,6 +17,9 @@ const RiskConfiguration: React.FC = () => {
     riskAppetite,
     setRiskAppetite,
     riskAppetiteLevels,
+    configType,
+    setConfigType,
+    loadConfigForType,
     saveRiskConfiguration,
     resetToDefaults,
   } = useRiskConfig();
@@ -36,6 +44,12 @@ const RiskConfiguration: React.FC = () => {
       setRiskFactors(normalizedFactors);
     } else {
       setRiskFactors(updatedFactors);
+    }
+  };
+
+  const handleConfigTypeChange = (type: RiskConfigType) => {
+    if (type !== configType) {
+      loadConfigForType(type);
     }
   };
 
@@ -69,6 +83,18 @@ const RiskConfiguration: React.FC = () => {
 
   const currentRiskLevel = getCurrentRiskLevel();
 
+  // Function to get the title based on config type
+  const getConfigTitle = () => {
+    switch (configType) {
+      case 'real_estate':
+        return 'For Real Estate Credit App';
+      case 'equipment_vehicles':
+        return 'For Equipment & Vehicles Credit App';
+      default:
+        return 'General';
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Risk Configuration Header */}
@@ -91,9 +117,55 @@ const RiskConfiguration: React.FC = () => {
         </p>
       </div>
 
+      {/* Configuration Type Selector */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Risk Score And Report</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Depending on whether it's an equipment or a real estate loan, a 5th category will be added
+          based on the loan type.
+        </p>
+
+        <div className="flex flex-col md:flex-row gap-4 mt-4">
+          <div
+            className={`flex-1 rounded-lg p-4 text-center cursor-pointer border-2 transition-all ${
+              configType === 'general'
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
+            }`}
+            onClick={() => handleConfigTypeChange('general')}
+          >
+            <h4 className="font-semibold">General</h4>
+          </div>
+
+          <div
+            className={`flex-1 rounded-lg p-4 text-center cursor-pointer border-2 transition-all ${
+              configType === 'real_estate'
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
+            }`}
+            onClick={() => handleConfigTypeChange('real_estate')}
+          >
+            <h4 className="font-semibold">For Real Estate Credit App</h4>
+          </div>
+
+          <div
+            className={`flex-1 rounded-lg p-4 text-center cursor-pointer border-2 transition-all ${
+              configType === 'equipment_vehicles'
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
+            }`}
+            onClick={() => handleConfigTypeChange('equipment_vehicles')}
+          >
+            <h4 className="font-semibold">For Equipment & Vehicles Credit App</h4>
+          </div>
+        </div>
+      </div>
+
       {/* Risk Balance Weighting Tool */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Risk Balance Weighting Tool</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          Risk Balance Weighting Tool - {getConfigTitle()}
+        </h3>
         <p className="text-gray-600 mb-6">
           Adjust the relative importance of different risk factors in your assessment model. The
           total weight will automatically be normalized to 100%.
@@ -248,44 +320,17 @@ const RiskConfiguration: React.FC = () => {
       {/* Action Buttons */}
       <div className="flex justify-between">
         <button
-          className="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 shadow-sm"
           onClick={resetToDefaults}
+          className="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
         >
           Reset to Defaults
         </button>
-
         <button
-          className={`px-6 py-2 ${isSaving ? 'bg-gray-400' : 'bg-primary-600 hover:bg-primary-700'} text-white rounded-md shadow-sm flex items-center`}
           onClick={handleSaveConfiguration}
           disabled={isSaving}
+          className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
         >
-          {isSaving ? (
-            <>
-              <svg
-                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Saving...
-            </>
-          ) : (
-            'Save Configuration'
-          )}
+          {isSaving ? 'Saving...' : 'Save Configuration'}
         </button>
       </div>
     </div>

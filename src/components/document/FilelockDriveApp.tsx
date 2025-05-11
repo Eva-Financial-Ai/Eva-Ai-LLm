@@ -12,6 +12,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ShieldVaultDashboard from './ShieldVaultDashboard';
 import FileChatPanel from './FileChatPanel';
+import AIDocumentAssistant from './AIDocumentAssistant';
+import CloudStorageConnector from './CloudStorageConnector';
 
 // Types
 export interface FileItem {
@@ -64,6 +66,7 @@ export interface FileItem {
   comments?: FileComment[];
   blockchainVerified?: boolean;
   blockchainTxId?: string;
+  verificationStatus?: 'pending' | 'verified' | 'failed'; // Add verification status for cloud imports
   versions?: Array<{
     id: string;
     timestamp: string;
@@ -123,7 +126,8 @@ type ViewMode =
 // Main component
 const FilelockDriveApp: React.FC = () => {
   const { currentTransaction } = useWorkflow();
-  const { userRole } = useContext(UserContext);
+  const userContext = useContext(UserContext);
+  const userRole = userContext?.userRole || 'viewer';
   const navigate = useNavigate();
 
   // View state
@@ -761,6 +765,47 @@ const FilelockDriveApp: React.FC = () => {
     }, 100);
   };
 
+  // Add the cloud file import handler after the handleFileUpload method
+  const handleCloudFileImport = (importedFiles: FileItem[]) => {
+    console.log(`Importing ${importedFiles.length} files from cloud storage`);
+
+    // Create a copy of the files array to modify
+    const updatedFiles = [...files];
+
+    // Add the imported files
+    importedFiles.forEach(file => {
+      // Check if the file already exists (by name)
+      const existingFileIndex = updatedFiles.findIndex(
+        f => f.name === file.name && f.parentId === currentFolder
+      );
+
+      if (existingFileIndex !== -1) {
+        // Replace the existing file
+        updatedFiles[existingFileIndex] = {
+          ...file,
+          id: updatedFiles[existingFileIndex].id, // Preserve the original ID
+          parentId: currentFolder,
+          path: `${pathHistory.map(f => f.name).join('/')}/${file.name}`,
+        };
+      } else {
+        // Add as a new file
+        updatedFiles.push({
+          ...file,
+          id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          parentId: currentFolder,
+          path: `${pathHistory.map(f => f.name).join('/')}/${file.name}`,
+        });
+      }
+    });
+
+    // Update state with new files
+    setFiles(updatedFiles);
+
+    // Show success message
+    // In a real app, you would use a toast notification system
+    console.log('Files imported successfully!');
+  };
+
   // Create new folder
   const handleCreateFolder = (folderName: string) => {
     const parentFolder = files.find(file => file.id === currentFolder);
@@ -935,28 +980,43 @@ const FilelockDriveApp: React.FC = () => {
     );
   };
 
+  // Add state for the cloud storage modal
+  const [showCloudStorageModal, setShowCloudStorageModal] = useState(false);
+
+  // In the component's JSX render, add the CloudStorageConnector within the root render
   return (
-    <div className="filelock-drive-app h-full flex flex-col">
+    <div className="h-full flex flex-col bg-gray-50">
       {renderNavigation()}
 
       {currentView === 'explorer' && (
-        <FileExplorer
-          files={sortedFiles}
-          selectedFiles={selectedFiles}
-          setSelectedFiles={setSelectedFiles}
-          onFileSelect={handleFileSelect}
-          onUpload={handleFileUpload}
-          onCreateFolder={handleCreateFolder}
-          onDelete={handleDelete}
-          onShare={() => setShowShareDialog(selectedFile?.id || null)}
-          isGridView={isGridView}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          sortDirection={sortDirection}
-          setSortDirection={setSortDirection}
-          isUploading={isUploading}
-          uploadProgress={uploadProgress}
-        />
+        <div className="flex-1 flex flex-col">
+          {/* Main File Explorer */}
+          <div className="flex-1 overflow-auto">
+            <FileExplorer
+              files={sortedFiles}
+              selectedFiles={selectedFiles}
+              setSelectedFiles={setSelectedFiles}
+              onFileSelect={handleFileSelect}
+              onUpload={handleFileUpload}
+              onCreateFolder={handleCreateFolder}
+              onDelete={handleDelete}
+              onShare={handleShare}
+              isGridView={isGridView}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              sortDirection={sortDirection}
+              setSortDirection={setSortDirection}
+              isUploading={isUploading}
+              uploadProgress={uploadProgress}
+              onCloudFileImport={handleCloudFileImport}
+            />
+          </div>
+
+          {/* AI Document Assistant Section */}
+          <div className="mt-6 mb-4 px-4">
+            <AIDocumentAssistant onImportFromCloud={() => setShowCloudStorageModal(true)} />
+          </div>
+        </div>
       )}
 
       {currentView === 'shield-vault' && (
@@ -1308,6 +1368,17 @@ const FilelockDriveApp: React.FC = () => {
             setSelectedFile(updatedFile);
             setCurrentView('viewer');
           }}
+        />
+      )}
+
+      {/* Add cloud storage modal */}
+      {showCloudStorageModal && (
+        <CloudStorageConnector
+          files={files}
+          currentFolder={currentFolder}
+          onFileSelect={() => {}}
+          onFileImport={handleCloudFileImport}
+          onClose={() => setShowCloudStorageModal(false)}
         />
       )}
     </div>

@@ -11,6 +11,7 @@ import {
   faFileAlt,
   faFolder,
 } from '@fortawesome/free-solid-svg-icons';
+import CloudStorageConnector from './CloudStorageConnector';
 
 // Mock implementation of toast from react-toastify
 const toast = {
@@ -63,6 +64,7 @@ const FilelockDriveIntegrated: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showCloudStorageModal, setShowCloudStorageModal] = useState(false);
 
   // Sample files data
   const [files, setFiles] = useState<FileItem[]>([
@@ -292,8 +294,44 @@ const FilelockDriveIntegrated: React.FC = () => {
     }
   };
 
+  // After handleFileUpload method, add the cloud file import handler
+  const handleCloudFileImport = (importedFiles: FileItem[]) => {
+    console.log(`Importing ${importedFiles.length} files from cloud storage`);
+
+    // Create a copy of the files array to modify
+    const updatedFiles = [...files];
+
+    // Add the imported files
+    importedFiles.forEach(file => {
+      // Check if the file already exists (by name)
+      const existingFileIndex = updatedFiles.findIndex(f => f.name === file.name);
+
+      if (existingFileIndex !== -1) {
+        // Replace the existing file
+        updatedFiles[existingFileIndex] = {
+          ...file,
+          id: updatedFiles[existingFileIndex].id, // Preserve the original ID
+        };
+      } else {
+        // Add as a new file
+        updatedFiles.push({
+          ...file,
+          id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        });
+      }
+    });
+
+    // Update state with new files
+    setFiles(updatedFiles);
+
+    // Show success message
+    toast.success(
+      `${importedFiles.length} file${importedFiles.length !== 1 ? 's' : ''} imported successfully!`
+    );
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden" style={{ minHeight: '700px' }}>
+    <div className="h-full flex flex-col">
       {currentView === 'explorer' ? (
         <FileExplorer
           files={files}
@@ -317,6 +355,7 @@ const FilelockDriveIntegrated: React.FC = () => {
           setSortDirection={setSortDirection}
           isUploading={isUploading}
           uploadProgress={uploadProgress}
+          onCloudFileImport={handleCloudFileImport}
         />
       ) : (
         selectedFile && (
@@ -360,6 +399,17 @@ const FilelockDriveIntegrated: React.FC = () => {
         onChange={e => e.target.files && handleFileUpload(e.target.files)}
         multiple
       />
+
+      {/* Add cloud storage modal */}
+      {showCloudStorageModal && (
+        <CloudStorageConnector
+          files={files}
+          currentFolder="root"
+          onFileSelect={() => {}}
+          onFileImport={handleCloudFileImport}
+          onClose={() => setShowCloudStorageModal(false)}
+        />
+      )}
     </div>
   );
 };

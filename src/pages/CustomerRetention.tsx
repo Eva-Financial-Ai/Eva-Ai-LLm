@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { UserContext } from '../contexts/UserContext';
 import { useUserType } from '../contexts/UserTypeContext';
 import { UserType } from '../types/UserTypes';
@@ -67,13 +67,20 @@ const CustomerRetention: React.FC = () => {
   const { userType } = useUserType();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
+  const [contactsDropdownOpen, setContactsDropdownOpen] = useState(false);
+  const contactsDropdownRef = useRef<HTMLDivElement>(null);
 
   // Check for tab parameter in URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
-    
-    if (tabParam && ['overview', 'engagement', 'analytics', 'contacts', 'commitments', 'calendar'].includes(tabParam)) {
+
+    if (
+      tabParam &&
+      ['overview', 'engagement', 'analytics', 'contacts', 'commitments', 'calendar'].includes(
+        tabParam
+      )
+    ) {
       setActiveTab(tabParam);
     }
   }, [location.search]);
@@ -82,10 +89,26 @@ const CustomerRetention: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     params.set('tab', activeTab);
-    
+
     const newUrl = `${location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newUrl);
   }, [activeTab, location.pathname]);
+
+  // Add handler to close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        contactsDropdownRef.current &&
+        !contactsDropdownRef.current.contains(event.target as Node)
+      ) {
+        setContactsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Map userType or userRole to the effective role needed by child components
   const getEffectiveRole = (): string => {
@@ -108,6 +131,13 @@ const CustomerRetention: React.FC = () => {
   };
 
   const effectiveRole = getEffectiveRole();
+
+  // Add handler for contact sub-items
+  const handleContactItemClick = (subItem: string) => {
+    setActiveTab('contacts');
+    setContactsDropdownOpen(false);
+    // You can add additional logic here to handle different contact sub-items
+  };
 
   // Render content based on user role
   const renderRoleBasedContent = () => {
@@ -537,16 +567,60 @@ const CustomerRetention: React.FC = () => {
             >
               Analytics
             </button>
-            <button
-              onClick={() => setActiveTab('contacts')}
-              className={`py-4 px-6 text-sm font-medium border-b-2 ${
-                activeTab === 'contacts'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Contacts
-            </button>
+            <div className="relative" ref={contactsDropdownRef}>
+              <button
+                onClick={() => setContactsDropdownOpen(!contactsDropdownOpen)}
+                className={`py-4 px-6 text-sm font-medium border-b-2 flex items-center ${
+                  activeTab === 'contacts'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Contacts
+                <svg
+                  className={`ml-1 w-4 h-4 transition-transform ${contactsDropdownOpen ? 'transform rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {contactsDropdownOpen && (
+                <div className="absolute z-10 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
+                  <button
+                    onClick={() => handleContactItemClick('all')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    All Contacts
+                  </button>
+                  <button
+                    onClick={() => handleContactItemClick('customers')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Customers
+                  </button>
+                  <button
+                    onClick={() => handleContactItemClick('prospects')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Prospects
+                  </button>
+                  <button
+                    onClick={() => handleContactItemClick('vendors')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Vendors
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               onClick={() => setActiveTab('commitments')}
               className={`py-4 px-6 text-sm font-medium border-b-2 ${
@@ -628,15 +702,19 @@ const CustomerRetention: React.FC = () => {
                     Connect your calendars to schedule appointments and manage events.
                   </p>
                 </div>
-                
+
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Google Calendar Integration */}
                     <div className="border rounded-lg p-4 flex flex-col items-center">
                       <div className="w-14 h-14 rounded-lg bg-blue-100 flex items-center justify-center mb-3">
-                        <svg className="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 1H5a4 4 0 0 0-4 4v14a4 4 0 0 0 4 4h14a4 4 0 0 0 4-4v-7h-3v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7V1z"/>
-                          <path d="M19 1h-4v2h4v4h2V3a2 2 0 0 0-2-2z"/>
+                        <svg
+                          className="w-8 h-8 text-blue-600"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M12 1H5a4 4 0 0 0-4 4v14a4 4 0 0 0 4 4h14a4 4 0 0 0 4-4v-7h-3v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7V1z" />
+                          <path d="M19 1h-4v2h4v4h2V3a2 2 0 0 0-2-2z" />
                         </svg>
                       </div>
                       <h3 className="text-md font-medium">Google Calendar</h3>
@@ -651,7 +729,11 @@ const CustomerRetention: React.FC = () => {
                     {/* Microsoft Outlook Integration */}
                     <div className="border rounded-lg p-4 flex flex-col items-center">
                       <div className="w-14 h-14 rounded-lg bg-blue-100 flex items-center justify-center mb-3">
-                        <svg className="w-8 h-8 text-blue-800" viewBox="0 0 24 24" fill="currentColor">
+                        <svg
+                          className="w-8 h-8 text-blue-800"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
                           <path d="M7.88 12.04c.15-.32.37-.64.67-.96.45-.45 1.05-.82 1.79-1.09.25-.1.5-.18.77-.25.55-.14 1.12-.22 1.71-.22.63 0 1.24.08 1.82.23.26.07.51.15.76.26.7.26 1.27.62 1.69 1.06.37.36.63.72.82 1.09.19.37.3.76.32 1.15.01.13.01.27.01.42 0 .19-.01.38-.03.58-.05.48-.19.95-.4 1.39-.25.52-.6.96-1.06 1.33-.35.28-.74.52-1.18.72-.44.19-.92.35-1.45.45-1.1.21-2.17.15-3.13-.15-.87-.27-1.63-.74-2.28-1.42-.63-.66-1.1-1.44-1.4-2.32-.28-.84-.41-1.72-.4-2.63 0-1.33.25-2.54.75-3.62.52-1.08 1.28-1.99 2.27-2.72.99-.73 2.18-1.24 3.55-1.54C17.38 3.05 18.9 3 20.44 3.3c.56.11 1.1.27 1.62.48.53.21 1.03.47 1.51.77.39.25.76.53 1.09.85.36.34.66.71.91 1.13.25.41.43.85.55 1.3.12.48.18.95.18 1.43 0 .58-.08 1.17-.25 1.77-.6.4-.27.77-.52 1.09-1.06 1.37-2.73 2.51-5.01 3.45-.24.1-.49.19-.74.27-.96.32-1.95.5-2.97.55-.15.01-.29.02-.43.02-.12 0-.24 0-.36-.01-1.01-.05-1.99-.23-2.94-.55" />
                         </svg>
                       </div>
@@ -667,7 +749,11 @@ const CustomerRetention: React.FC = () => {
                     {/* Apple Calendar Integration */}
                     <div className="border rounded-lg p-4 flex flex-col items-center">
                       <div className="w-14 h-14 rounded-lg bg-blue-100 flex items-center justify-center mb-3">
-                        <svg className="w-8 h-8 text-gray-800" viewBox="0 0 24 24" fill="currentColor">
+                        <svg
+                          className="w-8 h-8 text-gray-800"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
                           <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
                         </svg>
                       </div>

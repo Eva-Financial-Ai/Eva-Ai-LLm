@@ -44,6 +44,14 @@ interface FormOption {
   forUserTypes: string[];
 }
 
+interface FormTemplate {
+  id: string;
+  name: string;
+  description: string;
+  formType: string;
+  data: Record<string, string>;
+}
+
 const SafeForms: React.FC<SafeFormsProps> = ({
   userType,
   requestMode = false,
@@ -54,6 +62,7 @@ const SafeForms: React.FC<SafeFormsProps> = ({
   const [businessProfiles, setBusinessProfiles] = useState<BusinessProfile[]>([]);
   const [ownerProfiles, setOwnerProfiles] = useState<OwnerProfile[]>([]);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
   const navigate = useNavigate();
 
   // Available form options - in a real app, this would come from an API
@@ -81,6 +90,117 @@ const SafeForms: React.FC<SafeFormsProps> = ({
       name: 'General Credit Application',
       description: 'General credit application for all purposes',
       forUserTypes: ['borrower', 'broker', 'lender', 'admin'],
+    },
+  ];
+
+  // Available form templates - in a real app, this would come from an API
+  const formTemplates: FormTemplate[] = [
+    {
+      id: 'equipment_finance_template_1',
+      name: 'Construction Equipment Finance',
+      description: 'Template for construction companies financing heavy equipment',
+      formType: 'equipment_finance',
+      data: {
+        businessName: 'ABC Construction',
+        businessType: 'Corporation',
+        taxId: '12-3456789',
+        yearEstablished: '2010',
+        contactFirstName: 'John',
+        contactLastName: 'Smith',
+        contactTitle: 'CEO',
+        contactPhone: '(555) 123-4567',
+        contactEmail: 'john@abcconstruction.com',
+        streetAddress: '123 Builder Ave',
+        city: 'Construction City',
+        state: 'CA',
+        zipCode: '90210',
+        equipmentType: 'Excavator',
+        equipmentCost: '250000',
+        downPayment: '50000',
+        loanTerm: '60',
+        equipmentDescription: 'CAT 320 Excavator with extended warranty',
+      },
+    },
+    {
+      id: 'equipment_finance_template_2',
+      name: 'Medical Equipment Finance',
+      description: 'Template for healthcare providers financing medical equipment',
+      formType: 'equipment_finance',
+      data: {
+        businessName: 'City Medical Center',
+        businessType: 'Non-Profit',
+        taxId: '45-6789123',
+        yearEstablished: '1995',
+        contactFirstName: 'Sarah',
+        contactLastName: 'Johnson',
+        contactTitle: 'CFO',
+        contactPhone: '(555) 987-6543',
+        contactEmail: 'sarah@citymedical.org',
+        streetAddress: '456 Health Blvd',
+        city: 'Wellness',
+        state: 'NY',
+        zipCode: '10001',
+        equipmentType: 'Imaging System',
+        equipmentCost: '500000',
+        downPayment: '100000',
+        loanTerm: '72',
+        equipmentDescription: 'Full digital imaging system with 5-year service agreement',
+      },
+    },
+    {
+      id: 'working_capital_template_1',
+      name: 'Retail Working Capital',
+      description: 'Template for retail businesses seeking working capital',
+      formType: 'working_capital',
+      data: {
+        businessName: 'Fashion First Boutique',
+        businessType: 'LLC',
+        taxId: '78-9123456',
+        yearEstablished: '2018',
+        contactFirstName: 'Emily',
+        contactLastName: 'Brown',
+        contactTitle: 'Owner',
+        contactPhone: '(555) 456-7890',
+        contactEmail: 'emily@fashionfirst.com',
+        streetAddress: '789 Retail Row',
+        city: 'Style',
+        state: 'FL',
+        zipCode: '33101',
+        loanAmount: '75000',
+        purposeOfFunds: 'Inventory purchase for holiday season',
+        currentMonthlyRevenue: '35000',
+        timeInBusiness: '4',
+      },
+    },
+    {
+      id: 'commercial_real_estate_template_1',
+      name: 'Office Building Purchase',
+      description: 'Template for office building acquisition',
+      formType: 'commercial_real_estate',
+      data: {
+        businessName: 'Tech Innovations LLC',
+        businessType: 'LLC',
+        taxId: '98-7654321',
+        yearEstablished: '2015',
+        contactFirstName: 'Michael',
+        contactLastName: 'Wilson',
+        contactTitle: 'Managing Partner',
+        contactPhone: '(555) 789-0123',
+        contactEmail: 'michael@techinnovations.com',
+        streetAddress: '101 Tech Blvd',
+        city: 'Innovation',
+        state: 'CA',
+        zipCode: '94105',
+        propertyAddress: '200 Office Park Drive',
+        propertyCity: 'Innovation',
+        propertyState: 'CA',
+        propertyZipCode: '94105',
+        purchasePrice: '1200000',
+        downPayment: '300000',
+        loanTerm: '240',
+        propertyType: 'Office',
+        propertySquareFeet: '5000',
+      },
     },
   ];
 
@@ -231,6 +351,22 @@ const SafeForms: React.FC<SafeFormsProps> = ({
 
     // Show success message instead of redirecting
     alert('Form submitted successfully and associated with business profile!');
+  };
+
+  // Handle loading a template
+  const handleLoadTemplate = (templateId: string) => {
+    const template = formTemplates.find(t => t.id === templateId);
+    if (template) {
+      setSelectedForm(template.formType);
+      setFormData(template.data);
+      setShowTemplates(false);
+
+      // If there's a callback, call it with the form name
+      const formName = availableForms.find(form => form.id === template.formType)?.name;
+      if (onApplicationFormSelected && formName) {
+        onApplicationFormSelected(formName);
+      }
+    }
   };
 
   // Render business profile selector
@@ -805,6 +941,37 @@ const SafeForms: React.FC<SafeFormsProps> = ({
     </form>
   );
 
+  // Render template selection
+  const renderTemplateSelection = () => (
+    <div className="bg-white shadow-sm rounded-lg overflow-hidden mb-6">
+      <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <h3 className="text-lg font-medium text-gray-900">Form Templates</h3>
+        <p className="mt-1 text-sm text-gray-600">
+          Select a template to quickly populate the form with sample data
+        </p>
+      </div>
+      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {formTemplates
+          .filter(template => !selectedForm || template.formType === selectedForm)
+          .map(template => (
+            <div
+              key={template.id}
+              className="border border-gray-200 rounded-lg p-4 hover:border-primary-300 hover:bg-primary-50 cursor-pointer transition"
+              onClick={() => handleLoadTemplate(template.id)}
+            >
+              <h4 className="font-medium text-gray-900">{template.name}</h4>
+              <p className="mt-1 text-sm text-gray-600">{template.description}</p>
+              <div className="mt-2">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                  {availableForms.find(form => form.id === template.formType)?.name}
+                </span>
+              </div>
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+
   // Render selected form or form selection
   const renderForm = () => {
     if (!selectedForm) {
@@ -847,7 +1014,49 @@ const SafeForms: React.FC<SafeFormsProps> = ({
     );
   };
 
-  return <div className="max-w-4xl mx-auto">{renderForm()}</div>;
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="bg-white shadow rounded-lg overflow-hidden mb-6">
+        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-medium text-gray-900">Safe Forms</h2>
+              <p className="mt-1 text-sm text-gray-600">
+                Securely submit and manage regulatory-compliant financial documents
+              </p>
+            </div>
+            <div>
+              <button
+                onClick={() => setShowTemplates(!showTemplates)}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <svg
+                  className="mr-2 h-4 w-4 text-gray-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
+                </svg>
+                {showTemplates ? 'Hide Templates' : 'Load Templates'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {showTemplates && renderTemplateSelection()}
+
+        {/* Existing form rendering */}
+        {renderFormSelection()}
+        {selectedForm && renderForm()}
+      </div>
+    </div>
+  );
 };
 
 export default SafeForms;

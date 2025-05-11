@@ -29,6 +29,7 @@ export const AssetCardGrid: React.FC<AssetCardGridProps> = ({
   const [sortBy, setSortBy] = useState<string>('value');
   const [showFilters, setShowFilters] = useState(false);
   const [effectiveRole, setEffectiveRole] = useState<PortfolioUserRole>(portfolioRole);
+  const [showAddAssetModal, setShowAddAssetModal] = useState(false);
 
   // Map user type to portfolio role if not explicitly provided
   useEffect(() => {
@@ -218,6 +219,11 @@ export const AssetCardGrid: React.FC<AssetCardGridProps> = ({
     }
   };
 
+  // Handle adding a new asset
+  const handleAddNewAsset = () => {
+    setShowAddAssetModal(true);
+  };
+
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Filters Row */}
@@ -400,7 +406,10 @@ export const AssetCardGrid: React.FC<AssetCardGridProps> = ({
           <p className="mt-1 text-sm text-gray-500">
             Try adjusting your filters or add new assets to your portfolio.
           </p>
-          <button className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700">
+          <button
+            onClick={handleAddNewAsset}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
+          >
             <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
@@ -411,6 +420,43 @@ export const AssetCardGrid: React.FC<AssetCardGridProps> = ({
             </svg>
             Add New Asset
           </button>
+        </div>
+      )}
+
+      {/* Add Asset Modal */}
+      {showAddAssetModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-medium">Add New Asset</h2>
+              <button
+                onClick={() => setShowAddAssetModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="space-y-4">
+              {/* Modal content - can be expanded later */}
+              <p className="text-sm text-gray-600">
+                This feature will allow you to add new assets to your portfolio. Asset information
+                will be securely stored and can be verified on the blockchain.
+              </p>
+              <button
+                onClick={() => setShowAddAssetModal(false)}
+                className="w-full py-2 px-4 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+              >
+                Coming Soon
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

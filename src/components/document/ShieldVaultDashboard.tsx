@@ -12,7 +12,11 @@ interface ShieldVaultDashboardProps {
 }
 
 const ShieldVaultDashboard: React.FC<ShieldVaultDashboardProps> = ({ transactionId }) => {
-  const { userName, userRole } = useContext(UserContext);
+  // Make context usage optional with default values
+  const userContext = useContext(UserContext);
+  const userName = userContext?.userName || 'User';
+  const userRole = userContext?.userRole || 'viewer';
+
   const [loading, setLoading] = useState(true);
   const [vaultRecords, setVaultRecords] = useState<DocumentVaultRecord[]>([]);
   const [expandedTransaction, setExpandedTransaction] = useState<string | null>(null);
@@ -20,6 +24,8 @@ const ShieldVaultDashboard: React.FC<ShieldVaultDashboardProps> = ({ transaction
   const [filter, setFilter] = useState<'all' | 'locked' | 'expiring-soon'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'name' | 'expiry'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [unverifiedFiles, setUnverifiedFiles] = useState<FileItem[]>([]);
+  const [verifyingFile, setVerifyingFile] = useState<string | null>(null);
 
   useEffect(() => {
     const loadVaultRecords = async () => {
@@ -70,6 +76,51 @@ const ShieldVaultDashboard: React.FC<ShieldVaultDashboardProps> = ({ transaction
     };
 
     loadVaultRecords();
+
+    // Simulate loading unverified files (e.g., from cloud storage)
+    // In a real implementation, this would come from your file storage service
+    const getUnverifiedFiles = async () => {
+      try {
+        // In a real implementation, this would be an API call
+        // Here we're simulating files that have the 'Unverified' tag
+        const mockUnverifiedFiles: FileItem[] = [
+          {
+            id: 'imported-google-drive-123',
+            name: 'Financial Statement 2023.pdf',
+            type: 'pdf',
+            size: 2500000,
+            lastModified: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            path: '/Financial Statement 2023.pdf',
+            parentId: 'root',
+            owner: 'me',
+            verificationStatus: 'pending',
+            tags: ['Imported from google-drive', 'Unverified'],
+            downloadUrl: '#',
+          },
+          {
+            id: 'imported-onedrive-456',
+            name: 'Tax Documents 2023.pdf',
+            type: 'pdf',
+            size: 3200000,
+            lastModified: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            path: '/Tax Documents 2023.pdf',
+            parentId: 'root',
+            owner: 'me',
+            verificationStatus: 'pending',
+            tags: ['Imported from onedrive', 'Unverified'],
+            downloadUrl: '#',
+          },
+        ];
+
+        setUnverifiedFiles(mockUnverifiedFiles);
+      } catch (error) {
+        console.error('Error loading unverified files:', error);
+      }
+    };
+
+    getUnverifiedFiles();
   }, [transactionId]);
 
   // Format date for display
@@ -135,6 +186,53 @@ const ShieldVaultDashboard: React.FC<ShieldVaultDashboardProps> = ({ transaction
     }
     return 0;
   });
+
+  // Handle file verification
+  const handleVerifyFile = async (fileId: string) => {
+    setVerifyingFile(fileId);
+
+    try {
+      // Simulate verification process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Update the file's verification status
+      setUnverifiedFiles(prevFiles =>
+        prevFiles.map(file =>
+          file.id === fileId
+            ? {
+                ...file,
+                verificationStatus: 'verified',
+                blockchainVerified: true,
+                blockchainTxId: `tx-${Date.now()}`,
+                tags: file.tags?.filter(tag => tag !== 'Unverified').concat(['Verified']) || [
+                  'Verified',
+                ],
+              }
+            : file
+        )
+      );
+
+      // In a real implementation, you would also update the file in your database
+    } catch (error) {
+      console.error('Error verifying file:', error);
+    } finally {
+      setVerifyingFile(null);
+    }
+  };
+
+  // Get blockchain record details
+  const getBlockchainRecordDetails = (file: FileItem) => {
+    if (!file.blockchainVerified || !file.blockchainTxId) return null;
+
+    return {
+      timestamp: new Date().toISOString(),
+      hash: `0x${Array(64)
+        .fill(0)
+        .map(() => Math.floor(Math.random() * 16).toString(16))
+        .join('')}`,
+      txId: file.blockchainTxId,
+    };
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -411,6 +509,181 @@ const ShieldVaultDashboard: React.FC<ShieldVaultDashboardProps> = ({ transaction
           </div>
         )}
       </div>
+
+      {/* Add this section for Unverified Files */}
+      {unverifiedFiles.length > 0 && (
+        <div className="border-t border-gray-200 mt-8 pt-6">
+          <h3 className="text-lg font-medium text-gray-900 px-6 mb-4">
+            Cloud Imported Files Pending Verification
+          </h3>
+
+          <div className="px-6 overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    File Name
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Source
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Import Date
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Status
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {unverifiedFiles.map(file => {
+                  const blockchainDetails = getBlockchainRecordDetails(file);
+                  const cloudSource =
+                    file.tags
+                      ?.find(tag => tag.includes('Imported from'))
+                      ?.replace('Imported from ', '') || 'unknown';
+
+                  return (
+                    <tr key={file.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center text-gray-500">
+                            {file.type === 'pdf' ? (
+                              <svg
+                                className="h-8 w-8 text-red-500"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                              </svg>
+                            ) : (
+                              <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                              </svg>
+                            )}
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{file.name}</div>
+                            <div className="text-sm text-gray-500">
+                              {file.size ? `${Math.round(file.size / 1024)} KB` : 'Unknown size'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {cloudSource === 'google-drive'
+                            ? 'Google Drive'
+                            : cloudSource === 'onedrive'
+                              ? 'Microsoft OneDrive'
+                              : cloudSource === 'icloud'
+                                ? 'Apple iCloud'
+                                : 'Unknown Source'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{formatDate(file.createdAt)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {file.verificationStatus === 'pending' ? (
+                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            Pending Verification
+                          </span>
+                        ) : file.verificationStatus === 'verified' ? (
+                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            Verified
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            Failed Verification
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        {file.verificationStatus === 'pending' ? (
+                          <button
+                            onClick={() => handleVerifyFile(file.id)}
+                            disabled={verifyingFile === file.id}
+                            className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                          >
+                            {verifyingFile === file.id ? (
+                              <>
+                                <svg
+                                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-red-500 inline-block"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                                </svg>
+                                Verifying...
+                              </>
+                            ) : (
+                              <>Verify & Lock</>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="text-green-600">
+                            <svg
+                              className="h-5 w-5 inline-block mr-1"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            Secured on Blockchain
+                            {blockchainDetails && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                TX: {blockchainDetails.txId.substring(0, 8)}...
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FileItem } from './FilelockDriveApp';
+import CloudStorageConnector, { CloudFile } from './CloudStorageConnector';
 
 interface FileExplorerProps {
   files: FileItem[];
@@ -20,6 +21,7 @@ interface FileExplorerProps {
   setSortDirection: (direction: 'asc' | 'desc') => void;
   isUploading: boolean;
   uploadProgress: number;
+  onCloudFileImport?: (files: FileItem[]) => void;
 }
 
 const FileExplorer: React.FC<FileExplorerProps> = ({
@@ -38,6 +40,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   setSortDirection,
   isUploading,
   uploadProgress,
+  onCloudFileImport,
 }) => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
@@ -45,6 +48,10 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   const [fileToShare, setFileToShare] = useState<FileItem | null>(null);
   const [shareEmail, setShareEmail] = useState('');
   const [sharePermission, setSharePermission] = useState<'viewer' | 'editor' | 'signer'>('viewer');
+
+  // Cloud storage integration state
+  const [showCloudStorageModal, setShowCloudStorageModal] = useState(false);
+  const [selectedCloudFiles, setSelectedCloudFiles] = useState<CloudFile[]>([]);
 
   // Handle file selection (single click)
   const handleFileClick = (file: FileItem, e: React.MouseEvent) => {
@@ -154,6 +161,19 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
     }
   };
 
+  // Handle cloud file selection
+  const handleCloudFileSelect = (files: CloudFile[]) => {
+    setSelectedCloudFiles(files);
+  };
+
+  // Handle cloud file import
+  const handleCloudFileImport = (files: FileItem[]) => {
+    if (onCloudFileImport) {
+      onCloudFileImport(files);
+    }
+    setShowCloudStorageModal(false);
+  };
+
   // Render file icons based on type
   const renderFileIcon = (file: FileItem) => {
     if (file.type === 'folder') {
@@ -248,31 +268,78 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setShowCreateFolderModal(true)}
-            className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200"
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
-            <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="-ml-1 mr-1 h-4 w-4 text-gray-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
               <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 13h6m-3-3v6m-9-6h9a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v2a2 2 0 002 2z"
+                fillRule="evenodd"
+                d="M2 6a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1H8a3 3 0 00-3 3v1.5a1.5 1.5 0 01-3 0V6z"
+                clipRule="evenodd"
               />
+              <path d="M6 12a2 2 0 012-2h8a2 2 0 012 2v2a2 2 0 01-2 2H2h2a2 2 0 002-2v-2z" />
             </svg>
             New Folder
+          </button>
+
+          <label className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer">
+            <svg
+              className="-ml-1 mr-1 h-4 w-4 text-gray-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Upload
+            <input
+              type="file"
+              className="hidden"
+              multiple
+              onChange={e => e.target.files && onUpload(e.target.files)}
+            />
+          </label>
+
+          {/* Cloud Storage Import Button */}
+          <button
+            onClick={() => setShowCloudStorageModal(true)}
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <svg
+              className="-ml-1 mr-1 h-4 w-4 text-gray-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.5 17a4.5 4.5 0 01-1.44-8.765 4.5 4.5 0 018.302-3.046 3.5 3.5 0 014.504 4.272A4 4 0 0115 17H5.5zm3.75-2.75a.75.75 0 001.5 0V9.66l1.95 2.1a.75.75 0 101.1-1.02l-3.25-3.5a.75.75 0 00-1.1 0l-3.25 3.5a.75.75 0 101.1 1.02l1.95-2.1v4.59z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Import from Cloud
           </button>
 
           {selectedFiles.length > 0 && (
             <>
               <button
                 onClick={handleDelete}
-                className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200"
+                className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-red-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
-                <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="-ml-1 mr-1 h-4 w-4 text-red-500"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    fillRule="evenodd"
+                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                    clipRule="evenodd"
                   />
                 </svg>
                 Delete
@@ -281,20 +348,14 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
               {selectedFiles.length === 1 && (
                 <button
                   onClick={() => openShareModal(selectedFiles[0])}
-                  className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   <svg
-                    className="h-4 w-4 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                    className="-ml-1 mr-1 h-4 w-4 text-gray-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                    />
+                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
                   </svg>
                   Share
                 </button>
@@ -660,6 +721,15 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Cloud Storage Modal */}
+      {showCloudStorageModal && (
+        <CloudStorageConnector
+          onFileSelect={handleCloudFileSelect}
+          onFileImport={handleCloudFileImport}
+          onClose={() => setShowCloudStorageModal(false)}
+        />
       )}
     </div>
   );

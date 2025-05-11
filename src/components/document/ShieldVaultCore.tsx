@@ -137,7 +137,7 @@ const DocumentRow = memo(
         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
           {!lockStatus?.isLocked && (
             <button
-              className="text-green-600 hover:text-green-900 mr-3"
+              className="text-red-600 hover:text-red-900 mr-3"
               onClick={() => onVerify(doc.id)}
             >
               Verify & Lock
@@ -203,7 +203,8 @@ const ShieldVaultCore: React.FC<ShieldVaultProps> = props => {
     console.log('ShieldVaultCore loaded successfully');
   }, []);
 
-  const { userName } = useContext(UserContext);
+  const userContext = useContext(UserContext);
+  const userName = userContext?.userName || 'System User';
 
   // State with reduced initialization overhead
   const [lockStatuses, setLockStatuses] = useState<Record<string, DocumentLockStatus>>({});
