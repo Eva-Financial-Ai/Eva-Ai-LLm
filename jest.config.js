@@ -1,6 +1,11 @@
 module.exports = {
   testMatch: ['**/test/**/*.test.js'],
-  transform: {},
+  transform: {
+    '^.+\\.(ts|tsx|js|jsx)$': 'babel-jest',
+  },
+  transformIgnorePatterns: [
+    '/node_modules/(?!(@heroicons|@headlessui)/)',
+  ],
   testEnvironment: 'node',
   collectCoverageFrom: [
     'test/**/*.js',

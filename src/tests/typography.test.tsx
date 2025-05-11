@@ -11,6 +11,7 @@ import { UserType } from '../types/UserTypes';
 // Mock context values
 const mockUserContextValue = {
   userRole: 'lender' as 'lender', // Type assertion to AppUserRole
+  setUserRole: jest.fn(),
   showSmartMatching: false,
   setShowSmartMatching: jest.fn(),
   showDataOrchestrator: false,

@@ -1,9 +1,10 @@
 import React, { Fragment, useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useWorkflow } from '../../contexts/WorkflowContext';
-import { UserContext } from '../../contexts/UserContext';
+import { UserContext, AppUserRole } from '../../contexts/UserContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
+// Import icons using the standard pattern which is compatible with Jest
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 // Import icons for AI Tools dropdown
@@ -150,6 +151,7 @@ const Navbar = () => {
     setPQCAuthenticated,
     showAILifecycleAssistant,
     setShowAILifecycleAssistant,
+    setUserRole,
   } = useContext(UserContext);
   const { user, logout } = useAuth();
 
@@ -169,8 +171,17 @@ const Navbar = () => {
   };
 
   const toggleDarkMode = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-    // No need to manually modify class here since it's handled in App.tsx
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    // Store the theme preference in localStorage for persistence
+    localStorage.setItem('theme', newTheme);
+
+    // Apply the theme immediately to the document
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   const toggleSidebar = () => {
@@ -264,6 +275,14 @@ const Navbar = () => {
   };
 
   const roleOptions: Array<'broker' | 'lender' | 'borrower'> = ['broker', 'lender', 'borrower'];
+
+  const handleRoleChange = (role: AppUserRole) => {
+    setUserRole(role);
+    // Store the role in localStorage for persistence
+    localStorage.setItem('userRole', role);
+    // Refresh the page to ensure all components reflect the new role
+    window.location.reload();
+  };
 
   return (
     <Disclosure as="nav" className="bg-white border-b border-light-border sticky top-0 z-10">
@@ -505,6 +524,52 @@ const Navbar = () => {
                             </option>
                           ))}
                         </select>
+                      </div>
+                      {/* User Role Options */}
+                      <div className="py-1">
+                        <p className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400">
+                          Switch Role
+                        </p>
+                        <button
+                          onClick={() => handleRoleChange('lender')}
+                          className={`block px-4 py-2 text-sm w-full text-left ${
+                            userRole === 'lender'
+                              ? 'bg-primary-100 text-primary-900 dark:bg-primary-900 dark:text-primary-100'
+                              : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          Lender
+                        </button>
+                        <button
+                          onClick={() => handleRoleChange('borrower')}
+                          className={`block px-4 py-2 text-sm w-full text-left ${
+                            userRole === 'borrower'
+                              ? 'bg-primary-100 text-primary-900 dark:bg-primary-900 dark:text-primary-100'
+                              : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          Business (Borrower)
+                        </button>
+                        <button
+                          onClick={() => handleRoleChange('broker')}
+                          className={`block px-4 py-2 text-sm w-full text-left ${
+                            userRole === 'broker'
+                              ? 'bg-primary-100 text-primary-900 dark:bg-primary-900 dark:text-primary-100'
+                              : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          Broker/Originator
+                        </button>
+                        <button
+                          onClick={() => handleRoleChange('vendor')}
+                          className={`block px-4 py-2 text-sm w-full text-left ${
+                            userRole === 'vendor'
+                              ? 'bg-primary-100 text-primary-900 dark:bg-primary-900 dark:text-primary-100'
+                              : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          Vendor (Asset Seller)
+                        </button>
                       </div>
                     </Menu.Items>
                   </Transition>
