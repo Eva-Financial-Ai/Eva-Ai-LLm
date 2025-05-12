@@ -66,7 +66,8 @@ const CreditApplicationNav: React.FC<CreditApplicationNavProps> = ({
   activeSection = 'credit-application',
 }) => {
   const location = useLocation();
-  const { userRole } = useContext(UserContext) || { userRole: 'borrower' };
+  const userContext = useContext(UserContext);
+  const userRole = userContext?.userRole || 'borrower'; // Provide fallback value
   const { userType } = useUserType();
   const [effectiveRole, setEffectiveRole] = useState(userRole);
 
@@ -164,12 +165,17 @@ const CreditApplicationNav: React.FC<CreditApplicationNavProps> = ({
   const currentPath = location.pathname;
 
   // Find active item
-  const activeItem =
-    navItems.find(
-      item =>
-        currentPath === item.path ||
-        (item.id === 'credit-application' && currentPath.startsWith('/credit-application'))
-    ) || navItems[0];
+  const activeItem = navItems.find(
+    item =>
+      currentPath === item.path ||
+      (item.id === 'credit-application' && currentPath.startsWith('/credit-application'))
+  ) ||
+    navItems[0] || {
+      id: 'credit-application',
+      label: 'Credit Application',
+      path: '/credit-application',
+      icon: <DocumentTextIcon className="h-5 w-5" />,
+    };
 
   // For borrowers, simplify the view to just the credit application form
   if (showSimplifiedNav) {
