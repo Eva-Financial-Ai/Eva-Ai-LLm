@@ -142,9 +142,23 @@ const CreditApplication: React.FC = () => {
         detail: {
           businessName: borrower.businessName,
           taxId: borrower.taxId,
+          address: borrower.address,
+          city: borrower.city,
+          state: borrower.state,
+          zipCode: borrower.zipCode,
+          contactName: borrower.contactName,
+          email: borrower.email,
+          phone: borrower.phone,
+          preFillData,
         },
       });
       document.dispatchEvent(event);
+
+      // Also dispatch a dedicated event for pre-fill data
+      const prefillEvent = new CustomEvent('prefill-business-data', {
+        detail: preFillData,
+      });
+      document.dispatchEvent(prefillEvent);
     }, 200);
   };
 

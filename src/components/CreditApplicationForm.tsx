@@ -260,6 +260,8 @@ interface FormData {
   taxId: string;
   numberOfEmployees?: string;
   unknownEin?: boolean;
+  businessEmail?: string;
+  businessPhoneNumber?: string;
 
   // Owner Information
   owners: Owner[];
@@ -394,6 +396,8 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
       taxId: initialData.taxId || '',
       numberOfEmployees: initialData.numberOfEmployees || '',
       unknownEin: initialData.unknownEin || false,
+      businessEmail: initialData.businessEmail || '',
+      businessPhoneNumber: initialData.businessPhoneNumber || '',
 
       // Owner Information
       owners: initialData.owners || [],
@@ -487,6 +491,66 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
       }));
     }
   };
+
+  // Listen for pre-fill events from parent components
+  useEffect(() => {
+    // Handler for set-business-existing event
+    const handleSetBusinessExisting = (e: CustomEvent) => {
+      // Update business type to existing
+      setLocalBusinessType('existing');
+      setShowDatabaseSearch(true);
+
+      // If we have detailed business data in the event
+      if (e.detail) {
+        const { businessName, taxId, address, city, state, zipCode, email, phone } = e.detail;
+
+        // Update form data with the business details
+        setFormData(prevData => ({
+          ...prevData,
+          businessType: 'existing_business',
+          businessName: businessName || prevData.businessName,
+          taxId: taxId || prevData.taxId,
+          businessAddress: address || prevData.businessAddress,
+          businessCity: city || prevData.businessCity,
+          businessState: state || prevData.businessState,
+          businessZip: zipCode || prevData.businessZip,
+          businessEmail: email || prevData.businessEmail,
+          businessPhoneNumber: phone || prevData.businessPhoneNumber,
+        }));
+      }
+    };
+
+    // Handler for prefill-business-data event with all form data
+    const handlePreFillData = (e: CustomEvent) => {
+      if (e.detail) {
+        console.log('Received pre-fill data:', e.detail);
+
+        // Update the entire form with prefill data
+        setFormData(prevData => ({
+          ...prevData,
+          ...e.detail,
+          businessType: 'existing_business', // Ensure this is set correctly
+        }));
+
+        // Set business type to existing
+        setLocalBusinessType('existing');
+        setShowDatabaseSearch(true);
+      }
+    };
+
+    // Register event listeners
+    document.addEventListener('set-business-existing', handleSetBusinessExisting as EventListener);
+    document.addEventListener('prefill-business-data', handlePreFillData as EventListener);
+
+    // Cleanup function
+    return () => {
+      document.removeEventListener(
+        'set-business-existing',
+        handleSetBusinessExisting as EventListener
+      );
+      document.removeEventListener('prefill-business-data', handlePreFillData as EventListener);
+    };
+  }, []); // Empty dependency array since we want this effect to run once
 
   const [hasSignature, setHasSignature] = useState(false);
   const [signatureData, setSignatureData] = useState('');
@@ -1744,20 +1808,25 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
     [formData]
   );
 
+  // Handler to simulate sending signature request to owner
   const handleSendNotificationToOwner = useCallback(
     (ownerId: string) => {
-      // In a real app, this would send a notification to the owner
-      // Here we're just updating the UI state
-      const updatedOwners = formData.owners.map(owner =>
-        owner.id === ownerId ? { ...owner, notificationSent: true } : owner
-      );
+      console.log(`Simulating sending signature request to owner: ${ownerId}`);
 
-      setFormData({
-        ...formData,
-        owners: updatedOwners,
+      // Update the owner's status in the form data
+      setFormData(prevData => {
+        const updatedOwners = prevData.owners.map(owner =>
+          owner.id === ownerId ? { ...owner, notificationSent: true } : owner
+        );
+        return { ...prevData, owners: updatedOwners };
       });
+
+      // In a real app, you would trigger an API call here to send SMS/App notification
+      alert(
+        `Signature request sent to owner ID: ${ownerId}. They need to log in to complete their section.`
+      );
     },
-    [formData]
+    [setFormData] // Dependency on setFormData to ensure stability
   );
 
   // Handle address input changes
@@ -2415,6 +2484,8 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
               onChange={handleOwnersChange}
               includeCredit={false}
               requireMobile={true}
+              userRole={userRole} // Pass userRole down
+              onSendSignatureRequest={handleSendNotificationToOwner} // Pass the handler down
             />
           </div>
         </div>
