@@ -8,6 +8,7 @@ import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import LanguageSelector from '../common/LanguageSelector';
 import { ErrorBoundary } from 'react-error-boundary';
+import { useTranslation } from 'react-i18next';
 
 // Import icons for AI Tools dropdown
 const SmartMatchingIcon = memo(() => (
@@ -147,6 +148,7 @@ function ErrorFallback({ error }: { error: Error }) {
 }
 
 const Navbar = memo(() => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { currentTransaction } = useWorkflow();
   const {
@@ -201,7 +203,9 @@ const Navbar = memo(() => {
   }, [sidebarCollapsed, setSidebarCollapsed]);
 
   const markAllNotificationsAsRead = useCallback(() => {
-    setNotifications(prevNotifications => prevNotifications.map(notif => ({ ...notif, read: true })));
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notif => ({ ...notif, read: true }))
+    );
   }, []);
 
   const markNotificationAsRead = useCallback((id: string) => {
@@ -247,9 +251,9 @@ const Navbar = memo(() => {
   }, [showMobileMenu, setShowDataOrchestrator]);
 
   const openDocVerification = useCallback(() => {
-    navigate('/risk-assessment?tab=document-verification');
+    setShowDocVerification(true);
     if (showMobileMenu) setShowMobileMenu(false);
-  }, [navigate, showMobileMenu]);
+  }, [showMobileMenu, setShowDocVerification]);
 
   const openCreditAnalysis = useCallback(() => {
     setShowCreditAnalysis(true);
@@ -288,13 +292,16 @@ const Navbar = memo(() => {
 
   const roleOptions: Array<'broker' | 'lender' | 'borrower'> = ['broker', 'lender', 'borrower'];
 
-  const handleRoleChange = useCallback((role: AppUserRole) => {
-    setUserRole(role);
-    // Store the role in localStorage for persistence
-    localStorage.setItem('userRole', role);
-    // Refresh the page to ensure all components reflect the new role
-    window.location.reload();
-  }, [setUserRole]);
+  const handleRoleChange = useCallback(
+    (role: AppUserRole) => {
+      setUserRole(role);
+      // Store the role in localStorage for persistence
+      localStorage.setItem('userRole', role);
+      // Refresh the page to ensure all components reflect the new role
+      window.location.reload();
+    },
+    [setUserRole]
+  );
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -317,7 +324,11 @@ const Navbar = memo(() => {
                       <Bars3Icon className="block h-4 w-4" aria-hidden="true" />
                     )}
                   </button>
-                  <img src="/eva-logo.svg" alt="EVAFIN" className="h-5 w-auto ml-2 hidden sm:block" />
+                  <img
+                    src="/eva-logo.svg"
+                    alt="EVAFIN"
+                    className="h-5 w-auto ml-2 hidden sm:block"
+                  />
                   <div className="ml-2.5 text-sm font-medium text-light-text hidden md:block">
                     EVA AI{' '}
                     <span className="font-light text-light-text-secondary">
@@ -333,7 +344,7 @@ const Navbar = memo(() => {
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
                   {/* Language Selector */}
                   <LanguageSelector className="mr-3" />
-                  
+
                   {/* AI Tools Dropdown */}
                   <Menu as="div" className="relative ml-2">
                     <div>
@@ -350,7 +361,7 @@ const Navbar = memo(() => {
                             clipRule="evenodd"
                           />
                         </svg>
-                        AI Tools
+                        {t('common.aiTools', 'AI Tools')}
                       </Menu.Button>
                     </div>
                     <Transition
@@ -374,9 +385,11 @@ const Navbar = memo(() => {
                               )}
                             >
                               <SmartMatchingIcon />
-                              <span className="ml-3">Smart Matching</span>
+                              <span className="ml-3">
+                                {t('aiTools.smartMatching', 'Smart Matching')}
+                              </span>
                               <span className="ml-auto px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                New
+                                {t('common.new', 'New')}
                               </span>
                             </a>
                           )}
@@ -392,7 +405,9 @@ const Navbar = memo(() => {
                               )}
                             >
                               <DataOrchestratorIcon />
-                              <span className="ml-3">Data Orchestrator</span>
+                              <span className="ml-3">
+                                {t('aiTools.dataOrchestrator', 'Data Orchestrator')}
+                              </span>
                             </a>
                           )}
                         </Menu.Item>
@@ -407,7 +422,9 @@ const Navbar = memo(() => {
                               )}
                             >
                               <DocumentVerificationIcon />
-                              <span className="ml-3">Document Verification</span>
+                              <span className="ml-3">
+                                {t('aiTools.documentVerification', 'Document Verification')}
+                              </span>
                             </a>
                           )}
                         </Menu.Item>
@@ -422,9 +439,11 @@ const Navbar = memo(() => {
                               )}
                             >
                               <CreditAnalysisIcon />
-                              <span className="ml-3">Credit Analysis</span>
+                              <span className="ml-3">
+                                {t('aiTools.creditAnalysis', 'Credit Analysis')}
+                              </span>
                               <span className="ml-auto px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                                Coming Soon
+                                {t('common.comingSoon', 'Coming Soon')}
                               </span>
                             </a>
                           )}
@@ -440,7 +459,9 @@ const Navbar = memo(() => {
                               )}
                             >
                               <LifecycleAssistantIcon />
-                              <span className="ml-3">Lifecycle Assistant</span>
+                              <span className="ml-3">
+                                {t('aiTools.lifecycleAssistant', 'Lifecycle Assistant')}
+                              </span>
                             </a>
                           )}
                         </Menu.Item>
@@ -471,8 +492,8 @@ const Navbar = memo(() => {
                         <span className="sr-only">Open user menu</span>
                         <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary-600">
                           <span className="text-xs font-medium leading-none text-white">
-                            {(user && typeof user === 'object' && 'email' in user) 
-                              ? user.email.charAt(0).toUpperCase() 
+                            {user && typeof user === 'object' && 'email' in user
+                              ? user.email.charAt(0).toUpperCase()
                               : 'U'}
                           </span>
                         </span>
@@ -491,13 +512,14 @@ const Navbar = memo(() => {
                         <Menu.Item>
                           {({ active }: { active: boolean }) => (
                             <a
-                              href="/profile-settings"
+                              href="#"
+                              onClick={navigateToProfileSettings}
                               className={classNames(
                                 active ? 'bg-light-bg-alt' : '',
                                 'block px-3 py-1.5 text-xs text-light-text'
                               )}
                             >
-                              Your Profile
+                              {t('profile.profile', 'Your Profile')}
                             </a>
                           )}
                         </Menu.Item>

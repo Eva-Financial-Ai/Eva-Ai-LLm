@@ -31,6 +31,7 @@ import {
   ChevronUpIcon,
   IdentificationIcon,
   AcademicCapIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import {} from './SidebarIcons';
 
@@ -484,6 +485,12 @@ const primaryNavItems: NavItem[] = [
     path: '/deal-structuring',
     icon: <ScaleIcon className="w-5 h-5" />,
     description: 'Structure and manage deals',
+  },
+  {
+    name: 'Custom Agents',
+    path: '/custom-agents',
+    icon: <ChatBubbleLeftRightIcon className="w-5 h-5" />,
+    description: 'Create and manage custom AI agents',
   },
   {
     name: 'Portfolio',

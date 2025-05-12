@@ -1,6 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Draggable from 'react-draggable';
 import { useWorkflow } from '../../contexts/WorkflowContext';
+import {
+  XMarkIcon,
+  PaperClipIcon,
+  ClockIcon,
+  ChevronDownIcon,
+  MagnifyingGlassIcon,
+  DocumentTextIcon,
+  ArrowDownTrayIcon,
+  HandThumbUpIcon,
+  HandThumbDownIcon,
+  AdjustmentsHorizontalIcon,
+  MicrophoneIcon,
+  SpeakerWaveIcon,
+  Cog6ToothIcon,
+  ShareIcon,
+  UserGroupIcon,
+  ChartBarIcon,
+} from '@heroicons/react/24/outline';
+import AgentSelector from './AgentSelector';
+import AgentManagementDialog from './AgentManagementDialog';
+import { AgentModel } from './CustomAgentManager';
+import AddParticipantDialog from './AddParticipantDialog';
+import { DEFAULT_AGENTS } from './AgentSelector';
+import AgentIcon from './AgentIcon';
 
 interface ChatWidgetProps {
   mode?: 'eva' | 'risk' | 'communications';
@@ -9,29 +33,164 @@ interface ChatWidgetProps {
   zIndexBase?: number;
 }
 
+interface Message {
+  id: string;
+  sender: 'user' | 'ai';
+  text: string;
+  timestamp: Date;
+  attachment?: {
+    type: 'image' | 'pdf' | 'document';
+    name: string;
+    url: string;
+  };
+  bulletPoints?: string[];
+  isSuggestion?: boolean;
+}
+
+interface ChatHistoryItem {
+  id: string;
+  title: string;
+  preview: string;
+  timestamp: Date;
+}
+
+// Speech recognition type definitions
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionResult;
+  length: number;
+}
+
+interface SpeechRecognitionResult {
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+  length: number;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface Window {
+  SpeechRecognition: any;
+  webkitSpeechRecognition: any;
+  mozSpeechRecognition: any;
+  msSpeechRecognition: any;
+}
+
+// At the top, add a debug flag
+const DEBUG_CHAT = true; // Set to true to see debug logs
+
+// New types for conversation management
+interface Conversation {
+  id: string;
+  title: string;
+  agentId: string;
+  messages: Message[];
+  participants: string[];
+  sharedWithManagers: boolean;
+  sentimentScore?: number;
+  computeEfficiencyScore?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Add a Manager interface
+interface Manager {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 const ChatWidget: React.FC<ChatWidgetProps> = ({
   mode = 'eva',
-  initialPosition = { x: 0, y: 0 },
+  initialPosition = {
+    x: window.innerWidth - window.innerWidth * 0.85 - 40,
+    y: window.innerHeight - window.innerHeight * 0.85 - 120,
+  },
   isOpen: initialIsOpen = false,
   zIndexBase = 50,
 }) => {
-  const [isOpen, setIsOpen] = useState(initialIsOpen);
-  const [messages, setMessages] = useState<
-    Array<{ text: string; sender: 'user' | 'ai'; timestamp: Date }>
-  >([]);
+  // Keep state simpler
+  const [isVisible, setIsVisible] = useState(initialIsOpen);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [conversationContext, setConversationContext] = useState<string[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
   const { currentTransaction } = useWorkflow();
-  const [position, setPosition] = useState(initialPosition);
-  const [zIndex, setZIndex] = useState(zIndexBase);
-  const [isDragging, setIsDragging] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
-  // Initialize with welcome message based on mode
+  // New state for custom agents
+  const [customAgents, setCustomAgents] = useState<AgentModel[]>([]);
+  const [selectedAgent, setSelectedAgent] = useState<AgentModel | null>(null);
+  const [isAgentManagementOpen, setIsAgentManagementOpen] = useState(false);
+  const [isAddParticipantOpen, setIsAddParticipantOpen] = useState(false);
+  const [participants, setParticipants] = useState<string[]>([]);
+
+  // Chat history shown in the sidebar
+  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>([
+    {
+      id: 'chat-1',
+      title: 'Loan Portfolio Analysis',
+      preview: 'Overview of loan portfolio performance and risk metrics',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60),
+    },
+    {
+      id: 'chat-2',
+      title: 'Document Verification',
+      preview: 'Analysis of financial statements and verification of key metrics',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
+    },
+    {
+      id: 'chat-3',
+      title: 'Risk Assessment',
+      preview: 'Detailed risk factors and mitigation strategies',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3),
+    },
+    {
+      id: 'chat-4',
+      title: 'Compliance Check',
+      preview: 'Regulatory compliance verification and requirements',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
+    },
+  ]);
+
+  // New state for conversation management
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [sharedWithManagers, setSharedWithManagers] = useState(false);
+  const [managers, setManagers] = useState<Manager[]>([
+    { id: 'mgr1', name: 'Alex Johnson', email: 'alex@evafin.com', role: 'Team Lead' },
+    { id: 'mgr2', name: 'Samantha Rodriguez', email: 'sam@evafin.com', role: 'Department Manager' },
+    { id: 'mgr3', name: 'Taylor Washington', email: 'taylor@evafin.com', role: 'VP Operations' },
+  ]);
+  const [showSentimentAnalysis, setShowSentimentAnalysis] = useState(false);
+  const [sentimentScore, setSentimentScore] = useState(0);
+  const [computeEfficiencyScore, setComputeEfficiencyScore] = useState(0);
+
+  const hasInitialized = React.useRef(false);
+
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     let welcomeMessage = '';
     if (mode === 'eva') {
-      welcomeMessage = "Hello! I'm EVA, your AI assistant. How can I help you today?";
+      welcomeMessage =
+        "Welcome to EVA Financial. I'm here to help you assess risk and make more intelligent decisions.";
     } else if (mode === 'risk') {
       welcomeMessage =
         'Risk Advisor here. I can help identify and mitigate risks in your transaction.';
@@ -40,8 +199,92 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         'Welcome to Clear Communications. How can I assist with your client interactions?';
     }
 
-    setMessages([{ text: welcomeMessage, sender: 'ai', timestamp: new Date() }]);
+    // Set welcome message
+    setMessages([
+      {
+        id: 'welcome',
+        text: welcomeMessage,
+        sender: 'ai',
+        timestamp: new Date(),
+      },
+    ]);
+
+    // Add clear suggestions that work
+    setTimeout(() => {
+      setMessages(prev => {
+        // prevent duplicate suggestions
+        if (prev.some(m => m.id === 'initial-suggestions')) return prev;
+        return [
+          ...prev,
+          {
+            id: 'initial-suggestions',
+            sender: 'ai',
+            text: 'What would you like to know about? You can type your own query or select one below:',
+            bulletPoints: [
+              "Analyze the borrower's current financial ratios and highlight any concerning trends.",
+              "What's the collateral value compared to the loan amount for this application?",
+              "How does this loan's risk profile compare to similar loans in our portfolio?",
+              'Can you summarize the cash flow projections for the next 12 months?',
+              'What regulatory compliance issues should I be aware of for this transaction?',
+              'Based on industry benchmarks, is the debt service coverage ratio adequate?',
+            ],
+            timestamp: new Date(),
+          },
+        ];
+      });
+    }, 800);
   }, [mode]);
+
+  // Auto-scroll to bottom of messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Focus on input when chat opens
+  useEffect(() => {
+    if (isVisible) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [isVisible]);
+
+  // Set up speech recognition
+  useEffect(() => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result: any) => result.transcript)
+          .join('');
+        setInputText(transcript);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // Ignore errors when stopping
+        }
+      }
+    };
+  }, []);
 
   // Listen for chat prompt events
   useEffect(() => {
@@ -59,181 +302,591 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     };
   }, []);
 
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // Handle global click to manage z-index
-  useEffect(() => {
-    const handleGlobalClick = (e: MouseEvent) => {
-      // If the chat widget receives a click, bring it to the front
-      if (chatEndRef.current && chatEndRef.current.contains(e.target as Node)) {
-        setZIndex(100); // Set to a higher z-index when selected
+  // Simple function to toggle speech recognition
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current?.start();
+        setIsListening(true);
+      } catch (e) {
+        console.error('Error starting speech recognition', e);
       }
-    };
-
-    document.addEventListener('mousedown', handleGlobalClick);
-
-    return () => {
-      document.removeEventListener('mousedown', handleGlobalClick);
-    };
-  }, []);
-
-  // Reset z-index when not dragging
-  useEffect(() => {
-    if (!isDragging) {
-      // Delay to prevent flickering
-      const timeout = setTimeout(() => {
-        setZIndex(zIndexBase);
-      }, 200);
-
-      return () => clearTimeout(timeout);
     }
-  }, [isDragging, zIndexBase]);
-
-  const getWelcomeMessage = () => {
-    const contextMessage = currentTransaction
-      ? `I see you're working on the ${currentTransaction.type || 'unknown'} transaction${currentTransaction.applicantData?.name ? ` for ${currentTransaction.applicantData.name}` : ''}.`
-      : "I don't see an active transaction. Need help starting one?";
-
-    return contextMessage;
   };
 
+  // Handle submission of a query
   const handleQuery = async (query: string) => {
     // Add user message
-    setMessages(prevMessages => [
-      ...prevMessages,
-      { text: query, sender: 'user', timestamp: new Date() },
-    ]);
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text: query,
+      timestamp: new Date(),
+    };
 
-    setIsLoading(true);
+    setMessages(prev => [...prev, userMessage]);
+    setInputText('');
+    setIsTyping(true);
 
-    // Simulate typing delay
+    // Simulate AI response after a delay
     setTimeout(() => {
-      let response = '';
+      let aiResponse: Message;
 
-      if (mode === 'risk') {
-        response = generateRiskResponse(query);
-      } else if (mode === 'communications') {
-        response = generateCommunicationsResponse(query);
+      if (query.toLowerCase().includes('loan') || query.toLowerCase().includes('portfolio')) {
+        aiResponse = {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: "Here's an overview of your loan portfolio's performance:",
+          bulletPoints: [
+            '**Total Outstanding Loans**: $2,500,000\n- The total value of all outstanding loans in the portfolio.',
+            '**Average Interest Rate**: 7%\n- The average interest rate across all loans.',
+            '**Loan Type Distribution**:\n- Equipment Loans: 40%\n- Working Capital Loans: 30%\n- Real Estate Loans: 30%',
+            '**Top Performing Loan Type**:\n- Equipment Loans\n- Average ROI: 10%',
+            '**Delinquency Rate**:\n- Equipment Loans: 5%\n- Working Capital Loans: 3%\n- Real Estate Loans: 7%',
+            '**Loan Growth Rate**: 5%\n- The overall growth rate of the loan portfolio.',
+            '**Risk Assessment**:\n- Low Risk Loans: 60%\n- Medium Risk Loans: 30%\n- High Risk Loans: 10%',
+            '**Loan Performance Trends**:\n- Equipment Loans: Steady growth, minimal delinquencies.\n- Working Capital Loans: Increasing demand, low default rates.\n- Real Estate Loans: Stable performance, slight increase in delinquencies.',
+          ],
+          timestamp: new Date(),
+        };
+      } else if (
+        query.toLowerCase().includes('document') ||
+        query.toLowerCase().includes('upload')
+      ) {
+        aiResponse = {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: 'To upload and manage documents, navigate to the Filelock Drive section. You can upload files by dragging and dropping them or clicking the upload button. All documents are securely stored and can be shared with appropriate permissions.',
+          timestamp: new Date(),
+        };
+      } else if (query.toLowerCase().includes('risk')) {
+        aiResponse = {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: 'Based on my analysis, here are several risk factors to consider:',
+          bulletPoints: [
+            "The borrower's debt-to-income ratio is above industry average",
+            'Recent market volatility in this sector suggests higher than normal risk',
+            'There are some regulatory compliance concerns that should be addressed before proceeding',
+          ],
+          timestamp: new Date(),
+        };
       } else {
-        response = generateEVAResponse(query);
+        aiResponse = {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: "I'm here to help with any aspect of the EVA platform. I can assist with document management, transaction processing, risk assessment, or communications. What would you like to know more about?",
+          timestamp: new Date(),
+        };
       }
 
-      setMessages(prevMessages => [
-        ...prevMessages,
-        { text: response, sender: 'ai', timestamp: new Date() },
-      ]);
-
-      setIsLoading(false);
-    }, 1000);
+      // Add AI response to messages
+      setMessages(prev => [...prev, aiResponse]);
+      setIsTyping(false);
+    }, 1500);
   };
 
-  const generateRiskResponse = (query: string) => {
-    if (query.toLowerCase().includes('risk')) {
-      return "Based on my analysis, there are several risk factors to consider: 1) The borrower's debt-to-income ratio is above industry average, 2) Recent market volatility in this sector suggests higher than normal risk, 3) There are some regulatory compliance concerns that should be addressed before proceeding.";
-    } else if (query.toLowerCase().includes('mitigate')) {
-      return 'To mitigate these risks, I recommend: 1) Requiring additional collateral of at least 15%, 2) Implementing quarterly compliance reviews, 3) Setting up a contingency reserve of 5% of the total loan amount.';
-    } else {
-      return "I've analyzed the transaction risk profile. Would you like me to elaborate on specific risk factors or suggest mitigation strategies?";
-    }
-  };
+  const handleSuggestionClick = (suggestion: string) => {
+    // Set text in input field
+    setInputText(suggestion);
 
-  const generateCommunicationsResponse = (query: string) => {
-    if (query.toLowerCase().includes('email') || query.toLowerCase().includes('message')) {
-      return "I've drafted a clear and professional message addressing the client's concerns. Would you like me to show you the template now?";
-    } else if (query.toLowerCase().includes('explain') || query.toLowerCase().includes('terms')) {
-      return "Here's a simplified explanation of those terms you can share with the client: [Plain language explanation]. This keeps the information accurate while making it accessible.";
-    } else {
-      return 'I can help draft clear communications to the client or explain complex terms in accessible language. What specific assistance do you need?';
-    }
-  };
+    // Then immediately submit
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text: suggestion,
+      timestamp: new Date(),
+    };
 
-  const generateEVAResponse = (query: string) => {
-    if (query.toLowerCase().includes('document') || query.toLowerCase().includes('upload')) {
-      return 'To upload and manage documents, navigate to the Filelock Drive section. You can upload files by dragging and dropping them or clicking the upload button. All documents are securely stored and can be shared with appropriate permissions.';
-    } else if (
-      query.toLowerCase().includes('transaction') ||
-      query.toLowerCase().includes('loan')
-    ) {
-      return "To create a new transaction, go to the Dashboard and click 'New Transaction'. You'll need to enter basic information about the borrower and loan terms. I can guide you through each step if you'd like.";
-    } else {
-      return "I'm here to help with any aspect of the EVA platform. I can assist with document management, transaction processing, risk assessment, or communications. What would you like to know more about?";
-    }
-  };
+    setMessages(prev => [...prev, userMessage]);
+    setInputText('');
+    setIsTyping(true);
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputText.trim()) {
-      handleQuery(inputText);
-      setInputText('');
-    }
-  };
-
-  const handleDragStart = () => {
-    setIsDragging(true);
-    setZIndex(100); // Bring to front while dragging
-  };
-
-  const handleDragStop = (e: any, data: any) => {
-    setPosition({ x: data.x, y: data.y });
-    setIsDragging(false);
-    // Keep it at the higher z-index briefly to prevent flickering
+    // Generate response based on the suggestion
     setTimeout(() => {
-      setZIndex(zIndexBase);
-    }, 200);
+      let responseText = `I've analyzed your question about "${suggestion}". Here's what I found:
+
+1. This appears to be a financial analysis request that needs detailed attention.
+2. I'll need to retrieve the latest data to provide accurate insights.
+3. Would you like me to prepare a full report on this topic?`;
+
+      const aiMessage: Message = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: responseText,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+      setIsTyping(false);
+    }, 1500);
   };
 
-  const getButtonColor = () => {
-    switch (mode) {
-      case 'risk':
-        return 'bg-red-600 hover:bg-red-700';
-      case 'communications':
-        return 'bg-blue-600 hover:bg-blue-700';
-      default:
-        return 'bg-primary-600 hover:bg-primary-700';
+  // Handle file uploads
+  const handleFileUpload = (files: FileList | null) => {
+    if (!files) return;
+
+    const newFiles = Array.from(files);
+    setUploadedFiles(prev => [...prev, ...newFiles]);
+  };
+
+  // Remove an uploaded file
+  const removeUploadedFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Function to create a new conversation
+  const createNewConversation = (selectedAgentId: string = 'eva-fin-risk') => {
+    const newConversationId = `conv-${Date.now()}`;
+    const selectedAgentInfo =
+      DEFAULT_AGENTS.find(agent => agent.id === selectedAgentId) || DEFAULT_AGENTS[0];
+
+    const welcomeMessage = `Welcome to a new conversation with ${selectedAgentInfo.name}. ${selectedAgentInfo.description}`;
+
+    const newConversation: Conversation = {
+      id: newConversationId,
+      title: `Conversation with ${selectedAgentInfo.name}`,
+      agentId: selectedAgentId,
+      messages: [
+        {
+          id: `welcome-${newConversationId}`,
+          sender: 'ai',
+          text: welcomeMessage,
+          timestamp: new Date(),
+        },
+      ],
+      participants: [...participants],
+      sharedWithManagers: sharedWithManagers,
+      sentimentScore: 0,
+      computeEfficiencyScore: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    setConversations(prev => [...prev, newConversation]);
+    setActiveConversationId(newConversationId);
+    setMessages([
+      {
+        id: `welcome-${newConversationId}`,
+        sender: 'ai',
+        text: welcomeMessage,
+        timestamp: new Date(),
+      },
+    ]);
+
+    // Add to chat history
+    setChatHistory(prev => [
+      {
+        id: newConversationId,
+        title: `Conversation with ${selectedAgentInfo.name}`,
+        preview: welcomeMessage,
+        timestamp: new Date(),
+      },
+      ...prev,
+    ]);
+
+    return newConversationId;
+  };
+
+  // Initialize first conversation
+  useEffect(() => {
+    if (!activeConversationId && conversations.length === 0) {
+      createNewConversation(selectedAgent?.id || 'eva-fin-risk');
+    }
+  }, []);
+
+  // Modified handleSelectAgent to create a new conversation with selected agent
+  const handleSelectAgent = (agent: AgentModel) => {
+    setSelectedAgent(agent);
+
+    // Create a new conversation when selecting a different agent
+    const newConversationId = createNewConversation(agent.id);
+
+    // System notification about new conversation
+    const systemMessage: Message = {
+      id: `system-${Date.now()}`,
+      sender: 'ai',
+      text: `Starting a new conversation with ${agent.name}. This agent specializes in ${agent.type.split(',')[0] || 'various tasks'}.`,
+      timestamp: new Date(),
+      isSuggestion: true,
+    };
+
+    // Add the message to the new conversation
+    setConversations(prev =>
+      prev.map(conv =>
+        conv.id === newConversationId
+          ? {
+              ...conv,
+              messages: [...conv.messages, systemMessage],
+              updatedAt: new Date(),
+            }
+          : conv
+      )
+    );
+
+    setMessages(prev => [...prev, systemMessage]);
+  };
+
+  // Modified handleSendMessage to update the active conversation
+  const handleSendMessage = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    if (!inputText.trim() && uploadedFiles.length === 0) return;
+
+    // Add user message
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text: inputText,
+      timestamp: new Date(),
+      attachment:
+        uploadedFiles.length > 0
+          ? {
+              type: uploadedFiles[0].type.includes('image')
+                ? 'image'
+                : uploadedFiles[0].type.includes('pdf')
+                  ? 'pdf'
+                  : 'document',
+              name:
+                uploadedFiles.length === 1
+                  ? uploadedFiles[0].name
+                  : `${uploadedFiles.length} files uploaded`,
+              url: uploadedFiles.length === 1 ? URL.createObjectURL(uploadedFiles[0]) : '',
+            }
+          : undefined,
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+
+    // Update active conversation with new message
+    if (activeConversationId) {
+      setConversations(prev =>
+        prev.map(conv =>
+          conv.id === activeConversationId
+            ? {
+                ...conv,
+                messages: [...conv.messages, userMessage],
+                updatedAt: new Date(),
+              }
+            : conv
+        )
+      );
+    }
+
+    setInputText('');
+    setUploadedFiles([]);
+    setIsTyping(true);
+
+    // Perform sentiment analysis
+    analyzeSentiment(inputText);
+
+    // Simulate AI response
+    setTimeout(() => {
+      let responseText = `I've analyzed your message. `;
+
+      if (uploadedFiles.length > 0) {
+        responseText += `I've also received your files and can help you with processing them. `;
+      }
+
+      responseText += `Is there anything specific you'd like me to focus on?`;
+
+      const aiMessage: Message = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: responseText,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+
+      // Update active conversation with AI response
+      if (activeConversationId) {
+        setConversations(prev =>
+          prev.map(conv =>
+            conv.id === activeConversationId
+              ? {
+                  ...conv,
+                  messages: [...conv.messages, aiMessage],
+                  updatedAt: new Date(),
+                }
+              : conv
+          )
+        );
+      }
+
+      setIsTyping(false);
+    }, 1500);
+  };
+
+  // Simple sentiment analysis function
+  const analyzeSentiment = (text: string) => {
+    // In a real implementation, this would call a sentiment analysis API
+    // This is a simple mock implementation
+    const words = text.toLowerCase().split(/\s+/);
+
+    // Very basic sentiment words (would be much more sophisticated in production)
+    const positiveWords = [
+      'good',
+      'great',
+      'excellent',
+      'helpful',
+      'thank',
+      'thanks',
+      'appreciate',
+      'clear',
+      'perfect',
+    ];
+    const negativeWords = [
+      'bad',
+      'poor',
+      'terrible',
+      'useless',
+      'waste',
+      'confusing',
+      'difficult',
+      'wrong',
+      'incorrect',
+    ];
+
+    let score = 50; // Neutral starting point
+
+    // Count positive and negative words
+    words.forEach(word => {
+      if (positiveWords.includes(word)) score += 5;
+      if (negativeWords.includes(word)) score -= 5;
+    });
+
+    // Analyze prompt efficiency - shorter, focused prompts score better
+    const wordCount = words.length;
+    let efficiencyScore = 100;
+
+    if (wordCount > 50) efficiencyScore -= 10;
+    if (wordCount > 100) efficiencyScore -= 20;
+    if (wordCount > 150) efficiencyScore -= 30;
+
+    // Check for clear question structure
+    if (text.includes('?')) efficiencyScore += 10;
+
+    // Ensure scores stay in range
+    score = Math.max(0, Math.min(100, score));
+    efficiencyScore = Math.max(0, Math.min(100, efficiencyScore));
+
+    setSentimentScore(score);
+    setComputeEfficiencyScore(efficiencyScore);
+
+    // Update active conversation with scores
+    if (activeConversationId) {
+      setConversations(prev =>
+        prev.map(conv =>
+          conv.id === activeConversationId
+            ? {
+                ...conv,
+                sentimentScore: score,
+                computeEfficiencyScore: efficiencyScore,
+              }
+            : conv
+        )
+      );
     }
   };
 
-  const getButtonIcon = () => {
+  // Toggle sharing with managers
+  const toggleManagerSharing = () => {
+    setSharedWithManagers(!sharedWithManagers);
+
+    // Update active conversation sharing status
+    if (activeConversationId) {
+      setConversations(prev =>
+        prev.map(conv =>
+          conv.id === activeConversationId
+            ? { ...conv, sharedWithManagers: !sharedWithManagers }
+            : conv
+        )
+      );
+
+      // Add system message about sharing
+      const sharingMessage: Message = {
+        id: `system-${Date.now()}`,
+        sender: 'ai',
+        text: !sharedWithManagers
+          ? 'This conversation is now shared with your management team.'
+          : 'This conversation is no longer shared with your management team.',
+        timestamp: new Date(),
+        isSuggestion: true,
+      };
+
+      setMessages(prev => [...prev, sharingMessage]);
+    }
+  };
+
+  // Switch to a different conversation
+  const switchConversation = (conversationId: string) => {
+    const conversation = conversations.find(conv => conv.id === conversationId);
+    if (conversation) {
+      setActiveConversationId(conversationId);
+      setMessages(conversation.messages);
+      setSharedWithManagers(conversation.sharedWithManagers);
+
+      // Find and set the agent for this conversation
+      const agent = DEFAULT_AGENTS.find(a => a.id === conversation.agentId);
+      if (agent) {
+        setSelectedAgent(agent);
+      }
+    }
+  };
+
+  const toggleSidebar = () => {
+    setShowSidebar(!showSidebar);
+  };
+
+  const formatDate = (date: Date) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const isToday = date.toDateString() === today.toDateString();
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+
+    if (isToday) {
+      return 'TODAY';
+    } else if (isYesterday) {
+      return 'YESTERDAY';
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+    }
+  };
+
+  const groupHistoryByDate = () => {
+    const groups: Record<string, ChatHistoryItem[]> = {};
+
+    chatHistory.forEach(item => {
+      const dateStr = formatDate(item.timestamp);
+      if (!groups[dateStr]) {
+        groups[dateStr] = [];
+      }
+      groups[dateStr].push(item);
+    });
+
+    return groups;
+  };
+
+  const groupedHistory = groupHistoryByDate();
+
+  const getTitle = () => {
+    if (selectedAgent) {
+      return `${selectedAgent.name}`;
+    }
+
     switch (mode) {
       case 'risk':
-        return (
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-        );
+        return 'Risk Analysis Chat';
       case 'communications':
-        return (
-          <svg
-            className="w-7 h-7"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-            />
-          </svg>
-        );
+        return 'Team Communications';
       default:
-        return (
+        return 'EVA Assistant';
+    }
+  };
+
+  const getSubtitle = () => {
+    switch (mode) {
+      case 'risk':
+        return 'Risk Assessment Model';
+      case 'communications':
+        return 'Client Communications';
+      default:
+        return 'New Chat For Lead Vision AI';
+    }
+  };
+
+  // Text-to-Speech function
+  const speakText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Add these UI components to the appropriate places in the return statement
+
+  // Add these in the header section of the chat interface
+  const renderAnalyticsButton = () => (
+    <button
+      className="p-2 text-gray-500 hover:text-blue-600 relative"
+      onClick={() => setShowSentimentAnalysis(!showSentimentAnalysis)}
+      title="Sentiment Analysis"
+    >
+      <ChartBarIcon className="h-5 w-5" />
+    </button>
+  );
+
+  const renderShareButton = () => (
+    <button
+      className={`p-2 ${sharedWithManagers ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'} relative`}
+      onClick={toggleManagerSharing}
+      title={sharedWithManagers ? 'Shared with managers' : 'Share with managers'}
+    >
+      <ShareIcon className="h-5 w-5" />
+      {sharedWithManagers && (
+        <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-blue-500"></span>
+      )}
+    </button>
+  );
+
+  const renderSentimentAnalysis = () =>
+    showSentimentAnalysis && (
+      <div className="bg-white border-t border-gray-200 p-4">
+        <h3 className="text-sm font-semibold mb-2">Prompt Analysis</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Sentiment Score</p>
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${sentimentScore > 70 ? 'bg-green-500' : sentimentScore > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                style={{ width: `${sentimentScore}%` }}
+              ></div>
+            </div>
+            <p className="text-right text-xs mt-1">{sentimentScore}/100</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Compute Efficiency</p>
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${computeEfficiencyScore > 70 ? 'bg-green-500' : computeEfficiencyScore > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                style={{ width: `${computeEfficiencyScore}%` }}
+              ></div>
+            </div>
+            <p className="text-right text-xs mt-1">{computeEfficiencyScore}/100</p>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-3">
+          Prompts that are clear, concise, and specific help optimize compute resources and deliver
+          better results.
+        </p>
+      </div>
+    );
+
+  // CHAT BUTTON COMPONENT
+  if (!isVisible) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          zIndex: 999,
+        }}
+      >
+        <button
+          onClick={() => setIsVisible(true)}
+          className="rounded-full p-3 text-white shadow-lg bg-blue-600 hover:bg-blue-700"
+          aria-label="Open chat"
+        >
           <svg
             className="w-6 h-6"
             fill="none"
@@ -248,124 +901,366 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
               d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
             />
           </svg>
-        );
-    }
-  };
+        </button>
+      </div>
+    );
+  }
 
-  const getTitle = () => {
-    switch (mode) {
-      case 'risk':
-        return 'Risk Advisor';
-      case 'communications':
-        return 'Clear Communications';
-      default:
-        return 'EVA AI Assistant';
-    }
-  };
-
+  // MAIN CHAT INTERFACE
   return (
-    <Draggable
-      handle=".chat-drag-handle"
-      defaultPosition={position}
-      onStart={handleDragStart}
-      onStop={handleDragStop}
-      bounds="parent"
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+      onClick={e => {
+        e.stopPropagation();
+      }}
     >
       <div
-        className={`fixed bottom-4 right-4 transition-all duration-300 ${isOpen ? (mode === 'communications' ? 'w-3/4 md:w-2/3' : 'w-3/4 md:w-2/3') : 'w-auto'}`}
-        style={{ zIndex }}
+        className="bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col"
+        style={{
+          width: '85%',
+          height: '85%',
+          maxWidth: '1500px',
+          maxHeight: '900px',
+        }}
+        onClick={e => e.stopPropagation()}
       >
-        {isOpen ? (
-          <div
-            className={`flex flex-col bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 ${mode === 'communications' ? 'h-[600px]' : 'h-[600px]'}`}
-            onMouseDown={() => setZIndex(100)} // Bring to front when clicked
-          >
-            {/* Chat header with drag handle */}
-            <div
-              className={`${mode === 'risk' ? 'bg-red-600' : mode === 'communications' ? 'bg-blue-600' : 'bg-primary-600'} px-4 py-3 flex justify-between items-center chat-drag-handle cursor-move`}
-            >
-              <h3 className="text-white font-medium flex items-center">
-                {getButtonIcon()}
-                <span className="ml-2">{getTitle()}</span>
-              </h3>
-              <button onClick={() => setIsOpen(false)} className="text-white hover:text-gray-200">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
+        {/* Main container with sidebar and chat area */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar */}
+          {showSidebar && (
+            <div className="w-64 border-r border-gray-200 flex flex-col bg-white">
+              {/* Sidebar Header */}
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">Conversations</h2>
+                <div className="mt-2 relative">
+                  <input
+                    type="text"
+                    placeholder="Search conversations..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
                   />
-                </svg>
-              </button>
-            </div>
+                  <MagnifyingGlassIcon className="h-5 w-5 absolute right-3 top-2.5 text-gray-400" />
+                </div>
+              </div>
 
-            {/* Chat messages */}
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-              {messages.map((message, index) => (
-                <div key={index} className={`mb-3 ${message.sender === 'user' ? 'ml-auto' : ''}`}>
-                  <div
-                    className={`p-3 rounded-lg inline-block max-w-xs ${
-                      message.sender === 'user'
-                        ? 'bg-primary-100 text-primary-800 rounded-br-none'
-                        : 'bg-white text-gray-800 shadow-sm rounded-bl-none'
-                    }`}
-                  >
-                    {message.text}
+              {/* Conversation List */}
+              <div className="flex-1 overflow-y-auto">
+                {Object.entries(groupedHistory).map(([date, items]) => (
+                  <div key={date} className="p-4">
+                    <h3 className="text-xs font-semibold text-gray-500 mb-2">{date}</h3>
+                    {items.map(item => (
+                      <div
+                        key={item.id}
+                        className="p-3 hover:bg-gray-100 rounded-md cursor-pointer mb-1"
+                        onClick={() => switchConversation(item.id)}
+                      >
+                        <h4 className="text-sm font-medium">{item.title}</h4>
+                        <p className="text-xs text-gray-500 truncate">{item.preview}</p>
+                        {conversations.find(c => c.id === item.id)?.sharedWithManagers && (
+                          <div className="flex items-center mt-1">
+                            <ShareIcon className="h-3 w-3 text-blue-500 mr-1" />
+                            <span className="text-xs text-blue-500">Shared with management</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <div
-                    className={`text-xs text-gray-500 mt-1 ${message.sender === 'user' ? 'text-right' : ''}`}
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Main Chat Area */}
+          <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+            {/* Header */}
+            <div className="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
+              <div className="flex items-center">
+                <button className="mr-2 text-gray-500 hover:text-gray-700" onClick={toggleSidebar}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    {message.timestamp.toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h7"
+                    />
+                  </svg>
+                </button>
+                <div>
+                  <h2 className="text-lg font-semibold">{getTitle()}</h2>
+                  <div className="flex items-center">
+                    <p className="text-sm text-gray-500">{getSubtitle()}</p>
+                    <span className="ml-2 text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">
+                      FIXED VERSION
+                    </span>
                   </div>
                 </div>
+              </div>
+
+              {/* Header Right Side */}
+              <div className="flex items-center space-x-2">
+                {renderAnalyticsButton()}
+                {renderShareButton()}
+                <AgentSelector
+                  selectedAgent={selectedAgent}
+                  onSelectAgent={handleSelectAgent}
+                  onManageAgents={() => setIsAgentManagementOpen(true)}
+                  customAgents={customAgents}
+                />
+
+                <button
+                  className="p-2 text-gray-500 hover:text-gray-700"
+                  onClick={() => setIsVisible(false)}
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Agent Bar */}
+            <div className="px-4 py-2 bg-white border-b border-gray-200 flex items-center space-x-2 overflow-x-auto">
+              {DEFAULT_AGENTS.map(agent => (
+                <button
+                  key={agent.id}
+                  onClick={() => handleSelectAgent(agent)}
+                  className={`flex items-center rounded-full px-2 py-1 space-x-1 text-xs ${
+                    selectedAgent?.id === agent.id
+                      ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <AgentIcon
+                    agentId={agent.id}
+                    agentName={agent.name}
+                    iconUrl={agent.imageUrl}
+                    size="sm"
+                    className="w-4 h-4"
+                  />
+                  <span>{agent.name}</span>
+                </button>
               ))}
-              {isLoading && (
-                <div className="flex items-center mb-3">
-                  <div className="bg-gray-200 p-2 rounded-full">
-                    <div className="flex space-x-1">
-                      <div
-                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-                        style={{ animationDelay: '0ms' }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-                        style={{ animationDelay: '150ms' }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-                        style={{ animationDelay: '300ms' }}
-                      ></div>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {messages.map(message => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  {message.sender === 'user' ? (
+                    // User message
+                    <div className="max-w-[70%]">
+                      <div className="flex items-start justify-end mb-1">
+                        <p className="text-sm font-medium text-gray-900 mr-2">You</p>
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                          {message.sender === 'user' ? 'U' : selectedAgent?.name?.charAt(0) || 'E'}
+                        </div>
+                      </div>
+                      <div className="bg-blue-600 text-white rounded-lg p-3 shadow-sm">
+                        {message.text}
+
+                        {message.attachment && (
+                          <div className="mt-2 p-2 bg-blue-700 rounded-md">
+                            <div className="flex items-center">
+                              <DocumentTextIcon className="h-4 w-4 text-blue-200 mr-2" />
+                              <span className="text-sm font-medium text-white">
+                                {message.attachment.name}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    // AI message
+                    <div className="max-w-[70%]">
+                      <div className="flex items-start mb-1">
+                        <AgentIcon
+                          agentId={selectedAgent?.id || 'eva-fin-risk'}
+                          agentName={selectedAgent?.name || 'EVA'}
+                          iconUrl={selectedAgent?.imageUrl || '/icons/eva-avatar.svg'}
+                          size="md"
+                          className="mr-2"
+                        />
+                        <p className="text-sm font-medium text-gray-900">
+                          {selectedAgent?.name || 'EVA'}
+                        </p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3 text-gray-800 shadow-sm">
+                        <div className="whitespace-pre-line">{message.text}</div>
+
+                        {/* Suggestions or bulletpoints */}
+                        {message.bulletPoints && message.bulletPoints.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            {message.bulletPoints.map((point, index) => (
+                              <button
+                                key={index}
+                                onClick={() => handleSuggestionClick(point)}
+                                className="w-full text-left py-2 px-3 bg-gray-50 rounded-md hover:bg-gray-100 
+                                         transition-colors border border-gray-200 text-sm"
+                              >
+                                {point}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Message actions */}
+                      <div className="mt-2 flex space-x-2">
+                        <button
+                          onClick={() => {}}
+                          className="p-1 text-gray-400 hover:text-blue-600"
+                        >
+                          <HandThumbUpIcon className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => {}} className="p-1 text-gray-400 hover:text-red-600">
+                          <HandThumbDownIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => speakText(message.text)}
+                          className="p-1 text-gray-400 hover:text-green-600"
+                        >
+                          <SpeakerWaveIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Typing indicator */}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="flex items-start">
+                    <AgentIcon
+                      agentId={selectedAgent?.id || 'eva-fin-risk'}
+                      agentName={selectedAgent?.name || 'EVA'}
+                      iconUrl={selectedAgent?.imageUrl || '/icons/eva-avatar.svg'}
+                      size="md"
+                      className="mr-2"
+                    />
+                    <div className="bg-white rounded-lg py-2 px-4 shadow-sm">
+                      <div className="flex space-x-1">
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: '0ms' }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: '150ms' }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: '300ms' }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
-              <div ref={chatEndRef} />
+
+              <div ref={messagesEndRef} />
             </div>
 
-            {/* Chat input */}
-            <form onSubmit={handleSendMessage} className="p-3 border-t">
-              <div className="flex">
-                <input
-                  type="text"
-                  value={inputText}
-                  onChange={e => setInputText(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
+            {/* Sentiment Analysis Panel */}
+            {renderSentimentAnalysis()}
+
+            {/* Message Input Area */}
+            <div className="bg-white border-t border-gray-200 p-4">
+              {/* Uploaded files */}
+              {uploadedFiles.length > 0 && (
+                <div className="mb-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-xs font-medium text-gray-700 mb-1">Uploaded files:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {uploadedFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center bg-white px-2 py-1 rounded border border-gray-200"
+                      >
+                        <DocumentTextIcon className="h-4 w-4 text-gray-500 mr-1" />
+                        <span className="text-xs mr-1 truncate max-w-[120px]">{file.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeUploadedFile(index)}
+                          className="text-gray-400 hover:text-red-500"
+                        >
+                          <XMarkIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Input form */}
+              <form onSubmit={handleSendMessage} className="flex items-end">
+                <div className="flex-1 relative">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    multiple
+                    onChange={e => handleFileUpload(e.target.files)}
+                  />
+
+                  <textarea
+                    ref={inputRef}
+                    value={inputText}
+                    onChange={e => setInputText(e.target.value)}
+                    onKeyDown={e => {
+                      if (
+                        e.key === 'Enter' &&
+                        !e.shiftKey &&
+                        (inputText.trim() || uploadedFiles.length > 0)
+                      ) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Type your message here..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+                    rows={2}
+                  />
+
+                  <div className="absolute bottom-3 right-3 flex space-x-1">
+                    <button
+                      type="button"
+                      className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <PaperClipIcon className="h-5 w-5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`p-1.5 rounded-full ${
+                        isListening
+                          ? 'text-red-500 bg-red-50'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={toggleListening}
+                    >
+                      <MicrophoneIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+
                 <button
                   type="submit"
-                  disabled={!inputText.trim() || isLoading}
-                  className={`px-4 py-2 text-white rounded-r-md ${getButtonColor()} disabled:opacity-50`}
+                  disabled={(!inputText.trim() && uploadedFiles.length === 0) || isTyping}
+                  className={`ml-3 px-4 py-3 rounded-lg text-white ${
+                    (inputText.trim() || uploadedFiles.length > 0) && !isTyping
+                      ? 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-gray-400 cursor-not-allowed'
+                  }`}
                 >
                   <svg
                     className="w-5 h-5"
@@ -377,25 +1272,41 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                    />
+                      strokeWidth="2"
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    ></path>
                   </svg>
                 </button>
-              </div>
-            </form>
+              </form>
+
+              {/* Listening indicator */}
+              {isListening && (
+                <div className="mt-2 px-3 py-1 bg-red-50 text-red-600 text-xs rounded-md flex items-center">
+                  <span className="relative flex h-2 w-2 mr-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                  </span>
+                  Listening... speak now
+                </div>
+              )}
+            </div>
           </div>
-        ) : (
-          <button
-            onClick={() => setIsOpen(true)}
-            className={`rounded-full p-3 text-white shadow-lg ${getButtonColor()}`}
-            aria-label="Open chat"
-          >
-            {getButtonIcon()}
-          </button>
-        )}
+        </div>
+
+        {/* Dialogs */}
+        <AgentManagementDialog
+          isOpen={isAgentManagementOpen}
+          onClose={() => setIsAgentManagementOpen(false)}
+          onSelectAgent={handleSelectAgent}
+        />
+
+        <AddParticipantDialog
+          isOpen={isAddParticipantOpen}
+          onClose={() => setIsAddParticipantOpen(false)}
+          onAdd={email => setParticipants(prev => [...prev, email])}
+        />
       </div>
-    </Draggable>
+    </div>
   );
 };
 

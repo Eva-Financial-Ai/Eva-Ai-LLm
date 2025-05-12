@@ -1,7 +1,32 @@
+/**
+ * @component SmartMatching
+ * @description AI-powered matching system for connecting borrowers, lenders, brokers, and vendors
+ *
+ * @userStories
+ * 1. As a borrower, I want to be matched with lenders most likely to approve my loan so that I can avoid wasting time with rejections.
+ * 2. As a lender, I want to see borrowers who meet my lending criteria so that I can focus on qualified leads with higher conversion potential.
+ * 3. As a broker, I want to match my clients with appropriate lenders so that I can increase my deal success rate.
+ * 4. As a vendor, I want to find businesses that need my equipment solutions so that I can expand my customer base with qualified leads.
+ *
+ * @userJourney Borrower Using Smart Matching
+ * 1. Trigger: Borrower needs financing for equipment purchase
+ * 2. Entry Point: Navigates to Smart Matching from dashboard
+ * 3. Role Selection: Confirms borrower role (already selected based on account)
+ * 4. Requirements Input: Enters financing needs, amount, timeline, business details
+ * 5. Match Processing: System analyzes criteria against lender database
+ * 6. Match Results: Views list of matched lenders with compatibility scores
+ * 7. Profile Exploration: Reviews detailed profiles of top matches
+ * 8. Preferences: Swipes right on preferred lenders, left on non-preferred
+ * 9. Initial Contact: Receives notification when matched lender also expresses interest
+ * 10. Communication: Initiates conversation via platform messaging
+ * 11. Next Steps: Begins formal application process with selected lender
+ */
+
 import React, { useState, useRef, useEffect } from 'react';
 // @ts-ignore
 import { useSpring, animated } from '@react-spring/web';
 import { useNavigate } from 'react-router-dom';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
 // Types for matching system
 type UserRole = 'borrower' | 'broker' | 'vendor' | 'lender';
@@ -600,184 +625,67 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-gray-600 bg-opacity-75 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl h-[90vh] flex flex-col relative overflow-hidden">
+    <div className="fixed inset-0 z-40 flex items-center justify-center overflow-hidden bg-black bg-opacity-50">
+      <div className="relative w-full max-w-4xl h-[90vh] bg-white dark:bg-gray-900 rounded-lg flex flex-col shadow-xl">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-white z-10">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Smart Matching</h2>
-            <p className="text-sm text-gray-500 mt-0.5">Find your perfect match</p>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center">
+            <div className="flex flex-col">
+              <div className="flex items-center">
+                <span className="font-medium text-gray-900 dark:text-white">Smart Matching</span>
+              </div>
+            </div>
           </div>
 
-          {/* User role toggle */}
-          <div className="flex items-center space-x-2">
-            <select
-              value={userRole}
-              onChange={e => handleSwitchRole(e.target.value as UserRole)}
-              className="text-sm rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-            >
-              <option value="borrower">As Borrower</option>
-              <option value="broker">As Broker</option>
-              <option value="lender">As Lender</option>
-              <option value="vendor">As Vendor</option>
-            </select>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+          >
+            <XMarkIcon className="h-6 w-6" />
+          </button>
+        </div>
 
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="text-center py-12">
+            <div className="mx-auto w-24 h-24 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-6">
+              <svg
+                className="h-12 w-12 text-blue-600 dark:text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
                 />
               </svg>
-            </button>
-          </div>
-        </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Smart Matching
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-8">
+              {userRole === 'lender' &&
+                'Connect with pre-qualified borrowers that match your lending criteria.'}
+              {userRole === 'borrower' &&
+                'Find lenders that match your financing needs with higher approval chances.'}
+              {userRole === 'broker' &&
+                'Match your clients with the right lenders based on their specific needs.'}
+              {userRole === 'vendor' &&
+                'Connect with businesses that need your solutions based on their profiles.'}
+            </p>
 
-        {/* View Toggle */}
-        <div className="px-6 py-2 flex justify-between items-center border-b border-gray-200 bg-gray-50">
-          <div className="flex space-x-2">
-            <button
-              onClick={handleReturnToSwipe}
-              className={`px-3 py-1 text-sm rounded-md ${viewMode === 'swipe' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-            >
-              Swipe View
-            </button>
-            <button
-              onClick={handleViewAllMatches}
-              className={`px-3 py-1 text-sm rounded-md ${viewMode === 'list' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-            >
-              Matches List
-            </button>
-          </div>
-
-          <div className="text-sm text-gray-600">
-            <button
-              onClick={handleViewAllMatches}
-              className="text-primary-600 hover:text-primary-800 font-medium"
-            >
-              {stats.mutualMatches} matches so far
-            </button>
-          </div>
-        </div>
-
-        {/* Main content area */}
-        <div className="flex-1 overflow-hidden bg-gray-50 relative">
-          {/* Swipe View */}
-          {viewMode === 'swipe' && (
-            <div className="h-full flex flex-col">
-              {!allProfilesViewed && currentProfile ? (
-                <div className="relative flex-1 flex items-center justify-center px-4 py-6">
-                  {/* Card to be swiped */}
-                  <animated.div
-                    ref={swiperRef}
-                    style={{
-                      x,
-                      y,
-                      rotate,
-                      scale,
-                      touchAction: 'none',
-                    }}
-                    className="absolute w-full max-w-sm bg-white rounded-xl shadow-lg overflow-hidden"
-                  >
-                    {/* Profile image */}
-                    <div className="h-64 bg-gray-300 relative">
-                      <img
-                        src={currentProfile.avatarUrl}
-                        alt={currentProfile.name}
-                        className="w-full h-full object-cover"
-                      />
-
-                      {/* Match score overlay */}
-                      <div className="absolute top-3 right-3 bg-white bg-opacity-90 rounded-full px-3 py-1 text-sm font-bold text-primary-600">
-                        {currentProfile.matchScore}% Match
-                      </div>
-
-                      {/* Role badge */}
-                      <div className="absolute bottom-3 left-3 bg-primary-600 text-white text-xs px-2 py-1 rounded-md uppercase tracking-wider">
-                        {currentProfile.role}
-                      </div>
-                    </div>
-
-                    {/* Profile details */}
-                    {renderProfileDetails(currentProfile)}
-                  </animated.div>
-
-                  {/* Swipe direction indicators */}
-                  {direction === 'left' && (
-                    <div className="absolute top-5 left-5 bg-red-500 text-white px-4 py-2 rounded-lg transform -rotate-12 text-xl font-bold">
-                      PASS
-                    </div>
-                  )}
-
-                  {direction === 'right' && (
-                    <div className="absolute top-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg transform rotate-12 text-xl font-bold">
-                      MATCH
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex-1 flex items-center justify-center p-8">
-                  <div className="text-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-left">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+                  Match Criteria
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <li className="flex items-center">
                     <svg
-                      className="mx-auto h-12 w-12 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1}
-                        d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                      />
-                    </svg>
-                    <h3 className="mt-2 text-lg font-medium text-gray-900">No more profiles</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      You've seen all available matches for now. Check back later for new
-                      opportunities.
-                    </p>
-                    <div className="mt-6">
-                      <button
-                        onClick={handleViewAllMatches}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
-                      >
-                        View Your Matches
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Action buttons */}
-              {!allProfilesViewed && currentProfile && (
-                <div className="px-6 py-4 flex justify-center space-x-6 bg-white border-t border-gray-200">
-                  <button
-                    onClick={() => handleSwipe('left')}
-                    className="w-14 h-14 flex items-center justify-center rounded-full bg-white border border-gray-300 shadow hover:shadow-md"
-                  >
-                    <svg
-                      className="h-6 w-6 text-red-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-
-                  <button
-                    onClick={() => handleSwipe('right')}
-                    className="w-14 h-14 flex items-center justify-center rounded-full bg-white border border-gray-300 shadow hover:shadow-md"
-                  >
-                    <svg
-                      className="h-6 w-6 text-green-500"
+                      className="h-5 w-5 text-green-500 mr-2"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -789,26 +697,11 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Matches List View */}
-          {viewMode === 'list' && (
-            <div className="h-full flex flex-col">
-              <div className="p-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Your Matches</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  You have matched with {allMatches.length}{' '}
-                  {allMatches.length === 1 ? 'profile' : 'profiles'}
-                </p>
-
-                {allMatches.length === 0 ? (
-                  <div className="text-center py-8">
+                    Credit Score Range
+                  </li>
+                  <li className="flex items-center">
                     <svg
-                      className="mx-auto h-12 w-12 text-gray-400"
+                      className="h-5 w-5 text-green-500 mr-2"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -816,183 +709,122 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={1}
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No matches yet</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Start swiping to find your perfect matches
-                    </p>
-                    <div className="mt-6">
-                      <button
-                        onClick={handleReturnToSwipe}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
-                      >
-                        Start Matching
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
-                    <ul className="divide-y divide-gray-200">
-                      {allMatches.map(match => (
-                        <li key={match.id} className="py-4">
-                          <div className="flex items-center space-x-4">
-                            <div className="flex-shrink-0">
-                              <img
-                                src={match.avatarUrl}
-                                alt={match.name}
-                                className="h-12 w-12 rounded-full object-cover"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center">
-                                <p className="text-sm font-medium text-gray-900 truncate">
-                                  {match.name}
-                                </p>
-                                <span
-                                  className={`ml-2 px-2 py-0.5 text-xs rounded-full 
-                                  ${
-                                    match.role === 'borrower'
-                                      ? 'bg-blue-100 text-blue-800'
-                                      : match.role === 'lender'
-                                        ? 'bg-green-100 text-green-800'
-                                        : match.role === 'broker'
-                                          ? 'bg-purple-100 text-purple-800'
-                                          : 'bg-gray-100 text-gray-800'
-                                  }`}
-                                >
-                                  {match.role.charAt(0).toUpperCase() + match.role.slice(1)}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-500 truncate">{match.description}</p>
-                              <div className="mt-1 flex items-center">
-                                <span className="text-xs text-primary-600 font-medium">
-                                  {match.matchScore}% Match
-                                </span>
-                                {match.industry && (
-                                  <span className="ml-2 text-xs text-gray-500">
-                                    • {match.industry}
-                                  </span>
-                                )}
-                                {match.location && (
-                                  <span className="ml-2 text-xs text-gray-500">
-                                    • {match.location}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex-shrink-0">
-                              <button
-                                onClick={() => handleConnect(match)}
-                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-primary-700 bg-primary-100 hover:bg-primary-200"
-                              >
-                                Connect
-                              </button>
-                            </div>
-                          </div>
+                    Business Industry
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Financing Type
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Geographic Location
+                  </li>
+                </ul>
+              </div>
 
-                          {/* Key details */}
-                          <div className="mt-2 grid grid-cols-2 gap-2">
-                            {match.amount && (
-                              <div className="text-xs text-gray-500">
-                                <span className="font-medium">Amount:</span> $
-                                {match.amount.toLocaleString()}
-                              </div>
-                            )}
-                            {match.rate && (
-                              <div className="text-xs text-gray-500">
-                                <span className="font-medium">Rate:</span> {match.rate}%
-                              </div>
-                            )}
-                            {match.term && (
-                              <div className="text-xs text-gray-500">
-                                <span className="font-medium">Term:</span> {match.term} months
-                              </div>
-                            )}
-                            {match.credit && (
-                              <div className="text-xs text-gray-500">
-                                <span className="font-medium">Credit:</span> {match.credit.rating}
-                              </div>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-left">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Benefits</h3>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Higher Approval Rate
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Faster Decision Times
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Better Terms Matching
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Reduced Documentation
+                  </li>
+                </ul>
               </div>
             </div>
-          )}
 
-          {/* Match notification overlay */}
-          {showMatch && matchedProfile && (
-            <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-20">
-              <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 text-center">
-                <div className="h-20 w-20 mx-auto mb-4 rounded-full bg-primary-100 flex items-center justify-center">
-                  <svg
-                    className="h-10 w-10 text-primary-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-
-                <h3 className="text-xl font-bold text-gray-900 mb-2">It's a Match!</h3>
-                <p className="text-gray-600 mb-6">
-                  You and <span className="font-semibold">{matchedProfile.name}</span> have
-                  expressed interest in each other
-                </p>
-
-                <div className="flex -space-x-4 justify-center mb-6">
-                  <img
-                    src={matchedProfile.avatarUrl}
-                    alt=""
-                    className="w-16 h-16 rounded-full border-2 border-white object-cover z-10"
-                  />
-                  <img
-                    src="https://randomuser.me/api/portraits/women/18.jpg"
-                    alt=""
-                    className="w-16 h-16 rounded-full border-2 border-white object-cover"
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <button
-                    className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
-                    onClick={() => {
-                      dismissMatch();
-                      handleViewAllMatches();
-                    }}
-                  >
-                    View All Matches
-                  </button>
-
-                  <button
-                    className="w-full py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                    onClick={dismissMatch}
-                  >
-                    Keep Swiping
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Stats footer */}
-        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex justify-between">
-          <div>Time: {formatTime(stats.timeSpent)}</div>
-          <div>Swipes: {stats.totalSwipes}</div>
-          <div>Match Rate: {stats.dealMatchRate}%</div>
+            <button className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+              Start Smart Matching
+            </button>
+          </div>
         </div>
       </div>
     </div>

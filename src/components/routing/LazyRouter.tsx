@@ -45,6 +45,9 @@ const CommercialMarket = lazy(() => import('../../pages/CommercialMarket'));
 const Transactions = lazy(() => import('../../pages/Transactions'));
 const SmartMatchPage = lazy(() => import('../../pages/SmartMatchPage'));
 
+// Custom Agent components
+const CustomAgentDemo = lazy(() => import('../../pages/CustomAgentDemo'));
+
 // Define routes
 const routes: RouteConfig[] = [
   { path: '/', component: Dashboard, isProtected: true },
@@ -97,6 +100,9 @@ const routes: RouteConfig[] = [
   // Portfolio Navigator
   { path: '/portfolio-wallet', component: PortfolioWallet, isProtected: true },
   { path: '/asset-portfolio', component: PortfolioWallet, isProtected: true },
+
+  // Custom Agents
+  { path: '/custom-agents', component: CustomAgentDemo, isProtected: true },
 
   // Commercial Market
   { path: '/commercial-market', component: CommercialMarket, isProtected: true },

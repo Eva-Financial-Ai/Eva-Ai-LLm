@@ -7,12 +7,44 @@
     "documents": "Documents",
     "deals": "Deals",
     "transactions": "Transactions",
-    "settings": "Settings"
+    "settings": "Settings",
+    "aiTools": "AI Tools",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "send": "Send",
+    "upload": "Upload",
+    "download": "Download",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "search": "Search",
+    "new": "New",
+    "comingSoon": "Coming Soon"
   },
   "auth": {
     "signIn": "Sign In",
     "signOut": "Sign Out",
-    "profile": "Profile"
+    "profile": "Profile",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password",
+    "resetPassword": "Reset Password",
+    "register": "Register",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "creditApplication": "Credit Application",
+    "customerRetention": "Customer Retention",
+    "riskMap": "Risk Map Navigator",
+    "filelock": "Filelock Drive",
+    "dealStructuring": "Deal Structuring",
+    "assetPress": "Asset Press",
+    "portfolio": "Portfolio Navigator",
+    "commercialPaper": "Commercial Paper"
   },
   "actions": {
     "save": "Save",
@@ -27,12 +59,87 @@
   "forms": {
     "required": "Required",
     "optional": "Optional",
-    "invalidInput": "Invalid input"
+    "invalidInput": "Invalid input",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phoneNumber": "Phone Number",
+    "address": "Address",
+    "city": "City",
+    "state": "State",
+    "zipCode": "Zip Code",
+    "country": "Country"
   },
   "notifications": {
     "success": "Success",
     "error": "Error",
     "info": "Information",
-    "warning": "Warning"
+    "warning": "Warning",
+    "markAllAsRead": "Mark all as read",
+    "noNotifications": "No notifications"
+  },
+  "profile": {
+    "title": "Profile Settings",
+    "personalInfo": "Personal Information",
+    "accountSettings": "Account Settings",
+    "notifications": "Notifications",
+    "security": "Security",
+    "theme": "Theme Settings",
+    "language": "Language",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "highContrast": "High Contrast Mode",
+    "accessibility": "Accessibility",
+    "phoneNumber": "Phone Number",
+    "role": "Role",
+    "roleNote": "Your role cannot be changed",
+    "preferredLanguage": "Preferred Language",
+    "enable": "Enable",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password"
+  },
+  "aiTools": {
+    "smartMatching": "Smart Matching",
+    "dataOrchestrator": "Data Orchestrator",
+    "documentVerification": "Document Verification",
+    "creditAnalysis": "Credit Analysis",
+    "lifecycleAssistant": "Lifecycle Assistant"
+  },
+  "documentVerification": {
+    "title": "Document Verification",
+    "subtitle": "AI-Powered Document Analysis",
+    "welcome": "Welcome to Document Verification. I can help you verify document authenticity and extract information. What document would you like to verify today?",
+    "fileSelected": "I've selected: {{filename}}",
+    "processing": "I'm analyzing your document {{filename}}. This will take just a moment...",
+    "analysisComplete": "Analysis complete. The document appears to be authentic with 94% confidence. I've extracted the following information:\n\n- Document Type: Financial Statement\n- Date Issued: 03/15/2023\n- Company Name: Acme Industries\n- Total Revenue: $4,582,331\n\nWould you like me to verify this against third-party data sources?",
+    "verifyResponse": "To verify a document, you can upload it using the button below. I'll analyze it for authenticity and extract key information.",
+    "thirdPartyResponse": "I can cross-reference document information with third-party sources like D&B, government databases, and financial institutions to verify authenticity and accuracy.",
+    "uploadResponse": "Click the upload button below to select a document. I support PDF, JPG, PNG, and TIFF formats.",
+    "generalResponse": "I can help verify documents, extract information, and check for authenticity. Would you like to upload a document for verification?",
+    "inputPlaceholder": "Type your message...",
+    "send": "Send"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "execution": "Transaction Execution",
+    "documents": "Transaction Documents",
+    "summary": "Transaction Summary",
+    "id": "Transaction ID",
+    "type": "Transaction Type",
+    "amount": "Amount",
+    "applicant": "Applicant",
+    "approved": "Approved Terms",
+    "noApprovedTerms": "No approved deal terms",
+    "completeSetup": "Complete Document Setup First",
+    "closingChecklist": "Closing Checklist",
+    "generateClosing": "Generate closing documents",
+    "sendForSignature": "Send documents for signature",
+    "completeVerification": "Complete blockchain verification",
+    "verifyKYC": "Verify KYC and complete closing",
+    "timeline": "Transaction Timeline",
+    "totalElapsed": "Total time elapsed",
+    "timeInStructuring": "Time in deal structuring",
+    "started": "Transaction started on"
   }
-} 
+}

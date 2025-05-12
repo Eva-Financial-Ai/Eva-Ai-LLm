@@ -1,12 +1,38 @@
-import React, { useState, useRef } from 'react';
+/**
+ * @component IntelligentDataOrchestrator
+ * @description Orchestrates data collection and processing from multiple sources
+ *
+ * @userStories
+ * 1. As a financial analyst, I want to automatically collect and process data from multiple sources so that I can create comprehensive financial assessments without manual data entry.
+ * 2. As a loan officer, I want to connect to a borrower's financial systems so that I can verify data directly from the source.
+ * 3. As a borrower, I want to securely share my business data so that I don't have to manually gather and submit various documents.
+ * 4. As a credit manager, I want to orchestrate data collection across systems so that I have a complete financial picture for decisioning.
+ *
+ * @userJourney Loan Officer Using Data Orchestrator
+ * 1. Trigger: New loan application requires financial verification
+ * 2. Entry Point: Opens Intelligent Data Orchestrator from loan application
+ * 3. Transaction Association: System connects orchestrator to loan application ID
+ * 4. Data Requirements: Reviews required financial information for loan type
+ * 5. Collection Method Selection: Selects mixture of methods (direct API, document upload)
+ * 6. Connection Configuration: Configures connections to borrower's accounting system
+ * 7. Authentication: Completes secure authentication for third-party systems
+ * 8. Data Collection Process: Monitors real-time data collection progress
+ * 9. Validation Review: Reviews automatically validated data points
+ * 10. Manual Verification: Addresses any flagged inconsistencies
+ * 11. Structured Output: Receives structured financial data integrated into loan application
+ * 12. Confirmation: Confirms completed data collection for underwriting
+ */
+
+import React, { useState, useRef, useEffect } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 import ThirdPartyAuthModal from './ThirdPartyAuthModal';
 import DocumentUploadModal from './DocumentUploadModal';
 import PlaidLinkModal from './PlaidLinkModal';
 import StripeConnectModal from './StripeConnectModal';
 import { useNavigate } from 'react-router-dom';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
-interface DataOrchestratorProps {
+interface IntelligentDataOrchestratorProps {
   isOpen: boolean;
   onClose: () => void;
   transactionId?: string;
@@ -47,7 +73,7 @@ interface MethodDetails {
   documentUploads?: any[];
 }
 
-const IntelligentDataOrchestrator: React.FC<DataOrchestratorProps> = ({
+const IntelligentDataOrchestrator: React.FC<IntelligentDataOrchestratorProps> = ({
   isOpen,
   onClose,
   transactionId,
@@ -60,6 +86,14 @@ const IntelligentDataOrchestrator: React.FC<DataOrchestratorProps> = ({
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [showMethodDetails, setShowMethodDetails] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Use transactionId if provided
+  useEffect(() => {
+    if (transactionId) {
+      console.log(`Loading data for transaction: ${transactionId}`);
+      // In a real app, you would fetch transaction data here
+    }
+  }, [transactionId]);
 
   // Modal states
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -521,674 +555,209 @@ const IntelligentDataOrchestrator: React.FC<DataOrchestratorProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose} />
-
-      {/* Main modal */}
-      <animated.div
-        style={{
-          opacity: modalAnimation.opacity,
-          transform: modalAnimation.transform,
-        }}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl relative max-h-[90vh] overflow-hidden flex flex-col"
-      >
+    <div className="fixed inset-0 z-40 flex items-center justify-center overflow-hidden bg-black bg-opacity-50">
+      <div className="relative w-full max-w-4xl h-[90vh] bg-white dark:bg-gray-900 rounded-lg flex flex-col shadow-xl">
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-bold text-primary-700">
-            Intelligent Data Orchestrator
-            <span className="ml-2 text-sm font-normal text-gray-500">
-              AI-powered data collection and processing
-            </span>
-          </h2>
-          <button onClick={onClose} className="rounded-full p-1 hover:bg-gray-100">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-gray-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex border-b">
-          <button
-            onClick={() => setActiveTab('requirements')}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === 'requirements' ? 'border-b-2 border-primary-600 text-primary-700' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Requirements
-          </button>
-          <button
-            onClick={() => setActiveTab('collection')}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === 'collection' ? 'border-b-2 border-primary-600 text-primary-700' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Collection Strategy
-          </button>
-          <button
-            onClick={() => setActiveTab('processing')}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === 'processing' ? 'border-b-2 border-primary-600 text-primary-700' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Processing Plan
-          </button>
-          <button
-            onClick={() => setActiveTab('integration')}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === 'integration' ? 'border-b-2 border-primary-600 text-primary-700' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Integrations
-          </button>
-        </div>
-
-        {/* Main content */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {activeTab === 'requirements' && (
-            <div className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h3 className="text-lg font-medium text-blue-800">Transaction Requirements</h3>
-                <p className="text-sm text-blue-600">
-                  AI-recommended data requirements for this transaction
-                </p>
-
-                {transactionId ? (
-                  <p className="text-sm mt-2">
-                    Analyzing requirements for transaction #{transactionId}...
-                  </p>
-                ) : (
-                  <p className="text-sm mt-2">
-                    No transaction selected. Using default requirements profile.
-                  </p>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center">
+            <div className="flex flex-col">
+              <div className="flex items-center">
+                <span className="font-medium text-gray-900 dark:text-white">
+                  Intelligent Data Orchestrator
+                </span>
+                {transactionId && (
+                  <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                    Transaction: {transactionId}
+                  </span>
                 )}
               </div>
-
-              {/* Filelock Drive Integration - Added for direct access */}
-              <FilelockConnector />
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-medium text-gray-800">Document Requirements</h3>
-                <p className="text-sm text-gray-600 mb-4">Customize data requirements based on:</p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Product-Based Requirements</p>
-                      <p className="text-xs text-gray-500">Adapt to loan type and structure</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Risk-Based Requirements</p>
-                      <p className="text-xs text-gray-500">Adjust based on risk profile</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Entity-Based Requirements</p>
-                      <p className="text-xs text-gray-500">Customized for business structure</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Regulatory Requirements</p>
-                      <p className="text-xs text-gray-500">Ensure compliance with regulations</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
-          )}
+          </div>
 
-          {activeTab === 'collection' && (
-            <div className="space-y-4">
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-medium text-gray-800">Collection Methods</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Select and configure data collection methods
-                  {connectedMethodsCount > 0 && (
-                    <span className="ml-2 text-green-600">({connectedMethodsCount} connected)</span>
-                  )}
-                </p>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                  {Object.values(collectionMethodsDetails).map(method => (
-                    <div
-                      key={method.id}
-                      className={`border rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition
-                        ${selectedMethods[method.id] ? 'bg-primary-50 border-primary-300' : ''}
-                        ${method.isConnected ? 'ring-1 ring-green-500' : ''}
-                      `}
-                      onClick={() => handleMethodSelect(method.id)}
-                    >
-                      <div className="flex items-center">
-                        <div className="text-2xl mr-3">{method.icon}</div>
-                        <div>
-                          <p className="font-medium text-sm">{method.name}</p>
-                          <p className="text-xs text-gray-500">{method.description}</p>
-                        </div>
-                        {method.isConnected && (
-                          <div className="ml-auto text-green-600">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-5 w-5"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-
-                      {selectedMethods[method.id] && (
-                        <div className="mt-3 border-t pt-3">
-                          <p className="text-xs text-gray-700 mb-4">{method.details}</p>
-
-                          {method.isConnected ? (
-                            <div className="bg-green-50 p-2 rounded text-xs text-green-700 mb-3">
-                              {method.id === 'document_upload' ? (
-                                <>
-                                  <p className="font-medium">
-                                    Documents Uploaded: {method.documentUploads?.length || 0}
-                                  </p>
-                                  {method.documentUploads && method.documentUploads.length > 0 && (
-                                    <ul className="mt-1 space-y-1">
-                                      {method.documentUploads
-                                        .slice(0, 3)
-                                        .map((doc: any, idx: number) => (
-                                          <li key={idx}>{doc.name}</li>
-                                        ))}
-                                      {method.documentUploads.length > 3 && (
-                                        <li>+{method.documentUploads.length - 3} more</li>
-                                      )}
-                                    </ul>
-                                  )}
-                                </>
-                              ) : (
-                                <>
-                                  <p className="font-medium">
-                                    Connected to {method.connectionDetails?.provider}
-                                  </p>
-                                  <p className="mt-1">
-                                    Last updated: {new Date().toLocaleDateString()}
-                                  </p>
-                                </>
-                              )}
-                            </div>
-                          ) : (
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                handleConnectMethod(method.id);
-                              }}
-                              className="w-full text-center py-2 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md"
-                            >
-                              {method.id === 'document_upload'
-                                ? 'Upload Documents'
-                                : `Connect to ${method.name}`}
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-medium text-gray-800">Collection Strategy</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Optimize the data collection experience:
-                </p>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm font-medium">Collection Priority</p>
-                    <select
-                      className="text-sm border-gray-300 rounded-md"
-                      value={collectionPriority}
-                      onChange={handleCollectionPriorityChange}
-                    >
-                      <option>Standard</option>
-                      <option>Expedited</option>
-                      <option>Critical</option>
-                    </select>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm font-medium">Processing Mode</p>
-                    <select
-                      className="text-sm border-gray-300 rounded-md"
-                      value={processingMode}
-                      onChange={handleProcessingModeChange}
-                    >
-                      <option>Automated</option>
-                      <option>Assisted</option>
-                      <option>Manual</option>
-                    </select>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm font-medium">Data Quality Threshold</p>
-                    <div className="w-32">
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={dataQualityThreshold}
-                        onChange={handleQualityThresholdChange}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>Low</span>
-                        <span>High</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'processing' && (
-            <div className="space-y-4">
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-medium text-gray-800">Document Processing</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Configure document processing workflows:
-                </p>
-
-                <div className="space-y-3">
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Financial Document Extraction</p>
-                      <p className="text-xs text-gray-500">
-                        Extract data from tax returns, financial statements, bank statements
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Entity Document Extraction</p>
-                      <p className="text-xs text-gray-500">
-                        Process formation documents, licenses, certifications
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Enhanced Processing</p>
-                      <p className="text-xs text-gray-500">
-                        Handwriting recognition, document repair, multi-language support
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-medium text-gray-800">
-                  Data Normalization & Enrichment
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Configure how data is standardized and enhanced:
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Financial Data Normalization</p>
-                      <p className="text-xs text-gray-500">Standardize financial data formats</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Entity Information Normalization</p>
-                      <p className="text-xs text-gray-500">
-                        Standardize business identity information
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Internal Data Enrichment</p>
-                      <p className="text-xs text-gray-500">
-                        Enhance with existing relationship data
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Third-Party Data Enrichment</p>
-                      <p className="text-xs text-gray-500">Add market and industry data</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'integration' && (
-            <div className="space-y-4">
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-medium text-gray-800">
-                  Enterprise System Integrations
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Configure integrations with your systems:
-                </p>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="h-8 w-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center mr-3">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Loan Origination System</p>
-                        <p className="text-xs text-gray-500">Sync data & workflow with LOS</p>
-                      </div>
-                    </div>
-                    <button className="text-sm text-primary-600 font-medium">Configure</button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="h-8 w-8 bg-green-100 text-green-700 rounded-full flex items-center justify-center mr-3">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Credit Decisioning System</p>
-                        <p className="text-xs text-gray-500">
-                          Deliver data to credit decision engine
-                        </p>
-                      </div>
-                    </div>
-                    <button className="text-sm text-primary-600 font-medium">Configure</button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="h-8 w-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center mr-3">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Document Management System</p>
-                        <p className="text-xs text-gray-500">Store and index processed documents</p>
-                      </div>
-                    </div>
-                    <button className="text-sm text-primary-600 font-medium">Configure</button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-medium text-gray-800">Third-Party Integrations</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Configure external service integrations:
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Financial Institution Integrations</p>
-                      <p className="text-xs text-gray-500">
-                        Banks, credit bureaus, payment processors
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Service Provider Integrations</p>
-                      <p className="text-xs text-gray-500">
-                        Verification, valuation, insurance services
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 text-primary-600 rounded"
-                      defaultChecked
-                    />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Ecosystem Partner Integrations</p>
-                      <p className="text-xs text-gray-500">
-                        Accounting, ERP, industry-specific systems
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <input type="checkbox" className="mt-1 h-4 w-4 text-primary-600 rounded" />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium">Data Exchange Formats</p>
-                      <p className="text-xs text-gray-500">Standard and custom data formats</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <button
+            onClick={onClose}
+            className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+          >
+            <XMarkIcon className="h-6 w-6" />
+          </button>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t flex justify-between items-center">
-          <div>
-            <p className="text-sm text-gray-600">
-              Powered by <span className="font-medium">EVA AI</span> Intelligent Data Orchestration
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="text-center py-12">
+            <div className="mx-auto w-24 h-24 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mb-6">
+              <svg
+                className="h-12 w-12 text-purple-600 dark:text-purple-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Intelligent Data Orchestrator
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-8">
+              Streamline your data management with our AI-powered orchestration system. Automate
+              data flows, validation, and integrations across your entire business.
             </p>
-          </div>
-          <div className="flex space-x-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleRunOrchestrator}
-              disabled={isConfiguring}
-              className={`px-4 py-2 text-sm text-white rounded-md ${
-                isConfiguring ? 'bg-primary-400' : 'bg-primary-600 hover:bg-primary-700'
-              }`}
-            >
-              {isConfiguring ? (
-                <span className="flex items-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-left">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+                  Key Features
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
                       stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Processing...
-                </span>
-              ) : (
-                'Run Orchestrator'
-              )}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Automated Data Validation
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Cross-System Integration
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Real-time Data Processing
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Intelligent Data Routing
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-left">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Benefits</h3>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Reduced Manual Data Entry
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Improved Data Accuracy
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Faster Processing Times
+                  </li>
+                  <li className="flex items-center">
+                    <svg
+                      className="h-5 w-5 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Enhanced Compliance
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <button className="mt-8 px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
+              Launch Data Orchestrator
             </button>
           </div>
         </div>
-      </animated.div>
-
-      {/* Third-party authentication modal */}
-      {showAuthModal && currentProvider && (
-        <ThirdPartyAuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          onSuccess={handleAuthSuccess}
-          provider={currentProvider}
-        />
-      )}
-
-      {/* Document upload modal */}
-      {showUploadModal && (
-        <DocumentUploadModal
-          isOpen={showUploadModal}
-          onClose={() => setShowUploadModal(false)}
-          onUploadComplete={handleUploadComplete}
-          documentType={currentDocumentType}
-          acceptedFileTypes=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-          maxFileSize={15}
-          multipleFiles={true}
-        />
-      )}
-
-      {/* Plaid bank connection modal */}
-      {showPlaidModal && (
-        <PlaidLinkModal
-          isOpen={showPlaidModal}
-          onClose={() => setShowPlaidModal(false)}
-          onSuccess={handlePlaidSuccess}
-        />
-      )}
-
-      {/* Stripe payment processor modal */}
-      {showStripeModal && (
-        <StripeConnectModal
-          isOpen={showStripeModal}
-          onClose={() => setShowStripeModal(false)}
-          onSuccess={handleStripeSuccess}
-        />
-      )}
+      </div>
     </div>
   );
 };

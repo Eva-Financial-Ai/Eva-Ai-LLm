@@ -7,12 +7,44 @@
     "documents": "Documents",
     "deals": "Accords",
     "transactions": "Transactions",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "aiTools": "Outils d'IA",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "send": "Envoyer",
+    "upload": "Téléverser",
+    "download": "Télécharger",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "confirm": "Confirmer",
+    "loading": "Chargement...",
+    "search": "Rechercher",
+    "new": "Nouveau",
+    "comingSoon": "Bientôt Disponible"
   },
   "auth": {
     "signIn": "Connexion",
     "signOut": "Déconnexion",
-    "profile": "Profil"
+    "profile": "Profil",
+    "email": "E-mail",
+    "password": "Mot de Passe",
+    "forgotPassword": "Mot de Passe Oublié",
+    "resetPassword": "Réinitialiser le Mot de Passe",
+    "register": "S'inscrire",
+    "alreadyHaveAccount": "Vous avez déjà un compte?",
+    "dontHaveAccount": "Vous n'avez pas de compte?"
+  },
+  "navigation": {
+    "dashboard": "Tableau de Bord",
+    "creditApplication": "Demande de Crédit",
+    "customerRetention": "Fidélisation Client",
+    "riskMap": "Navigateur de Carte de Risque",
+    "filelock": "Filelock Drive",
+    "dealStructuring": "Structuration d'Accord",
+    "assetPress": "Asset Press",
+    "portfolio": "Navigateur de Portefeuille",
+    "commercialPaper": "Papier Commercial"
   },
   "actions": {
     "save": "Enregistrer",
@@ -27,12 +59,87 @@
   "forms": {
     "required": "Obligatoire",
     "optional": "Facultatif",
-    "invalidInput": "Entrée invalide"
+    "invalidInput": "Entrée invalide",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "E-mail",
+    "phoneNumber": "Numéro de Téléphone",
+    "address": "Adresse",
+    "city": "Ville",
+    "state": "État/Province",
+    "zipCode": "Code Postal",
+    "country": "Pays"
   },
   "notifications": {
     "success": "Succès",
     "error": "Erreur",
     "info": "Information",
-    "warning": "Avertissement"
+    "warning": "Avertissement",
+    "markAllAsRead": "Marquer tout comme lu",
+    "noNotifications": "Aucune notification"
+  },
+  "profile": {
+    "title": "Paramètres du Profil",
+    "personalInfo": "Informations Personnelles",
+    "accountSettings": "Paramètres du Compte",
+    "notifications": "Notifications",
+    "security": "Sécurité",
+    "theme": "Paramètres de Thème",
+    "language": "Langue",
+    "darkMode": "Mode Sombre",
+    "lightMode": "Mode Clair",
+    "highContrast": "Mode Contraste Élevé",
+    "accessibility": "Accessibilité",
+    "phoneNumber": "Numéro de Téléphone",
+    "role": "Rôle",
+    "roleNote": "Votre rôle ne peut pas être modifié",
+    "preferredLanguage": "Langue Préférée",
+    "enable": "Activer",
+    "changePassword": "Changer le Mot de Passe",
+    "currentPassword": "Mot de Passe Actuel",
+    "newPassword": "Nouveau Mot de Passe"
+  },
+  "aiTools": {
+    "smartMatching": "Matching Intelligent",
+    "dataOrchestrator": "Orchestrateur de Données",
+    "documentVerification": "Vérification de Documents",
+    "creditAnalysis": "Analyse de Crédit",
+    "lifecycleAssistant": "Assistant de Cycle de Vie"
+  },
+  "documentVerification": {
+    "title": "Vérification de Documents",
+    "subtitle": "Analyse de Documents Alimentée par l'IA",
+    "welcome": "Bienvenue à la Vérification de Documents. Je peux vous aider à vérifier l'authenticité des documents et à extraire des informations. Quel document souhaitez-vous vérifier aujourd'hui?",
+    "fileSelected": "J'ai sélectionné: {{filename}}",
+    "processing": "J'analyse votre document {{filename}}. Cela prendra un moment...",
+    "analysisComplete": "Analyse terminée. Le document semble être authentique avec une confiance de 94%. J'ai extrait les informations suivantes:\n\n- Type de Document: État Financier\n- Date d'Émission: 15/03/2023\n- Nom de l'Entreprise: Acme Industries\n- Revenu Total: 4 582 331 $\n\nVoulez-vous vérifier ces informations auprès de sources de données tierces?",
+    "verifyResponse": "Pour vérifier un document, vous pouvez le téléverser en utilisant le bouton ci-dessous. J'analyserai son authenticité et extrairai les informations clés.",
+    "thirdPartyResponse": "Je peux recouper les informations du document avec des sources tierces comme D&B, des bases de données gouvernementales et des institutions financières pour vérifier son authenticité et son exactitude.",
+    "uploadResponse": "Cliquez sur le bouton de téléversement pour sélectionner un document. Je prends en charge les formats PDF, JPG, PNG et TIFF.",
+    "generalResponse": "Je peux aider à vérifier des documents, extraire des informations et vérifier l'authenticité. Souhaitez-vous téléverser un document pour vérification?",
+    "inputPlaceholder": "Tapez votre message...",
+    "send": "Envoyer"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "execution": "Exécution de Transaction",
+    "documents": "Documents de Transaction",
+    "summary": "Résumé de Transaction",
+    "id": "ID de Transaction",
+    "type": "Type de Transaction",
+    "amount": "Montant",
+    "applicant": "Demandeur",
+    "approved": "Termes Approuvés",
+    "noApprovedTerms": "Aucun terme d'accord approuvé",
+    "completeSetup": "Compléter la Configuration des Documents d'Abord",
+    "closingChecklist": "Liste de Vérification de Clôture",
+    "generateClosing": "Générer les documents de clôture",
+    "sendForSignature": "Envoyer les documents pour signature",
+    "completeVerification": "Compléter la vérification blockchain",
+    "verifyKYC": "Vérifier KYC et compléter la clôture",
+    "timeline": "Chronologie de Transaction",
+    "totalElapsed": "Temps total écoulé",
+    "timeInStructuring": "Temps en structuration d'accord",
+    "started": "Transaction commencée le"
   }
-} 
+}

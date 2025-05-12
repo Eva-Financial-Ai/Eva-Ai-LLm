@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
+import { UserContext } from '../../contexts/UserContext';
 
 interface AccessibilityControlsProps {
   className?: string;
@@ -8,130 +10,163 @@ interface AccessibilityControlsProps {
  * AccessibilityControls - Allows users to adjust UI size and contrast for better accessibility
  */
 const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ className = '' }) => {
-  const [fontSize, setFontSize] = useState<string>(() => {
-    return localStorage.getItem('eva-font-size') || 'medium';
-  });
+  const { t } = useTranslation();
+  const userContext = useContext(UserContext);
 
-  const [highContrast, setHighContrast] = useState<boolean>(() => {
-    return localStorage.getItem('eva-high-contrast') === 'true';
-  });
+  // Font size control
+  const [fontSize, setFontSize] = useState<number>(1);
 
-  // Apply font size changes
+  // Apply font size to document root
   useEffect(() => {
     const html = document.documentElement;
+    html.style.fontSize = `${fontSize}rem`;
 
-    // Remove any existing font size classes
-    html.classList.remove('text-size-small', 'text-size-medium', 'text-size-large', 'text-size-xl');
+    // Save to localStorage
+    localStorage.setItem('accessibility_fontSize', fontSize.toString());
 
-    // Add the selected font size class
-    html.classList.add(`text-size-${fontSize}`);
-
-    // Save preference to localStorage
-    localStorage.setItem('eva-font-size', fontSize);
-
-    // Apply specific font size values based on selection
-    switch (fontSize) {
-      case 'small':
-        html.style.fontSize = '14px';
-        break;
-      case 'medium':
-        html.style.fontSize = '16px';
-        break;
-      case 'large':
-        html.style.fontSize = '18px';
-        break;
-      case 'xl':
-        html.style.fontSize = '20px';
-        break;
-      default:
-        html.style.fontSize = '16px';
-    }
+    return () => {
+      // Clean up when component unmounts
+      html.style.fontSize = '1rem';
+    };
   }, [fontSize]);
 
-  // Apply contrast changes
+  // Load saved font size on mount
   useEffect(() => {
-    const body = document.body;
-
-    if (highContrast) {
-      body.classList.add('high-contrast');
-    } else {
-      body.classList.remove('high-contrast');
+    const savedFontSize = localStorage.getItem('accessibility_fontSize');
+    if (savedFontSize) {
+      setFontSize(parseFloat(savedFontSize));
     }
+  }, []);
 
-    // Save preference to localStorage
-    localStorage.setItem('eva-high-contrast', highContrast.toString());
-  }, [highContrast]);
+  // Handle theme toggle (dark mode)
+  const handleThemeToggle = () => {
+    const newTheme = userContext?.theme === 'dark' ? 'light' : 'dark';
+    userContext?.setTheme?.(newTheme);
+  };
+
+  // Increase font size
+  const increaseFontSize = () => {
+    if (fontSize < 1.5) {
+      setFontSize(prev => Math.min(prev + 0.1, 1.5));
+    }
+  };
+
+  // Decrease font size
+  const decreaseFontSize = () => {
+    if (fontSize > 0.8) {
+      setFontSize(prev => Math.max(prev - 0.1, 0.8));
+    }
+  };
+
+  // Reset font size
+  const resetFontSize = () => {
+    setFontSize(1);
+  };
 
   return (
-    <div className={`bg-white rounded-lg shadow p-4 ${className}`}>
-      <h3 className="text-lg font-medium text-gray-900 mb-3">Accessibility Settings</h3>
+    <div className={`accessibility-controls ${className}`}>
+      {/* Theme toggle (dark mode) */}
+      <div className="mb-6">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          {t('accessibility.theme', 'Color Theme')}
+        </h3>
 
-      <div className="mb-4">
-        <label htmlFor="font-size" className="block text-sm font-medium text-gray-700 mb-2">
-          Text Size
-        </label>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center">
           <button
-            onClick={() => setFontSize('small')}
-            className={`px-3 py-2 rounded-md ${
-              fontSize === 'small'
-                ? 'bg-primary-100 text-primary-700 font-medium'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-            aria-pressed={fontSize === 'small'}
+            type="button"
+            onClick={handleThemeToggle}
+            className="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            role="switch"
+            aria-checked={userContext?.theme === 'dark'}
+            style={{
+              backgroundColor: userContext?.theme === 'dark' ? '#4F46E5' : '#E5E7EB',
+            }}
           >
-            Small
+            <span className="sr-only">{t('accessibility.toggleDarkMode', 'Toggle dark mode')}</span>
+            <span
+              aria-hidden="true"
+              className={`translate-x-0 pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
+                userContext?.theme === 'dark' ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            ></span>
           </button>
-          <button
-            onClick={() => setFontSize('medium')}
-            className={`px-3 py-2 rounded-md ${
-              fontSize === 'medium'
-                ? 'bg-primary-100 text-primary-700 font-medium'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-            aria-pressed={fontSize === 'medium'}
-          >
-            Medium
-          </button>
-          <button
-            onClick={() => setFontSize('large')}
-            className={`px-3 py-2 rounded-md ${
-              fontSize === 'large'
-                ? 'bg-primary-100 text-primary-700 font-medium'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-            aria-pressed={fontSize === 'large'}
-          >
-            Large
-          </button>
-          <button
-            onClick={() => setFontSize('xl')}
-            className={`px-3 py-2 rounded-md ${
-              fontSize === 'xl'
-                ? 'bg-primary-100 text-primary-700 font-medium'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-            aria-pressed={fontSize === 'xl'}
-          >
-            Extra Large
-          </button>
+          <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+            {userContext?.theme === 'dark'
+              ? t('accessibility.darkMode', 'Dark Mode')
+              : t('accessibility.lightMode', 'Light Mode')}
+          </span>
         </div>
       </div>
 
+      {/* Font size controls */}
       <div>
-        <div className="flex items-center">
-          <input
-            id="high-contrast"
-            type="checkbox"
-            checked={highContrast}
-            onChange={e => setHighContrast(e.target.checked)}
-            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-          />
-          <label htmlFor="high-contrast" className="ml-2 block text-sm text-gray-700">
-            High Contrast Mode
-          </label>
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          {t('accessibility.fontSize', 'Font Size')}
+        </h3>
+
+        <div className="flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={decreaseFontSize}
+            disabled={fontSize <= 0.8}
+            aria-label={t('accessibility.decreaseFontSize', 'Decrease font size')}
+            className="inline-flex items-center justify-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            onClick={resetFontSize}
+            disabled={fontSize === 1}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50"
+          >
+            {t('accessibility.resetFontSize', 'Reset')}
+          </button>
+
+          <button
+            type="button"
+            onClick={increaseFontSize}
+            disabled={fontSize >= 1.5}
+            aria-label={t('accessibility.increaseFontSize', 'Increase font size')}
+            className="inline-flex items-center justify-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+
+          <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+            {Math.round(fontSize * 100)}%
+          </span>
         </div>
-        <p className="mt-1 text-xs text-gray-500">Increases contrast for better readability</p>
+
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          {t(
+            'accessibility.fontSizeDescription',
+            'Adjust the font size to make content easier to read.'
+          )}
+        </p>
       </div>
     </div>
   );

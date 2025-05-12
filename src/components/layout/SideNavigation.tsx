@@ -156,7 +156,7 @@ const SideNavigation: React.FC = () => {
       ],
     },
     {
-      name: 'Customer Retention',
+      name: t('navigation.customerRetention', 'Customer Retention'),
       href: '/customer-retention',
       onClick: () => {
         navigate('/customer-retention');
@@ -181,10 +181,10 @@ const SideNavigation: React.FC = () => {
         location.pathname === '/customer-retention' ||
         location.pathname === '/contacts' ||
         location.pathname === '/commitments',
-      isOpen: expandedItems.includes('Customer Retention'),
+      isOpen: expandedItems.includes(t('navigation.customerRetention', 'Customer Retention')),
       children: [
         {
-          name: 'Overview',
+          name: t('common.overview', 'Overview'),
           href: '/customer-retention',
           onClick: () => {
             navigate('/customer-retention');
@@ -201,7 +201,7 @@ const SideNavigation: React.FC = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
               />
             </svg>
           ),
@@ -667,7 +667,7 @@ const SideNavigation: React.FC = () => {
             </svg>
           ),
           current: location.pathname === '/asset-marketplace',
-        }
+        },
       ],
     },
     {
@@ -693,8 +693,7 @@ const SideNavigation: React.FC = () => {
         </svg>
       ),
       current:
-        location.pathname === '/portfolio-wallet' || 
-        location.pathname === '/asset-portfolio',
+        location.pathname === '/portfolio-wallet' || location.pathname === '/asset-portfolio',
       isOpen: expandedItems.includes('Portfolio Navigator'),
       badge: 'Beta',
       children: [
@@ -932,9 +931,7 @@ const SideNavigation: React.FC = () => {
               }`}
             >
               <span className="mr-3">{item.icon(item.current)}</span>
-              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                {item.name}
-              </span>
+              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
               {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
             </Link>
           ) : (
@@ -947,9 +944,7 @@ const SideNavigation: React.FC = () => {
               }`}
             >
               <span className="mr-3">{item.icon(item.current)}</span>
-              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                {item.name}
-              </span>
+              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
               {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
             </Link>
           )}
@@ -1002,9 +997,7 @@ const SideNavigation: React.FC = () => {
               }`}
             >
               <span className="mr-3">{item.icon(item.current)}</span>
-              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                {item.name}
-              </span>
+              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
               {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
             </Link>
           ) : (
@@ -1082,7 +1075,7 @@ const SideNavigation: React.FC = () => {
           sidebarCollapsed ? 'w-14' : 'w-56'
         }`}
         style={{
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
         }}
       >
         <div className="flex flex-col h-full">
@@ -1159,9 +1152,7 @@ const SideNavigation: React.FC = () => {
                                       }
                                     }}
                                     className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                                      subItem.current
-                                        ? 'bg-primary-50'
-                                        : 'hover:bg-gray-50'
+                                      subItem.current ? 'bg-primary-50' : 'hover:bg-gray-50'
                                     }`}
                                     title={subItem.name}
                                   >
@@ -1174,9 +1165,7 @@ const SideNavigation: React.FC = () => {
                                   <Link
                                     to={subItem.href}
                                     className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                                      subItem.current
-                                        ? 'bg-primary-50'
-                                        : 'hover:bg-gray-50'
+                                      subItem.current ? 'bg-primary-50' : 'hover:bg-gray-50'
                                     }`}
                                     title={subItem.name}
                                     onClick={e => {
