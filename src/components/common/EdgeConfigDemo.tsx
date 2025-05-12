@@ -11,9 +11,13 @@ const EdgeConfigDemo: React.FC<EdgeConfigDemoProps> = ({ configKey = 'greeting' 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Check if we're in a browser environment (not server-side rendering)
+  const isBrowser = typeof window !== 'undefined';
+
   useEffect(() => {
-    // Skip data fetching during build
-    if (typeof window === 'undefined') {
+    // Skip data fetching during server-side rendering
+    if (!isBrowser) {
+      setLoading(false);
       return;
     }
 
@@ -40,15 +44,16 @@ const EdgeConfigDemo: React.FC<EdgeConfigDemoProps> = ({ configKey = 'greeting' 
     };
 
     fetchData();
-  }, [configKey]);
+  }, [configKey, isBrowser]);
 
-  // Check if the token is configured
-  const isConfigMissing =
-    !process.env.REACT_APP_EDGE_CONFIG_TOKEN ||
-    process.env.REACT_APP_EDGE_CONFIG_TOKEN === '' ||
-    process.env.REACT_APP_EDGE_CONFIG_TOKEN === 'your_edge_config_token_here';
+  // Check for token configuration when in a browser environment
+  const isTokenMissing =
+    isBrowser &&
+    (!process.env.REACT_APP_EDGE_CONFIG_TOKEN ||
+      process.env.REACT_APP_EDGE_CONFIG_TOKEN === '' ||
+      process.env.REACT_APP_EDGE_CONFIG_TOKEN === 'your_edge_config_token_here');
 
-  if (isConfigMissing) {
+  if (isTokenMissing) {
     return (
       <div className="p-4 bg-amber-50 border border-amber-200 rounded-md">
         <h3 className="text-amber-700 font-medium">Edge Config Not Configured</h3>

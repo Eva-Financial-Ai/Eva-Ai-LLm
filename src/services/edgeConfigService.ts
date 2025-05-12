@@ -1,23 +1,42 @@
-import { createClient } from '@vercel/edge-config';
+// Mock implementation for Edge Config when not available
+const mockEdgeConfig = {
+  get: async () => null,
+  getAll: async () => ({}),
+  has: async () => false,
+  digest: async () => '',
+};
+
+// Safe import of the Edge Config library
+let createClient;
+try {
+  // Dynamic import to prevent build-time errors
+  const importedModule = require('@vercel/edge-config');
+  createClient = importedModule.createClient;
+} catch (error) {
+  console.warn('Failed to import @vercel/edge-config:', error);
+  // Mock implementation if the import fails
+  createClient = () => mockEdgeConfig;
+}
 
 // Initialize the Edge Config client only if the token is available
-// This prevents build-time errors when the token is not available
 const getEdgeConfigClient = () => {
-  const token = process.env.REACT_APP_EDGE_CONFIG_TOKEN;
-
-  // Return null during build if token is not available
-  if (!token || token === '' || token === 'your_edge_config_token_here') {
-    return null;
-  }
-
   try {
+    const token = process.env.REACT_APP_EDGE_CONFIG_TOKEN;
+
+    // Return mock during build if token is not available
+    if (!token || token === '' || token === 'your_edge_config_token_here') {
+      console.warn('Edge Config token not found, using mock implementation');
+      return mockEdgeConfig;
+    }
+
     return createClient(token);
   } catch (error) {
     console.error('Failed to initialize Edge Config client:', error);
-    return null;
+    return mockEdgeConfig;
   }
 };
 
+// Get the Edge Config client (or mock if unavailable)
 const edgeConfig = getEdgeConfigClient();
 
 /**
@@ -26,13 +45,6 @@ const edgeConfig = getEdgeConfigClient();
  * @returns The value from Edge Config or null if not found
  */
 export async function getEdgeConfigValue<T>(key: string): Promise<T | null> {
-  if (!edgeConfig) {
-    console.warn(
-      'Edge Config client not initialized. Make sure REACT_APP_EDGE_CONFIG_TOKEN is set.'
-    );
-    return null;
-  }
-
   try {
     return await edgeConfig.get<T>(key);
   } catch (error) {
@@ -47,13 +59,6 @@ export async function getEdgeConfigValue<T>(key: string): Promise<T | null> {
  * @returns Object containing the key-value pairs from Edge Config
  */
 export async function getEdgeConfigBatch(keys: string[]): Promise<Record<string, any>> {
-  if (!edgeConfig) {
-    console.warn(
-      'Edge Config client not initialized. Make sure REACT_APP_EDGE_CONFIG_TOKEN is set.'
-    );
-    return {};
-  }
-
   try {
     const values = await edgeConfig.getAll();
     const result: Record<string, any> = {};
@@ -76,13 +81,6 @@ export async function getEdgeConfigBatch(keys: string[]): Promise<Record<string,
  * @returns Object containing all key-value pairs from Edge Config
  */
 export async function getAllEdgeConfigValues(): Promise<Record<string, any>> {
-  if (!edgeConfig) {
-    console.warn(
-      'Edge Config client not initialized. Make sure REACT_APP_EDGE_CONFIG_TOKEN is set.'
-    );
-    return {};
-  }
-
   try {
     return await edgeConfig.getAll();
   } catch (error) {
