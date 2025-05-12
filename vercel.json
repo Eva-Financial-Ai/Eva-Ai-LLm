@@ -3,13 +3,12 @@
   "buildCommand": "DISABLE_ESLINT_PLUGIN=true CI=false npm run build",
   "outputDirectory": "build",
   "framework": "create-react-app",
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/static/(.*)", "dest": "/static/$1" },
-    { "src": "/favicon.ico", "dest": "/favicon.ico" },
-    { "src": "/manifest.json", "dest": "/manifest.json" },
-    { "src": "/logo(.*).png", "dest": "/logo$1.png" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/static/(.*)", "destination": "/static/$1" },
+    { "source": "/favicon.ico", "destination": "/favicon.ico" },
+    { "source": "/manifest.json", "destination": "/manifest.json" },
+    { "source": "/logo(.*).png", "destination": "/logo$1.png" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "env": {
     "REACT_APP_EDGE_CONFIG_TOKEN": "@edge_config_token"
