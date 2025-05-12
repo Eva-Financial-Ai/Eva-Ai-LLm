@@ -19,6 +19,7 @@ import useEnvValidation from './hooks/useEnvValidation';
 import AppErrorBoundary from './components/common/AppErrorBoundary';
 import PWAInstallPrompt from './components/common/PWAInstallPrompt';
 import { ToastProvider } from './components/common/ToastContainer';
+import { Analytics } from '@vercel/analytics/react';
 
 // Import Portfolio Navigator Page
 import { PortfolioNavigatorPage } from './pages/PortfolioNavigatorPage';
@@ -228,6 +229,7 @@ function App() {
                 <Router>
                   <WorkflowProvider>
                     <AppContent />
+                    <Analytics />
                   </WorkflowProvider>
                 </Router>
               </ToastProvider>
