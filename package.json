@@ -61,7 +61,7 @@
     "start:craco": "craco start",
     "build": "react-scripts build",
     "build:craco": "craco build",
-    "vercel-build": "echo 'Starting Vercel build' && DISABLE_ESLINT_PLUGIN=true npm run build && echo 'Build completed successfully'",
+    "vercel-build": "CI=false DISABLE_ESLINT_PLUGIN=true npm run build",
     "test": "react-scripts test",
     "test:custom": "jest --config=jest.config.js",
     "test:coverage": "jest --config=jest.config.js --coverage",

@@ -1,13 +1,21 @@
+// Define the interface for Edge Config client
+interface EdgeConfigClient {
+  get: <T>(key: string) => Promise<T | null>;
+  getAll: () => Promise<Record<string, any>>;
+  has: (key: string) => Promise<boolean>;
+  digest: () => Promise<string>;
+}
+
 // Mock implementation for Edge Config when not available
-const mockEdgeConfig = {
-  get: async () => null,
+const mockEdgeConfig: EdgeConfigClient = {
+  get: async <T>(key: string): Promise<T | null> => null,
   getAll: async () => ({}),
   has: async () => false,
   digest: async () => '',
 };
 
 // Safe import of the Edge Config library
-let createClient;
+let createClient: (token: string) => EdgeConfigClient;
 try {
   // Dynamic import to prevent build-time errors
   const importedModule = require('@vercel/edge-config');
@@ -19,7 +27,7 @@ try {
 }
 
 // Initialize the Edge Config client only if the token is available
-const getEdgeConfigClient = () => {
+const getEdgeConfigClient = (): EdgeConfigClient => {
   try {
     const token = process.env.REACT_APP_EDGE_CONFIG_TOKEN;
 
