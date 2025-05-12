@@ -3,7 +3,13 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUserType } from '../../contexts/UserTypeContext';
 import { UserType } from '../../types/UserTypes';
 import { useTranslation } from 'react-i18next';
-import { UsersIcon, PhoneIcon, ClipboardIcon, CalendarIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import {
+  UsersIcon,
+  PhoneIcon,
+  ClipboardIcon,
+  CalendarIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline';
 
 interface NavigationItem {
   id?: string;
@@ -28,15 +34,15 @@ interface SideNavigationProps {
   orientation?: 'portrait' | 'landscape';
 }
 
-const SideNavigation: React.FC<SideNavigationProps> = ({ 
+const SideNavigation: React.FC<SideNavigationProps> = ({
   deviceType = 'desktop',
-  orientation = 'landscape'
+  orientation = 'landscape',
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { userType } = useUserType();
   const { t } = useTranslation();
-  
+
   // Initialize with no items expanded by default
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -47,7 +53,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
   const [customerRetentionExpanded, setCustomerRetentionExpanded] = useState(false);
   const [customersExpanded, setCustomersExpanded] = useState(false);
   const [selectedCustomerType, setSelectedCustomerType] = useState<string>('businesses');
-  
+
   // Determine if we're on a small screen
   const isMobile = deviceType === 'mobile';
   const isTablet = deviceType === 'tablet';
@@ -75,10 +81,10 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
   useEffect(() => {
     // Auto-expand the items that contain the current path
     const currentPath = location.pathname;
-    
+
     // Find all navigation items that should be expanded based on the current path
     const shouldExpandItems: string[] = [];
-    
+
     // For main items with the current route
     navigationItems.forEach(item => {
       const itemPath = item.href || item.path || '';
@@ -86,7 +92,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
         if (item.name) shouldExpandItems.push(item.name);
         if (item.id) shouldExpandItems.push(item.id);
       }
-      
+
       // For child items
       if (item.children && item.children.length > 0) {
         item.children.forEach(child => {
@@ -98,18 +104,18 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
         });
       }
     });
-    
+
     // If customer retention or calendar page is active, expand its menu
     if (currentPath.includes('customer-retention')) {
       setCustomerRetentionExpanded(true);
-      
+
       // Check specific subpaths
       if (currentPath.includes('/calendar')) {
         // Make sure Customer Retention is expanded when on calendar pages
         setCustomerRetentionExpanded(true);
       }
     }
-    
+
     // Set the expanded items
     if (shouldExpandItems.length > 0) {
       setExpandedItems(shouldExpandItems);
@@ -127,7 +133,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
   const toggleSidebar = () => {
     const newCollapsedState = !sidebarCollapsed;
     setSidebarCollapsed(newCollapsedState);
-    
+
     // If we're on mobile and expanding the sidebar, show the overlay
     if (isMobile && !newCollapsedState) {
       setIsOverlayVisible(true);
@@ -141,7 +147,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
     if (onClick) {
       onClick();
     }
-    
+
     if (isMobile && !sidebarCollapsed) {
       setSidebarCollapsed(true);
       setIsOverlayVisible(false);
@@ -174,18 +180,22 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
       hasChildren: true,
       expanded: customersExpanded,
       toggle: () => setCustomersExpanded(!customersExpanded),
-      current: location.pathname.startsWith('/customer-retention/customers'),
+      current: location.pathname.includes('/customer-retention/customers'),
       children: [
         {
           id: 'businesses',
           label: 'Businesses',
-          selected: location.pathname === '/customer-retention/customers' && selectedCustomerType === 'businesses',
+          selected:
+            location.pathname.includes('/customer-retention/customers') &&
+            selectedCustomerType === 'businesses',
           onClick: () => {
             setSelectedCustomerType('businesses');
             navigate('/customer-retention/customers?type=businesses');
           },
           path: '/customer-retention/customers?type=businesses',
-          current: location.pathname === '/customer-retention/customers?type=businesses'
+          current:
+            location.pathname.includes('/customer-retention/customers') &&
+            location.search.includes('type=businesses'),
         },
         {
           id: 'business-owners',
@@ -196,7 +206,9 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             navigate('/customer-retention/customers?type=business-owners');
           },
           path: '/customer-retention/customers?type=business-owners',
-          current: location.pathname === '/customer-retention/customers?type=business-owners'
+          current:
+            location.pathname.includes('/customer-retention/customers') &&
+            location.search.includes('type=business-owners'),
         },
         {
           id: 'asset-sellers',
@@ -207,7 +219,9 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             navigate('/customer-retention/customers?type=asset-sellers');
           },
           path: '/customer-retention/customers?type=asset-sellers',
-          current: location.pathname === '/customer-retention/customers?type=asset-sellers'
+          current:
+            location.pathname.includes('/customer-retention/customers') &&
+            location.search.includes('type=asset-sellers'),
         },
         {
           id: 'brokers-originators',
@@ -218,7 +232,9 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             navigate('/customer-retention/customers?type=brokers-originators');
           },
           path: '/customer-retention/customers?type=brokers-originators',
-          current: location.pathname === '/customer-retention/customers?type=brokers-originators'
+          current:
+            location.pathname.includes('/customer-retention/customers') &&
+            location.search.includes('type=brokers-originators'),
         },
         {
           id: 'service-providers',
@@ -229,35 +245,43 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             navigate('/customer-retention/customers?type=service-providers');
           },
           path: '/customer-retention/customers?type=service-providers',
-          current: location.pathname === '/customer-retention/customers?type=service-providers'
-        }
-      ]
+          current:
+            location.pathname.includes('/customer-retention/customers') &&
+            location.search.includes('type=service-providers'),
+        },
+      ],
     },
     {
       id: 'contacts',
       label: 'Contacts',
       icon: <PhoneIcon className="w-5 h-5" />,
       path: '/customer-retention/contacts',
-      onClick: () => navigate('/customer-retention/contacts'),
-      current: location.pathname.startsWith('/customer-retention/contacts')
+      onClick: () => {
+        navigate('/customer-retention/contacts');
+      },
+      current: location.pathname.includes('/customer-retention/contacts'),
     },
     {
       id: 'commitments',
       label: 'Commitments',
       icon: <ClipboardIcon className="w-5 h-5" />,
       path: '/customer-retention/commitments',
-      onClick: () => navigate('/customer-retention/commitments'),
-      current: location.pathname.startsWith('/customer-retention/commitments')
+      onClick: () => {
+        navigate('/customer-retention/commitments');
+      },
+      current: location.pathname.includes('/customer-retention/commitments'),
     },
     {
       id: 'calendar',
       label: 'Calendar Integration',
       icon: <CalendarIcon className="w-5 h-5" />,
       path: '/customer-retention/calendar',
-      onClick: () => navigate('/customer-retention/calendar'),
+      onClick: () => {
+        navigate('/customer-retention/calendar');
+      },
       hasChildren: false,
-      current: location.pathname.startsWith('/customer-retention/calendar')
-    }
+      current: location.pathname.includes('/customer-retention/calendar'),
+    },
   ];
 
   // Define navigation items with both old and new style compatible structure
@@ -437,15 +461,15 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
           />
         </svg>
       ),
-      current: 
-        location.pathname === '/customer-retention' || 
+      current:
+        location.pathname === '/customer-retention' ||
         location.pathname.startsWith('/customer-retention/'),
       isOpen: customerRetentionExpanded,
-      expanded: customerRetentionExpanded, 
+      expanded: customerRetentionExpanded,
       toggle: () => setCustomerRetentionExpanded(!customerRetentionExpanded),
       hasChildren: true,
       children: customerRetentionMenuItems,
-      badge: 'New'
+      badge: 'New',
     },
     {
       name: 'Filelock Drive',
@@ -781,7 +805,8 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             </svg>
           ),
           current:
-            location.pathname === '/transaction-execution' || location.pathname.includes('/transaction-execution/'),
+            location.pathname === '/transaction-execution' ||
+            location.pathname.includes('/transaction-execution/'),
           badge: 'New',
         },
       ],
@@ -950,16 +975,18 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
     const hasChildren = (item.children && item.children.length > 0) || item.hasChildren;
     const isExpanded = item.isOpen || item.expanded || expandedItems.includes(itemName);
     const toggleFn = item.toggle || (() => toggleItem(itemName));
-    
+
     // Check if this item or any of its children is active
-    const isActive = item.current || Boolean(item.selected) || 
-                     location.pathname === itemPath || 
-                     location.pathname.startsWith(itemPath + '/');
+    const isActive =
+      item.current ||
+      Boolean(item.selected) ||
+      location.pathname === itemPath ||
+      location.pathname.startsWith(itemPath + '/');
 
     // Style classes
-    const linkBaseClasses = "flex items-center px-3 py-2.5 text-base font-medium rounded-md";
-    const activeClasses = "text-primary-600 bg-primary-50 hover:bg-primary-100";
-    const inactiveClasses = "text-gray-600 hover:bg-gray-50 hover:text-gray-900";
+    const linkBaseClasses = 'flex items-center px-3 py-2.5 text-base font-medium rounded-md';
+    const activeClasses = 'text-primary-600 bg-primary-50 hover:bg-primary-100';
+    const inactiveClasses = 'text-gray-600 hover:bg-gray-50 hover:text-gray-900';
     const styleClasses = `${linkBaseClasses} ${isActive ? activeClasses : inactiveClasses}`;
 
     // Render differently based on whether the item has children
@@ -979,8 +1006,8 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                   item.badge === 'New'
                     ? 'bg-green-100 text-green-800'
                     : item.badge === 'Beta'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-amber-100 text-amber-800'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-amber-100 text-amber-800'
                 }`}
               >
                 {item.badge}
@@ -995,7 +1022,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
     return (
       <li key={itemName}>
         <button
-          onClick={(e) => {
+          onClick={e => {
             e.preventDefault();
             toggleFn();
           }}
@@ -1034,19 +1061,22 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             ></path>
           </svg>
         </button>
-        
+
         {isExpanded && (
           <ul className={`mt-1 pl-4 space-y-1 ${isMobile ? 'bg-gray-50' : ''}`}>
             {item.children?.map((subItem: NavigationItem) => {
               const subItemName = subItem.name || subItem.label || '';
               const subItemPath = subItem.href || subItem.path || '#';
-              const subItemIcon = typeof subItem.icon === 'function' ? subItem.icon(subItem.current || false) : subItem.icon;
+              const subItemIcon =
+                typeof subItem.icon === 'function'
+                  ? subItem.icon(subItem.current || false)
+                  : subItem.icon;
               const isSelected = subItem.current || subItem.selected;
-              
+
               const subStyleClasses = `flex items-center px-3 py-2.5 text-base font-medium rounded-md ${
                 isSelected ? activeClasses : inactiveClasses
               }`;
-              
+
               return (
                 <li key={subItemName} className="mt-1">
                   {subItem.onClick ? (
@@ -1174,18 +1204,16 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
               </div>
               <nav className="flex-1 px-2 bg-white space-y-0">
                 {/* Render navigation items */}
-                <ul className="space-y-1">
-                  {navigationItems.map(item => renderNavItem(item))}
-                </ul>
+                <ul className="space-y-1">{navigationItems.map(item => renderNavItem(item))}</ul>
               </nav>
             </div>
           </div>
         </div>
       </nav>
-      
+
       {/* Mobile overlay backdrop when sidebar is open on small screens */}
       {isOverlayVisible && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-10"
           onClick={toggleSidebar}
           aria-hidden="true"

@@ -1,16 +1,29 @@
 import React, { useState, useEffect, useContext, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../contexts/UserContext';
-// Import using require to bypass TypeScript module resolution issues
-const ReactBeautifulDnd = require('react-beautiful-dnd');
-const { DragDropContext, Droppable, Draggable } = ReactBeautifulDnd;
 
 // Import recharts components directly with ignore comment to bypass TypeScript error
 // @ts-ignore
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
 } from 'recharts';
+// Import using require to bypass TypeScript module resolution issues
+const ReactBeautifulDnd = require('react-beautiful-dnd');
+const { DragDropContext, Droppable, Draggable } = ReactBeautifulDnd;
 
 interface Application {
   id: string;
@@ -376,27 +389,33 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
   // Function to get outstanding actions
   const getOutstandingActions = (application: Application) => {
     const actions: string[] = [];
-    
+
     if (!application.completedSteps.includes('basic_info')) {
       actions.push('Complete basic information');
     }
-    
+
     if (application.documentStatus === 'Incomplete' || application.documentStatus === 'Pending') {
       actions.push('Upload required documents');
     }
-    
-    if (!application.completedSteps.includes('risk_map') && application.completedSteps.includes('basic_info')) {
+
+    if (
+      !application.completedSteps.includes('risk_map') &&
+      application.completedSteps.includes('basic_info')
+    ) {
       actions.push('Complete risk assessment');
     }
-    
+
     if (application.status === 'under_review') {
       actions.push('Underwriter review');
     }
-    
-    if (application.completedSteps.includes('review') && !application.completedSteps.includes('funding')) {
+
+    if (
+      application.completedSteps.includes('review') &&
+      !application.completedSteps.includes('funding')
+    ) {
       actions.push('Process funding');
     }
-    
+
     return actions;
   };
 
@@ -406,7 +425,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
 
   return (
     <Draggable draggableId={application.id} index={index}>
-      {(provided) => (
+      {provided => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
@@ -416,22 +435,29 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
         >
           <div className="flex justify-between items-start mb-2">
             <div className="font-bold text-lg">{application.borrowerName}</div>
-            <div className={`text-xs font-semibold px-2 py-1 rounded-full ${
-              application.status === 'approved' ? 'bg-green-100 text-green-800' :
-              application.status === 'rejected' ? 'bg-red-100 text-red-800' :
-              application.status === 'funded' ? 'bg-blue-100 text-blue-800' :
-              application.status === 'under_review' ? 'bg-yellow-100 text-yellow-800' :
-              application.status === 'documents_pending' ? 'bg-purple-100 text-purple-800' :
-              'bg-gray-100 text-gray-800'
-            }`}>
+            <div
+              className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                application.status === 'approved'
+                  ? 'bg-green-100 text-green-800'
+                  : application.status === 'rejected'
+                    ? 'bg-red-100 text-red-800'
+                    : application.status === 'funded'
+                      ? 'bg-blue-100 text-blue-800'
+                      : application.status === 'under_review'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : application.status === 'documents_pending'
+                          ? 'bg-purple-100 text-purple-800'
+                          : 'bg-gray-100 text-gray-800'
+              }`}
+            >
               {application.status.replace('_', ' ').toUpperCase()}
             </div>
           </div>
-          
+
           <div className="text-sm text-gray-600 mb-3">
             ID: {application.borrowerId || application.id}
           </div>
-          
+
           <div className="grid grid-cols-2 gap-2 mb-4">
             <div>
               <div className="text-xs font-medium text-gray-500">BUSINESS</div>
@@ -448,21 +474,26 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
             <div>
               <div className="text-xs font-medium text-gray-500">PRIORITY</div>
               <div className={`text-sm font-medium ${getPriorityColor(application.priority)}`}>
-                {typeof application.priority === 'string' 
-                  ? application.priority.charAt(0).toUpperCase() + application.priority.slice(1) 
+                {typeof application.priority === 'string'
+                  ? application.priority.charAt(0).toUpperCase() + application.priority.slice(1)
                   : application.priority}
               </div>
             </div>
           </div>
-          
+
           {/* New fields for better decision making */}
           <div className="grid grid-cols-2 gap-2 mb-4">
             <div>
               <div className="text-xs font-medium text-gray-500">CREDIT SCORE</div>
-              <div className={`text-sm font-semibold ${
-                (application.creditScore || 0) > 700 ? 'text-green-600' : 
-                (application.creditScore || 0) > 650 ? 'text-yellow-600' : 'text-red-600'
-              }`}>
+              <div
+                className={`text-sm font-semibold ${
+                  (application.creditScore || 0) > 700
+                    ? 'text-green-600'
+                    : (application.creditScore || 0) > 650
+                      ? 'text-yellow-600'
+                      : 'text-red-600'
+                }`}
+              >
                 {application.creditScore || 'N/A'}
               </div>
             </div>
@@ -472,30 +503,40 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
             </div>
             <div>
               <div className="text-xs font-medium text-gray-500">RISK SCORE</div>
-              <div className={`text-sm font-semibold ${
-                (application.risk_score || 0) > 80 ? 'text-green-600' : 
-                (application.risk_score || 0) > 70 ? 'text-yellow-600' : 'text-red-600'
-              }`}>
+              <div
+                className={`text-sm font-semibold ${
+                  (application.risk_score || 0) > 80
+                    ? 'text-green-600'
+                    : (application.risk_score || 0) > 70
+                      ? 'text-yellow-600'
+                      : 'text-red-600'
+                }`}
+              >
                 {application.risk_score || 'N/A'}
               </div>
             </div>
             <div>
               <div className="text-xs font-medium text-gray-500">EVA REC</div>
-              <div className={`text-sm font-medium ${
-                application.eva_recommendation === 'Approve' ? 'text-green-600' :
-                application.eva_recommendation === 'Decline' ? 'text-red-600' : 'text-yellow-600'
-              }`}>
+              <div
+                className={`text-sm font-medium ${
+                  application.eva_recommendation === 'Approve'
+                    ? 'text-green-600'
+                    : application.eva_recommendation === 'Decline'
+                      ? 'text-red-600'
+                      : 'text-yellow-600'
+                }`}
+              >
                 {application.eva_recommendation || 'Pending'}
               </div>
             </div>
           </div>
-          
+
           {/* Application Stage */}
           <div className="mb-3">
             <div className="text-xs font-medium text-gray-500">CURRENT STAGE</div>
             <div className="text-sm font-medium text-blue-600">{applicationStage}</div>
           </div>
-          
+
           {/* Outstanding Actions */}
           {outstandingActions.length > 0 && (
             <div className="mb-3">
@@ -510,7 +551,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
               </ul>
             </div>
           )}
-          
+
           <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
             <div className="text-xs text-gray-500">
               {application.assignedTo ? `Assigned: ${application.assignedTo}` : 'Unassigned'}
@@ -670,16 +711,17 @@ const USER_PERSONAS: UserPersona[] = [
       'Efficiently review and process loan applications',
       'Make data-driven decisions on approvals',
       'Minimize risk in the loan portfolio',
-      'Meet monthly origination targets'
+      'Meet monthly origination targets',
     ],
     painPoints: [
       'Too much time spent on manual document review',
       'Difficult to assess risk across different industries',
       'Lacks holistic view of application pipeline',
-      'Too many systems to navigate for complete information'
+      'Too many systems to navigate for complete information',
     ],
-    userStory: 'As a financial manager, I need to quickly review loan applications, assess risks, and make approval decisions so I can meet origination targets while maintaining portfolio quality.',
-    preferredAgents: ['risk-analyst', 'doc-specialist', 'financial-advisor']
+    userStory:
+      'As a financial manager, I need to quickly review loan applications, assess risks, and make approval decisions so I can meet origination targets while maintaining portfolio quality.',
+    preferredAgents: ['risk-analyst', 'doc-specialist', 'financial-advisor'],
   },
   {
     id: 'broker-1',
@@ -689,16 +731,17 @@ const USER_PERSONAS: UserPersona[] = [
       'Submit complete applications on behalf of clients',
       'Track application status in real-time',
       'Maximize commission revenue',
-      'Build relationships with multiple lenders'
+      'Build relationships with multiple lenders',
     ],
     painPoints: [
       'Slow feedback on incomplete applications',
       'Lack of transparency on approval criteria',
       'Difficulty predicting approval likelihood',
-      'Commission payment delays'
+      'Commission payment delays',
     ],
-    userStory: 'As a broker, I need to efficiently submit applications and track their progress so I can manage client expectations and plan my commission pipeline.',
-    preferredAgents: ['application-assistant', 'commission-tracker', 'client-advisor']
+    userStory:
+      'As a broker, I need to efficiently submit applications and track their progress so I can manage client expectations and plan my commission pipeline.',
+    preferredAgents: ['application-assistant', 'commission-tracker', 'client-advisor'],
   },
   {
     id: 'borrower-1',
@@ -708,16 +751,17 @@ const USER_PERSONAS: UserPersona[] = [
       'Secure financing with minimal paperwork',
       'Understand loan terms and requirements',
       'Get quick decisions on applications',
-      'Find the best rates and terms'
+      'Find the best rates and terms',
     ],
     painPoints: [
       'Complicated application process',
       'Unclear documentation requirements',
       'Slow approval process',
-      'Difficulty understanding loan terms'
+      'Difficulty understanding loan terms',
     ],
-    userStory: 'As a small business owner, I need a simple application process with clear requirements so I can secure financing quickly with minimal disruption to my business.',
-    preferredAgents: ['document-guide', 'application-assistant', 'term-explainer']
+    userStory:
+      'As a small business owner, I need a simple application process with clear requirements so I can secure financing quickly with minimal disruption to my business.',
+    preferredAgents: ['document-guide', 'application-assistant', 'term-explainer'],
   },
   {
     id: 'vendor-1',
@@ -727,17 +771,18 @@ const USER_PERSONAS: UserPersona[] = [
       'Facilitate equipment financing for customers',
       'Track financing application status',
       'Convert more sales through financing options',
-      'Maintain inventory visibility'
+      'Maintain inventory visibility',
     ],
     painPoints: [
       'Sales lost due to financing delays',
       'Lack of integration between inventory and financing',
       'Limited visibility into application status',
-      'Complex financing process discourages customers'
+      'Complex financing process discourages customers',
     ],
-    userStory: 'As an equipment vendor, I need to offer seamless financing options so my customers can easily purchase equipment without lengthy delays.',
-    preferredAgents: ['inventory-specialist', 'financing-specialist', 'sales-advisor']
-  }
+    userStory:
+      'As an equipment vendor, I need to offer seamless financing options so my customers can easily purchase equipment without lengthy delays.',
+    preferredAgents: ['inventory-specialist', 'financing-specialist', 'sales-advisor'],
+  },
 ];
 
 // Sample agent types
@@ -753,8 +798,8 @@ const AGENT_TYPES: AgentType[] = [
       'Financial statement interpretation',
       'Industry risk factor identification',
       'Fraud detection',
-      'Portfolio risk assessment'
-    ]
+      'Portfolio risk assessment',
+    ],
   },
   {
     id: 'doc-specialist',
@@ -767,8 +812,8 @@ const AGENT_TYPES: AgentType[] = [
       'Information extraction',
       'Missing document identification',
       'Document organization',
-      'Regulatory compliance checking'
-    ]
+      'Regulatory compliance checking',
+    ],
   },
   {
     id: 'financial-advisor',
@@ -781,8 +826,8 @@ const AGENT_TYPES: AgentType[] = [
       'Repayment planning',
       'Financial impact analysis',
       'Alternative financing suggestions',
-      'Cash flow forecasting'
-    ]
+      'Cash flow forecasting',
+    ],
   },
   {
     id: 'application-assistant',
@@ -795,8 +840,8 @@ const AGENT_TYPES: AgentType[] = [
       'Requirements explanation',
       'Application status tracking',
       'Information completeness checking',
-      'Application submission assistance'
-    ]
+      'Application submission assistance',
+    ],
   },
   {
     id: 'client-advisor',
@@ -809,9 +854,9 @@ const AGENT_TYPES: AgentType[] = [
       'Follow-up scheduling',
       'Client need assessment',
       'Application history tracking',
-      'Client satisfaction monitoring'
-    ]
-  }
+      'Client satisfaction monitoring',
+    ],
+  },
 ];
 
 const AutoOriginationsDashboard: React.FC = () => {
@@ -835,33 +880,33 @@ const AutoOriginationsDashboard: React.FC = () => {
     {
       id: 'application_form',
       title: 'Application Form',
-      applications: []
+      applications: [],
     },
     {
       id: 'credit_application',
       title: 'Credit Application',
-      applications: []
+      applications: [],
     },
     {
       id: 'risk_map_navigator',
       title: 'Risk Map Navigator',
-      applications: []
+      applications: [],
     },
     {
       id: 'deal_structuring',
       title: 'Deal Structuring',
-      applications: []
+      applications: [],
     },
     {
       id: 'transaction_execution',
       title: 'Transaction Execution',
-      applications: []
+      applications: [],
     },
     {
       id: 'post_closing',
       title: 'Post-Closing',
-      applications: []
-    }
+      applications: [],
+    },
   ]);
 
   // Sample dashboard metrics data
@@ -913,28 +958,34 @@ const AutoOriginationsDashboard: React.FC = () => {
   const organizeApplicationsByStage = () => {
     const newColumns = [...columns].map(column => ({
       ...column,
-      applications: [] as Application[]
+      applications: [] as Application[],
     }));
 
     applications.forEach(application => {
       // Determine which column this application belongs to based on its stage
       let columnId = 'application_form';
-      
+
       if (application.status === 'funded') {
         columnId = 'post_closing';
       } else if (application.completedSteps.includes('review')) {
         columnId = 'transaction_execution';
-      } else if (application.completedSteps.includes('risk_map') || 
-                (application.completedSteps.includes('documents') && application.status === 'under_review')) {
+      } else if (
+        application.completedSteps.includes('risk_map') ||
+        (application.completedSteps.includes('documents') && application.status === 'under_review')
+      ) {
         columnId = 'deal_structuring';
-      } else if (application.completedSteps.includes('basic_info') && 
-                (application.status === 'documents_pending' || application.documentStatus === 'Pending')) {
+      } else if (
+        application.completedSteps.includes('basic_info') &&
+        (application.status === 'documents_pending' || application.documentStatus === 'Pending')
+      ) {
         columnId = 'risk_map_navigator';
-      } else if (application.completedSteps.includes('application') && 
-                !application.completedSteps.includes('risk_map')) {
+      } else if (
+        application.completedSteps.includes('application') &&
+        !application.completedSteps.includes('risk_map')
+      ) {
         columnId = 'credit_application';
       }
-      
+
       // Find the column and add the application to it
       const column = newColumns.find(col => col.id === columnId);
       if (column) {
@@ -956,10 +1007,7 @@ const AutoOriginationsDashboard: React.FC = () => {
 
     // If there's no destination, or if dragged to the same place, do nothing
     if (!destination) return;
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
+    if (destination.droppableId === source.droppableId && destination.index === source.index) {
       return;
     }
 
@@ -981,7 +1029,7 @@ const AutoOriginationsDashboard: React.FC = () => {
 
     // Update application status and completedSteps based on the destination column
     const updatedApplication = { ...application };
-    
+
     // Update application status based on destination column
     switch (destination.droppableId) {
       case 'application_form':
@@ -1018,22 +1066,22 @@ const AutoOriginationsDashboard: React.FC = () => {
         }
         break;
     }
-    
+
     // Remove application from source column
     newSourceColumn.applications = newSourceColumn.applications.filter(
       app => app.id !== draggableId
     );
-    
+
     // Insert application at destination
     newDestColumn.applications = [
       ...newDestColumn.applications.slice(0, destination.index),
       updatedApplication,
-      ...newDestColumn.applications.slice(destination.index)
+      ...newDestColumn.applications.slice(destination.index),
     ];
-    
+
     // Update state
     setColumns(newColumns);
-    
+
     // Update the application in the main applications array
     setApplications(
       applications.map(app => (app.id === updatedApplication.id ? updatedApplication : app))
@@ -1112,7 +1160,9 @@ const AutoOriginationsDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Application Status Distribution</h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-3">
+                Application Status Distribution
+              </h3>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
@@ -1139,7 +1189,9 @@ const AutoOriginationsDashboard: React.FC = () => {
         return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Application to Approval Trend</h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-3">
+                Application to Approval Trend
+              </h3>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={dashboardMetrics.approvalTrend}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -1160,7 +1212,7 @@ const AutoOriginationsDashboard: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" domain={[0, 100]} />
                   <YAxis dataKey="name" type="category" width={150} />
-                  <Tooltip formatter={(value) => [`${value}%`, 'Conversion Rate']} />
+                  <Tooltip formatter={value => [`${value}%`, 'Conversion Rate']} />
                   <Bar dataKey="rate" fill="#4F46E5" />
                 </BarChart>
               </ResponsiveContainer>
@@ -1171,28 +1223,44 @@ const AutoOriginationsDashboard: React.FC = () => {
         return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Origination Amount by Industry</h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-3">
+                Origination Amount by Industry
+              </h3>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={dashboardMetrics.amountByIndustry}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Amount']} />
+                  <Tooltip formatter={value => [`$${value.toLocaleString()}`, 'Amount']} />
                   <Bar dataKey="amount" fill="#4F46E5" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
             <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Cumulative Origination Value</h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-3">
+                Cumulative Origination Value
+              </h3>
               <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={dashboardMetrics.approvalTrend}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip />
-                  <Area type="monotone" dataKey="applications" stackId="1" stroke="#8884d8" fill="#8884d8" />
-                  <Area type="monotone" dataKey="approvals" stackId="1" stroke="#82ca9d" fill="#82ca9d" />
+                  <Area
+                    type="monotone"
+                    dataKey="applications"
+                    stackId="1"
+                    stroke="#8884d8"
+                    fill="#8884d8"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="approvals"
+                    stackId="1"
+                    stroke="#82ca9d"
+                    fill="#82ca9d"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -1351,44 +1419,49 @@ const AutoOriginationsDashboard: React.FC = () => {
     const persona = USER_PERSONAS.find(p => p.role === userRole);
     return persona || USER_PERSONAS[0]; // Default to first persona if not found
   };
-  
+
   // Function to get recommended agents for the current user
   const getRecommendedAgents = () => {
     const persona = getCurrentUserPersona();
     return AGENT_TYPES.filter(agent => persona.preferredAgents.includes(agent.id));
   };
-  
+
   // Function to open agent selector modal
   const openAgentSelector = () => {
     setSelectedPersona(getCurrentUserPersona());
     setShowAgentSelector(true);
   };
-  
+
   // Function to select an agent
   const selectAgent = (agent: AgentType) => {
     setSelectedAgent(agent);
     setShowAgentSelector(false);
     // Here you would typically start a conversation with this agent
   };
-  
+
   // Function to render the agent selector modal
   const renderAgentSelector = () => {
     if (!showAgentSelector) return null;
-    
+
     const recommendedAgents = getRecommendedAgents();
-    
+
     return (
       <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl overflow-hidden">
           <div className="p-6 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">Select Conversation Agent</h2>
-              <button 
+              <button
                 onClick={() => setShowAgentSelector(false)}
                 className="text-gray-400 hover:text-gray-500"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -1396,7 +1469,7 @@ const AutoOriginationsDashboard: React.FC = () => {
               Select an agent that specializes in your current task
             </p>
           </div>
-          
+
           <div className="p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Recommended for You</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -1407,7 +1480,10 @@ const AutoOriginationsDashboard: React.FC = () => {
                   className="flex items-start p-4 border rounded-lg hover:bg-gray-50 transition-colors duration-150"
                   style={{ borderColor: agent.primaryColor }}
                 >
-                  <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-md text-2xl" style={{ backgroundColor: agent.primaryColor + '20' }}>
+                  <div
+                    className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-md text-2xl"
+                    style={{ backgroundColor: agent.primaryColor + '20' }}
+                  >
                     {agent.icon}
                   </div>
                   <div className="ml-4 text-left">
@@ -1417,7 +1493,7 @@ const AutoOriginationsDashboard: React.FC = () => {
                 </button>
               ))}
             </div>
-            
+
             <h3 className="text-lg font-medium text-gray-900 mb-4">All Agents</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {AGENT_TYPES.map(agent => (
@@ -1426,7 +1502,10 @@ const AutoOriginationsDashboard: React.FC = () => {
                   onClick={() => selectAgent(agent)}
                   className="flex items-start p-4 border rounded-lg hover:bg-gray-50 transition-colors duration-150"
                 >
-                  <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-md text-2xl" style={{ backgroundColor: agent.primaryColor + '20' }}>
+                  <div
+                    className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-md text-2xl"
+                    style={{ backgroundColor: agent.primaryColor + '20' }}
+                  >
                     {agent.icon}
                   </div>
                   <div className="ml-4 text-left">
@@ -1458,9 +1537,9 @@ const AutoOriginationsDashboard: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Auto Originations Dashboard</h1>
           <p className="text-gray-600 mt-1">
-            {userRole === 'lender' 
+            {userRole === 'lender'
               ? 'Monitor and manage all loan originations in one place'
-              : userRole === 'broker' 
+              : userRole === 'broker'
                 ? 'Track your client applications and commissions'
                 : userRole === 'vendor'
                   ? 'Manage your equipment financing requests'
@@ -1479,7 +1558,12 @@ const AutoOriginationsDashboard: React.FC = () => {
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+              />
             </svg>
             Get AI Assistance
           </button>
@@ -1505,10 +1589,10 @@ const AutoOriginationsDashboard: React.FC = () => {
           </button>
         </div>
       </div>
-      
+
       {/* Render the agent selector modal */}
       {renderAgentSelector()}
-      
+
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
@@ -1574,9 +1658,7 @@ const AutoOriginationsDashboard: React.FC = () => {
                 </button>
               </nav>
             </div>
-            <div className="p-4">
-              {renderMetricsDashboard()}
-            </div>
+            <div className="p-4">{renderMetricsDashboard()}</div>
           </div>
         </div>
       )}
@@ -1649,7 +1731,12 @@ const AutoOriginationsDashboard: React.FC = () => {
                 }`}
                 onClick={() => setView('kanban')}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
                   <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
                 Kanban
@@ -1662,8 +1749,17 @@ const AutoOriginationsDashboard: React.FC = () => {
                 }`}
                 onClick={() => setView('list')}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                    clipRule="evenodd"
+                  />
                 </svg>
                 List
               </button>

@@ -1,80 +1,86 @@
 # EVA Platform Frontend
 
-This is the frontend for the EVA AI-Powered Credit Origination platform. It provides an interface for borrowers, lenders, brokers, and vendors to manage the loan origination process.
+An advanced AI-powered credit origination platform frontend providing a comprehensive interface for borrowers, lenders, brokers, and vendors to manage the entire loan origination lifecycle.
 
-## Features
+![EVA Platform](public/icons/eva-avatar.svg)
 
-### Dashboard
-The dashboard provides role-specific views for different user types:
-- **Borrower Dashboard**: View active applications, loan status, and document requirements
-- **Lender Dashboard**: Track deal pipeline, review applications, and analyze portfolio performance
-- **Broker Dashboard**: Monitor deal flow, lender performance metrics, and commission forecasts
-- **Vendor Dashboard**: Equipment financing tracking and client management
+## 🌟 Key Features
 
-### Credit Application
-A comprehensive application form for loan origination with:
-- Business & owner information collection
-- Support for multiple financing instruments
-- Document upload and verification
-- Pre-fill from existing borrower database
-- Signature and verification
+### 🏠 Dashboard
+Role-specific dashboards with personalized views for:
+- **Borrowers**: Track applications, documents, and loan status
+- **Lenders**: Monitor pipelines, portfolio analytics, and risk assessments
+- **Brokers**: Analyze deal flow, performance metrics, and commission forecasts
+- **Vendors**: Equipment financing and client relationship management
 
-### Customer Retention
-Tools to build and maintain relationships with:
-- Analytics dashboards for customer insights
-- Relationship commitment tracking
-- Performance metrics and reporting
+### 📝 Credit Application
+Comprehensive application management with:
+- Multi-stage business & owner information collection
+- Flexible financing instrument support
+- Secure document upload with AI-powered verification
+- Database-powered pre-fill capabilities
+- Digital signature integration
 
-### Risk Assessment
-Advanced risk analysis tools including:
-- Risk Map Navigator for visualizing risk factors
-- EVA AI-powered risk analysis
-- Compliance verification
+### 🤝 Customer Retention
+Enhanced relationship management tools:
+- Customer contact management with multi-dimensional filtering
+- Commitment tracking and follow-up automation
+- Performance analytics and reporting dashboards
+- Calendar integration for appointment scheduling
 
-### Deal Structuring
-Tools for configuring loan terms and conditions:
-- Covenant management
-- Term sheet generation
-- Pricing optimization
+### 📊 Risk Assessment
+Sophisticated risk analysis powered by AI:
+- **ModularRiskNavigator**: Advanced visualization of risk factors
+- Risk scoring and automated underwriting
+- Compliance verification with regulatory frameworks
+- Risk category breakdown with detailed metrics
 
-### Transaction Execution
-Document preparation and signing workflow:
-- E-signature integration
-- Document status tracking
-- Closing checklist
+### 💼 Deal Structuring
+Smart tools for optimizing loan structures:
+- Covenant configuration and management
+- AI-powered term sheet generation
+- Pricing optimization based on risk profiles
 
-### Filelock Drive
-Secure document storage with:
-- Role-based access control
-- Blockchain verification
-- Version control
+### 📄 Transaction Execution
+End-to-end document workflow:
+- E-signature integration with multiple providers
+- Document status tracking and notifications
+- Comprehensive closing checklist management
 
-### Safe Forms
-Template-based document generation for:
-- Credit applications
-- Financial statements
-- Compliance documents
+### 🔒 Filelock Drive
+Blockchain-enhanced secure document storage:
+- Sophisticated role-based access control
+- Shield Network blockchain verification
+- Document versioning with immutable history
 
-## Technology Stack
-- **Frontend Framework**: React.js with functional components and hooks
+### 📋 Safe Forms
+AI-enhanced document generation:
+- Template management for common financial documents
+- Dynamic form generation based on application type
+- Compliance-focused document creation
+
+## 🛠️ Technology Stack
+
+- **Framework**: React.js 18 with functional components and hooks
 - **State Management**: React Context API and custom hooks
-- **Styling**: Tailwind CSS
-- **API Communication**: Axios with RESTful endpoints
-- **Authentication**: JWT with secure token management
+- **Styling**: Tailwind CSS with custom design system
+- **API**: Axios with RESTful endpoints and request interceptors
+- **Authentication**: JWT with secure token rotation
 - **Testing**: Jest and React Testing Library
 - **Build System**: Webpack with Craco configuration
+- **AI Integration**: NVIDIA Nemotron 70B model (EVA)
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- npm (v7 or higher)
+- Node.js (v16.14.0 or higher)
+- npm (v8.3.0 or higher)
 
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/your-organization/eva-platform-frontend.git
-cd eva-platform-frontend
+git clone https://github.com/financeaiguy/evafi-ai-fe-demo.git
+cd evafi-ai-fe-demo
 
 # Install dependencies
 npm install
@@ -86,142 +92,178 @@ npm install
 npm run dev
 ```
 
-### Environment Setup
-Create a `.env.local` file with the following:
+### Environment Configuration
+Create a `.env.local` file with the following minimum configuration:
 ```
 REACT_APP_API_URL=http://localhost:8080/api
 REACT_APP_AUTH_URL=http://localhost:8080/auth
 REACT_APP_ENABLE_MOCKS=true
 ```
 
-## Development Resources
+For production deployment, use:
+```
+REACT_APP_API_URL=https://api.evafi.com/api
+REACT_APP_AUTH_URL=https://api.evafi.com/auth
+REACT_APP_ENABLE_MOCKS=false
+```
+
+## 📖 Development Resources
 
 ### API Documentation
-The API documentation is available in the `docs/api-schemas` directory. These schemas are automatically generated from the backend repository.
+API schemas available in the `docs/api-schemas` directory. These are auto-generated from the backend repository.
 
 ### Component Documentation
-Each major component group has its own README file:
+Component-specific documentation:
 - [Risk Assessment](./src/components/risk/README.md)
 - [Deal Structuring](./src/components/deal/README.md)
 - [Document Management](./src/components/document/README.md)
 - [Blockchain Integration](./src/components/blockchain/README.md)
-- [Security](./src/components/security/README.md)
+- [Customer Retention](./src/components/customerRetention/README.md)
 - [Communications](./src/components/communications/README.md)
 
-## Performance Guide
+## 🧪 Quality Assurance
 
-For tips on optimizing the frontend performance, see the [Performance Guide](./PERFORMANCE-GUIDE.md).
-
-## Smart ESLint Solution
-
-Our smart ESLint solution gives you three different enforcement levels:
-
-- **Basic Mode**: Just critical errors (`npm run lint:critical`)
+### Smart ESLint Solution
+Three tiered enforcement levels to fit your development context:
+- **Basic Mode**: Critical errors only (`npm run lint:critical`)
 - **Moderate Mode**: Critical errors + important warnings (`npm run lint`)
 - **Strict Mode**: Full linting with all rules (`npm run lint:strict`)
 
-Run the appropriate command for your current development context. For setting up the ESLint configuration, see [ESLINT-MIGRATION-PLAN.md](./ESLINT-MIGRATION-PLAN.md).
+### Testing Strategy
+- Unit tests with Jest and React Testing Library
+- Integration tests for critical user flows
+- E2E testing with Cypress
+- A11y testing with axe-core
 
-## New Features
+### Performance Optimization
+See the [Performance Guide](./PERFORMANCE-GUIDE.md) for tips on optimizing frontend performance.
+
+## 🆕 Recent Features & Improvements
+
+### Contact Management System
+- New **ContactTypeFilter** component for multi-dimensional filtering
+- Enhanced contact views with relationship tracking
+- Calendar integration for appointment scheduling
+- Communication logging and follow-up management
+
+### ModularRiskNavigator Enhancements
+- Fixed duplicate declarations
+- Integrated PaywallModal for premium risk reports
+- Added support for equipment and real estate loan types
+- Enhanced risk visualization with detailed category breakdown
 
 ### Unified Chat Interface
-The platform now features a unified chat interface with three different modes:
-- **EVA AI Assistant** - General platform assistance
-- **Risk Advisor** (red icon) - Risk assessment and mitigation suggestions
-- **Clear Communications** - Client communication assistance
+The platform features a unified chat interface with three specialized modes:
+- **EVA AI Assistant**: General platform assistance
+- **Risk Advisor** (red icon): Risk assessment and mitigation suggestions
+- **Clear Communications**: Client communication assistance
 
-All chat widgets are movable, allowing users to position them anywhere on the screen for optimal workflow.
+All chat widgets support drag-and-drop positioning for workflow optimization.
 
 ### Shield Network Document Locking
-The Filelock Drive now includes blockchain verification capabilities:
-- **Document Locking** - Lock files on the Shield Network Ledger for immutable record-keeping
-- **OCR Verification** - Using DocEasy AI to extract and verify document content
-- **Source Authentication** - Verify document origin and authenticity
-- **History Tracking** - Analyze document history for potential tampering
-- **Fraud Prevention** - Create tamper-proof verification records on blockchain
+The Filelock Drive now includes enterprise-grade blockchain verification:
+- **Document Locking**: Immutable record-keeping on Shield Network Ledger
+- **OCR Verification**: AI-powered document content extraction and verification
+- **Source Authentication**: Cryptographic origin verification
+- **History Tracking**: Tamper-evident document history
+- **Fraud Prevention**: Blockchain-verified audit trails
 
-## User Types and Permissions
+## 👥 User Types & Permissions
 
-The platform supports four distinct user types with varying permission levels:
-
+### User Hierarchy
 1. **Business (Borrowers)**
-   - Seeking financing
-   - Limited access to view their own applications and documents
-   - Can interact with basic application workflows
+   - Self-service application management
+   - Document uploads and status tracking
+   - Limited access to loan-specific data
 
 2. **Vendor**
-   - Service providers
-   - View-only access to relevant service requests
-   - Limited access to documents related to their services
+   - Service request management
+   - Document submission and verification
+   - Client communication portal
 
 3. **Brokerage**
-   - Financial intermediaries
-   - Advanced access to manage multiple client applications
-   - Administrative capabilities for deal structuring
+   - Multi-client application management
+   - Advanced deal structuring capabilities
+   - Commission tracking and forecasting
 
 4. **Lender**
-   - Financial institutions providing loans
-   - Full administrative access to evaluate and process applications
-   - Complete view of portfolios and risk assessments
+   - Complete portfolio visibility
+   - Underwriting and approval workflows
+   - Risk assessment and monitoring tools
 
-### Permission System
-
-Permissions are implemented using a granular system with multiple levels:
+### Permission Framework
+Granular permissions with progressive access levels:
 - **NONE** (0): No access
-- **VIEW** (1): Read-only access
-- **INTERACT** (2): Basic interaction capabilities
-- **MODIFY** (3): Ability to change and update
-- **ADMIN** (4): Full administrative control
+- **VIEW** (1): Read-only capabilities
+- **INTERACT** (2): Basic interaction permissions
+- **MODIFY** (3): Edit and update authorization
+- **ADMIN** (4): Complete administrative control
 
-Each feature in the system has a permission level assigned based on user type. The system also supports employee roles within each user type:
-- **VIEWER**: Basic viewing permissions
-- **OPERATOR**: Standard operational access
-- **MANAGER**: Enhanced management capabilities
-- **ADMIN**: Full administrative control
+Employee role hierarchy within organizations:
+- **VIEWER**: Basic read access
+- **OPERATOR**: Standard functional access
+- **MANAGER**: Enhanced administrative capabilities
+- **ADMIN**: Full system control
 
-## AI Integration
+## 🧠 AI Integration
 
-Our platform utilizes advanced AI capabilities powered by NVIDIA Nemotron 70B parameter model fine-tuned as "EVA" for financial use cases:
+EVA's AI capabilities are powered by NVIDIA Nemotron 70B parameter model fine-tuned for financial services:
 
-- **Smart Matching**: AI-powered matching between borrowers and lenders
-- **Data Orchestrator**: ETL and data enrichment pipeline
-- **Document Verification**: AI-powered document authenticity validation
-- **Credit Analysis**: Advanced credit analysis suite
-- **Lifecycle Assistant**: AI assistant throughout the deal lifecycle
+- **Smart Matching**: Intelligent pairing of borrowers and lenders
+- **Data Orchestration**: Advanced ETL and enrichment pipelines
+- **Document Intelligence**: Automated verification and extraction
+- **Credit Analysis**: AI-enhanced underwriting and risk assessment
+- **Lifecycle Assistant**: Context-aware guidance throughout the process
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 eva-platform-frontend/
-├── public/             # Static files
-├── src/                # Source files
-│   ├── components/     # Reusable components
-│   │   ├── blockchain/ # Blockchain integration components
-│   │   ├── document/   # Document management components
-│   │   ├── risk/       # Risk assessment components
-│   │   └── layout/     # Layout components (navbar, sidebar)
-│   ├── contexts/       # React context providers
-│   ├── pages/          # Page components
-│   ├── hooks/          # Custom React hooks
-│   ├── utils/          # Utility functions
-│   ├── api/            # API client functions
-│   └── styles/         # CSS and Tailwind styles
-├── docs/               # Documentation
+├── public/             # Static assets
+├── docs/               # Documentation and API schemas
 ├── scripts/            # Build and utility scripts
+├── src/
+│   ├── api/            # API client functions
+│   ├── components/     # Reusable components
+│   │   ├── blockchain/ # Blockchain integration
+│   │   ├── common/     # Shared UI components
+│   │   ├── communications/ # Communication tools
+│   │   ├── customerRetention/ # Customer management
+│   │   ├── deal/       # Deal structuring
+│   │   ├── document/   # Document management
+│   │   ├── layout/     # Layout components
+│   │   ├── risk/       # Risk assessment
+│   │   └── security/   # Security components
+│   ├── contexts/       # React context providers
+│   ├── hooks/          # Custom React hooks
+│   ├── pages/          # Page components
+│   ├── styles/         # Global styles
+│   ├── types/          # TypeScript type definitions
+│   └── utils/          # Utility functions
+├── .env.development    # Development environment variables
+├── .env.production     # Production environment variables
 ├── package.json        # Dependencies and scripts
 └── tailwind.config.js  # Tailwind CSS configuration
 ```
 
-## Backend Repository
+## 🔄 Backend Services
 
-The backend services for this application are maintained in a separate repository:
-https://github.com/your-organization/eva-platform-backend
+The backend services are maintained in a separate repository:
+[https://github.com/financeaiguy/evafi-ai-backend](https://github.com/financeaiguy/evafi-ai-backend)
 
-## Contributing
+## 👨‍💻 Contributing
 
-Please follow our [coding standards and conventions](./docs/CONTRIBUTING.md) when contributing to this project.
+Please review our [Contributing Guidelines](./docs/CONTRIBUTING.md) for code standards, branch naming conventions, and pull request procedures.
 
-## License
+## 📝 Quality Assurance
+
+Before submitting changes, run through our [QA Checklist](./QA-CHECKLIST.md) to ensure high-quality contributions.
+
+## 📄 License
 
 Proprietary software - All rights reserved.
+
+---
+
+© 2023-2024 EVA Financial Technologies, Inc.
 

@@ -15,10 +15,10 @@ interface ShieldAuthConfig {
  * User verification levels
  */
 enum VerificationLevel {
-  BASIC = 'basic',       // Email verification only
+  BASIC = 'basic', // Email verification only
   STANDARD = 'standard', // Identity verification
   ENHANCED = 'enhanced', // Identity + Financial verification
-  COMPLETE = 'complete'  // Identity + Financial + Background check
+  COMPLETE = 'complete', // Identity + Financial + Background check
 }
 
 /**
@@ -29,7 +29,7 @@ enum VerificationStatus {
   IN_PROGRESS = 'in_progress',
   VERIFIED = 'verified',
   REJECTED = 'rejected',
-  REQUIRES_REVIEW = 'requires_review'
+  REQUIRES_REVIEW = 'requires_review',
 }
 
 /**
@@ -133,7 +133,8 @@ const defaultConfig: ShieldAuthConfig = {
   apiUrl: process.env.REACT_APP_SHIELD_AUTH_API_URL || 'https://api.shield-auth.example.com',
   apiKey: process.env.REACT_APP_SHIELD_AUTH_API_KEY || '',
   clientId: process.env.REACT_APP_SHIELD_AUTH_CLIENT_ID || '',
-  redirectUri: process.env.REACT_APP_SHIELD_AUTH_REDIRECT_URI || window.location.origin + '/auth/callback',
+  redirectUri:
+    process.env.REACT_APP_SHIELD_AUTH_REDIRECT_URI || window.location.origin + '/auth/callback',
 };
 
 /**
@@ -181,27 +182,28 @@ class ShieldAuthConnector {
         {
           client_id: this.config.clientId,
           client_secret: this.config.clientSecret,
-          grant_type: 'client_credentials'
+          grant_type: 'client_credentials',
         },
         {
           headers: {
             'Content-Type': 'application/json',
-            'X-API-Key': this.config.apiKey
-          }
+            'X-API-Key': this.config.apiKey,
+          },
         }
       );
 
       this.token = response.data.access_token;
-      this.tokenExpiry = Date.now() + (response.data.expires_in * 1000);
-      
+      this.tokenExpiry = Date.now() + response.data.expires_in * 1000;
+
+      // Ensure we never return null for token
       if (!this.token) {
         throw new Error('Failed to obtain auth token: Token is null');
       }
-      
+
       return this.token;
     } catch (error) {
       console.error('Error getting Shield Auth token:', error);
-      throw error;
+      throw new Error('Failed to obtain auth token');
     }
   }
 
@@ -249,8 +251,8 @@ class ShieldAuthConnector {
         {
           headers: {
             'Content-Type': 'application/json',
-            'X-API-Key': this.config.apiKey
-          }
+            'X-API-Key': this.config.apiKey,
+          },
         }
       );
 
@@ -258,7 +260,7 @@ class ShieldAuthConnector {
         accessToken: response.data.access_token,
         refreshToken: response.data.refresh_token,
         idToken: response.data.id_token,
-        expiresIn: response.data.expires_in
+        expiresIn: response.data.expires_in,
       };
     } catch (error) {
       console.error('Error exchanging auth code:', error);
@@ -273,15 +275,12 @@ class ShieldAuthConnector {
   async getUserProfile(userId: string): Promise<UserProfile> {
     try {
       const token = await this.getToken();
-      const response = await axios.get(
-        `${this.config.apiUrl}/v1/users/${userId}/profile`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-API-Key': this.config.apiKey
-          }
-        }
-      );
+      const response = await axios.get(`${this.config.apiUrl}/v1/users/${userId}/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-API-Key': this.config.apiKey,
+        },
+      });
 
       return response.data;
     } catch (error) {
@@ -306,7 +305,7 @@ class ShieldAuthConnector {
       // Add all fields to form data
       formData.append('userId', request.userId);
       formData.append('documentType', request.documentType);
-      
+
       if (request.documentFront) {
         if (typeof request.documentFront === 'string') {
           formData.append('documentFront', request.documentFront);
@@ -343,17 +342,13 @@ class ShieldAuthConnector {
         formData.append('ssn', request.ssn);
       }
 
-      const response = await axios.post(
-        `${this.config.apiUrl}/v1/verifications/kyc`,
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-API-Key': this.config.apiKey,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
+      const response = await axios.post(`${this.config.apiUrl}/v1/verifications/kyc`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-API-Key': this.config.apiKey,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       return response.data;
     } catch (error) {
@@ -381,15 +376,15 @@ class ShieldAuthConnector {
       formData.append('registrationNumber', request.registrationNumber);
       formData.append('taxId', request.taxId);
       formData.append('address', JSON.stringify(request.address));
-      
+
       if (request.incorporationDate) {
         formData.append('incorporationDate', request.incorporationDate);
       }
-      
+
       if (request.legalStructure) {
         formData.append('legalStructure', request.legalStructure);
       }
-      
+
       if (request.businessType) {
         formData.append('businessType', request.businessType);
       }
@@ -412,17 +407,13 @@ class ShieldAuthConnector {
         formData.append('ubo', JSON.stringify(request.ubo));
       }
 
-      const response = await axios.post(
-        `${this.config.apiUrl}/v1/verifications/kyb`,
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-API-Key': this.config.apiKey,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
+      const response = await axios.post(`${this.config.apiUrl}/v1/verifications/kyb`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-API-Key': this.config.apiKey,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       return response.data;
     } catch (error) {
@@ -446,15 +437,12 @@ class ShieldAuthConnector {
   }> {
     try {
       const token = await this.getToken();
-      const response = await axios.get(
-        `${this.config.apiUrl}/v1/verifications/${verificationId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-API-Key': this.config.apiKey
-          }
-        }
-      );
+      const response = await axios.get(`${this.config.apiUrl}/v1/verifications/${verificationId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-API-Key': this.config.apiKey,
+        },
+      });
 
       return response.data;
     } catch (error) {
@@ -479,10 +467,10 @@ class ShieldAuthConnector {
         { userId },
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'X-API-Key': this.config.apiKey,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -498,7 +486,10 @@ class ShieldAuthConnector {
    * @param publicToken - Public token from account linking flow
    * @param userId - User ID
    */
-  async exchangePublicToken(publicToken: string, userId: string): Promise<{
+  async exchangePublicToken(
+    publicToken: string,
+    userId: string
+  ): Promise<{
     accessToken: string;
     accountIds: string[];
   }> {
@@ -506,16 +497,16 @@ class ShieldAuthConnector {
       const token = await this.getToken();
       const response = await axios.post(
         `${this.config.apiUrl}/v1/financial/link/exchange`,
-        { 
+        {
           publicToken,
-          userId 
+          userId,
         },
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'X-API-Key': this.config.apiKey,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -537,9 +528,9 @@ class ShieldAuthConnector {
         `${this.config.apiUrl}/v1/financial/accounts?userId=${userId}`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-API-Key': this.config.apiKey
-          }
+            Authorization: `Bearer ${token}`,
+            'X-API-Key': this.config.apiKey,
+          },
         }
       );
 
@@ -591,9 +582,9 @@ class ShieldAuthConnector {
         `${this.config.apiUrl}/v1/financial/accounts/${accountId}/transactions?${params.toString()}`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-API-Key': this.config.apiKey
-          }
+            Authorization: `Bearer ${token}`,
+            'X-API-Key': this.config.apiKey,
+          },
         }
       );
 
@@ -627,14 +618,14 @@ class ShieldAuthConnector {
         {
           userId,
           checkTypes: options?.checkTypes || ['criminal', 'watchlist'],
-          locale: options?.locale || 'en-US'
+          locale: options?.locale || 'en-US',
         },
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'X-API-Key': this.config.apiKey,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -664,15 +655,12 @@ class ShieldAuthConnector {
   }> {
     try {
       const token = await this.getToken();
-      const response = await axios.get(
-        `${this.config.apiUrl}/v1/background-checks/${checkId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-API-Key': this.config.apiKey
-          }
-        }
-      );
+      const response = await axios.get(`${this.config.apiUrl}/v1/background-checks/${checkId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-API-Key': this.config.apiKey,
+        },
+      });
 
       return response.data;
     } catch (error) {
@@ -684,4 +672,4 @@ class ShieldAuthConnector {
 
 // Create and export a singleton instance
 const shieldAuthConnector = new ShieldAuthConnector();
-export default shieldAuthConnector; 
+export default shieldAuthConnector;

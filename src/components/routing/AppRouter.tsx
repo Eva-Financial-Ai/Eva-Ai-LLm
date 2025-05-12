@@ -14,7 +14,11 @@ const LoadingFallback = () => (
 
 // Lazy load page components for code splitting
 const Dashboard = lazy(() => import('../../pages/Dashboard'));
-const PortfolioNavigatorPage = lazy(() => import('../../pages/PortfolioNavigatorPage').then(module => ({ default: module.PortfolioNavigatorPage })));
+const PortfolioNavigatorPage = lazy(() =>
+  import('../../pages/PortfolioNavigatorPage').then(module => ({
+    default: module.PortfolioNavigatorPage,
+  }))
+);
 const CreditApplication = lazy(() => import('../../pages/CreditApplication'));
 // DocumentCenter page is missing, commenting out import until file is created
 // import DocumentCenter from '../../pages/DocumentCenter';
@@ -23,10 +27,18 @@ const CustomerRetention = lazy(() => import('../../pages/CustomerRetention'));
 const FormTemplate = lazy(() => import('../../pages/FormTemplate'));
 
 // Customer Retention sub-pages
-const CustomerRetentionContacts = lazy(() => import('../../pages/customerRetention/CustomerRetentionContacts'));
-const CustomerRetentionCalendar = lazy(() => import('../../pages/customerRetention/CustomerRetentionCalendar'));
-const CustomerRetentionCustomers = lazy(() => import('../../pages/customerRetention/CustomerRetentionCustomers'));
-const CustomerRetentionCommitments = lazy(() => import('../../pages/customerRetention/CustomerRetentionCommitments'));
+const CustomerRetentionContacts = lazy(
+  () => import('../../pages/customerRetention/CustomerRetentionContacts')
+);
+const CustomerRetentionCalendar = lazy(
+  () => import('../../pages/customerRetention/CustomerRetentionCalendar')
+);
+const CustomerRetentionCustomers = lazy(
+  () => import('../../pages/customerRetention/CustomerRetentionCustomers')
+);
+const CustomerRetentionCommitments = lazy(
+  () => import('../../pages/customerRetention/CustomerRetentionCommitments')
+);
 
 // Preload the calendar component to avoid initial loading delay
 const preloadCalendarComponent = () => {
@@ -40,6 +52,7 @@ const AppRouter: React.FC = () => {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
+        {/* Main routes */}
         <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/portfolio-navigator" element={<PortfolioNavigatorPage />} />
@@ -47,16 +60,20 @@ const AppRouter: React.FC = () => {
         {/* Temporarily commenting out DocumentCenter route until component is created */}
         {/* <Route path="/document-center" element={<DocumentCenter />} /> */}
         <Route path="/asset-press" element={<AssetPress />} />
+        <Route path="/form-template" element={<FormTemplate />} />
+
+        {/* Customer Retention routes - organized by specificity */}
         <Route path="/customer-retention" element={<CustomerRetention />} />
         <Route path="/customer-retention/contacts" element={<CustomerRetentionContacts />} />
         <Route path="/customer-retention/customers" element={<CustomerRetentionCustomers />} />
         <Route path="/customer-retention/commitments" element={<CustomerRetentionCommitments />} />
-        
-        {/* Calendar routes - put the more specific route first */}
-        <Route path="/customer-retention/calendar/:provider" element={<CustomerRetentionCalendar />} />
+
+        {/* Calendar routes - place more specific routes first */}
+        <Route
+          path="/customer-retention/calendar/:provider"
+          element={<CustomerRetentionCalendar />}
+        />
         <Route path="/customer-retention/calendar" element={<CustomerRetentionCalendar />} />
-        
-        <Route path="/form-template" element={<FormTemplate />} />
       </Routes>
     </Suspense>
   );
