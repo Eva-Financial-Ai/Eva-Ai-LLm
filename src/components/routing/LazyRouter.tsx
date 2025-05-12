@@ -44,6 +44,7 @@ const EnhancedAssetPress = lazy(() => import('../../pages/EnhancedAssetPress'));
 const CommercialMarket = lazy(() => import('../../pages/CommercialMarket'));
 const Transactions = lazy(() => import('../../pages/Transactions'));
 const SmartMatchPage = lazy(() => import('../../pages/SmartMatchPage'));
+const EdgeConfigPage = lazy(() => import('../../pages/EdgeConfigPage'));
 
 // Custom Agent components
 const CustomAgentDemo = lazy(() => import('../../pages/CustomAgentDemo'));
@@ -106,6 +107,10 @@ const routes: RouteConfig[] = [
 
   // Commercial Market
   { path: '/commercial-market', component: CommercialMarket, isProtected: true },
+
+  // Vercel Edge Config Demo
+  { path: '/edge-config', component: EdgeConfigPage, isProtected: true },
+  { path: '/welcome', component: EdgeConfigPage, isProtected: false },
 ];
 
 const LazyRouter: React.FC = () => {
