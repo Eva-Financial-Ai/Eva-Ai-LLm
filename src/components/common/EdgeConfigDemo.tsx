@@ -12,6 +12,11 @@ const EdgeConfigDemo: React.FC<EdgeConfigDemoProps> = ({ configKey = 'greeting' 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Skip data fetching during build
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -36,6 +41,32 @@ const EdgeConfigDemo: React.FC<EdgeConfigDemoProps> = ({ configKey = 'greeting' 
 
     fetchData();
   }, [configKey]);
+
+  // Check if the token is configured
+  const isConfigMissing =
+    !process.env.REACT_APP_EDGE_CONFIG_TOKEN ||
+    process.env.REACT_APP_EDGE_CONFIG_TOKEN === '' ||
+    process.env.REACT_APP_EDGE_CONFIG_TOKEN === 'your_edge_config_token_here';
+
+  if (isConfigMissing) {
+    return (
+      <div className="p-4 bg-amber-50 border border-amber-200 rounded-md">
+        <h3 className="text-amber-700 font-medium">Edge Config Not Configured</h3>
+        <p className="text-amber-600">
+          The Edge Config token is not configured. Set the REACT_APP_EDGE_CONFIG_TOKEN environment
+          variable.
+        </p>
+        <div className="mt-2 text-sm text-gray-600 bg-white p-2 rounded border border-gray-200">
+          <p>In Vercel:</p>
+          <ol className="list-decimal list-inside">
+            <li>Go to Project Settings</li>
+            <li>Navigate to Environment Variables</li>
+            <li>Add REACT_APP_EDGE_CONFIG_TOKEN</li>
+          </ol>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
