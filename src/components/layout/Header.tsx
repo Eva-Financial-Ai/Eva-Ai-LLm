@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import NotificationCenter from '../NotificationCenter';
 import { NotificationSystem } from '../../services/DocumentGenerationService';
+import ModernEVALogo from '../common/EVALogo';
 
 interface HeaderProps {
   title?: string;
@@ -44,7 +45,7 @@ const Header: React.FC<HeaderProps> = ({ title = 'EVA AI' }) => {
           <div className="flex px-2 lg:px-0">
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="flex items-center">
-                <span className="text-primary-600 text-2xl font-bold mr-1">EVA</span>
+                <ModernEVALogo width={120} height={40} className="mr-2" />
                 <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md">
                   BETA
                 </span>

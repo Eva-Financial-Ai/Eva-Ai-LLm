@@ -167,6 +167,29 @@ const RiskCategoryDetail: React.FC<RiskCategoryDetailProps> = ({
         },
       ],
       all: [], // Not used for detail view
+      customer_retention: [
+        {
+          id: 'retention-rate',
+          name: 'Retention Rate',
+          impact: score > 75 ? 'positive' : 'negative',
+          description: score > 75 ? 'Strong customer retention' : 'Customer retention challenges',
+          value: Math.min(100, Math.max(0, score + 3)),
+        },
+        {
+          id: 'customer-satisfaction',
+          name: 'Customer Satisfaction',
+          impact: score > 70 ? 'positive' : 'neutral',
+          description: score > 70 ? 'High satisfaction ratings' : 'Mixed satisfaction ratings',
+          value: Math.min(100, Math.max(0, score + 8)),
+        },
+        {
+          id: 'churn-risk',
+          name: 'Churn Risk',
+          impact: score > 80 ? 'positive' : 'negative',
+          description: score > 80 ? 'Low churn probability' : 'Elevated churn probability',
+          value: Math.min(100, Math.max(0, score - 10)),
+        }
+      ]
     };
 
     return factors[category] || [];

@@ -22,8 +22,11 @@ const RiskAdvisorWrapper: React.FC<RiskAdvisorWrapperProps> = ({
   const location = useLocation();
   const { currentTransaction } = useTransactionStore();
 
-  // Initialize with default prompt based on context if none is provided
+  // Only check for context if the component is explicitly opened (isOpen === true)
+  // This prevents auto-opening when navigating to Risk pages
   const getInitialPrompt = () => {
+    if (!isOpen) return undefined;
+    
     if (location.search) {
       const params = new URLSearchParams(location.search);
       const context = params.get('context');
@@ -37,6 +40,9 @@ const RiskAdvisorWrapper: React.FC<RiskAdvisorWrapperProps> = ({
 
     return undefined;
   };
+
+  // Don't render anything if not explicitly opened
+  if (!isOpen) return null;
 
   return (
     <RiskAdvisorChat

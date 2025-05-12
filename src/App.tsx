@@ -20,6 +20,8 @@ import AppErrorBoundary from './components/common/AppErrorBoundary';
 import PWAInstallPrompt from './components/common/PWAInstallPrompt';
 import { ToastProvider } from './components/common/ToastContainer';
 import { Analytics } from '@vercel/analytics/react';
+import ResponsiveTestingPanel from './components/ResponsiveTestingPanel';
+import SideNavigationTest from './components/layout/__tests__/SideNavigationTest';
 
 // Import Portfolio Navigator Page
 import { PortfolioNavigatorPage } from './pages/PortfolioNavigatorPage';
@@ -76,6 +78,38 @@ const EnvironmentError: React.FC<{ missingVars: string[] }> = ({ missingVars }) 
 
 const AppContent: React.FC = () => {
   const userContext = React.useContext(UserContext);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+  const [deviceType, setDeviceType] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
+
+  // Update window dimensions and device info on resize
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      setWindowWidth(width);
+      setWindowHeight(height);
+      
+      // Determine device type
+      if (width < 640) {
+        setDeviceType('mobile');
+      } else if (width < 1024) {
+        setDeviceType('tablet');
+      } else {
+        setDeviceType('desktop');
+      }
+      
+      // Determine orientation
+      setOrientation(width > height ? 'landscape' : 'portrait');
+    };
+    
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial call
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Default values if context is not available
   const sidebarCollapsed = userContext?.sidebarCollapsed || false;
@@ -91,6 +125,37 @@ const AppContent: React.FC = () => {
   const setShowCreditAnalysis = userContext?.setShowCreditAnalysis;
   const setShowAILifecycleAssistant = userContext?.setShowAILifecycleAssistant;
 
+  // Determine if the UI should be in compact mode for smaller screens
+  const isCompactMode = deviceType === 'mobile' || (deviceType === 'tablet' && orientation === 'portrait');
+
+  // Calculate sidebar and content widths based on device type
+  const getSidebarWidth = () => {
+    if (sidebarCollapsed) return '3.5rem'; // 56px when collapsed
+    if (deviceType === 'mobile') return '100%'; // Full width for mobile when expanded (overlay)
+    if (deviceType === 'tablet') return '14rem'; // 224px for tablet
+    return '16rem'; // 256px for desktop
+  };
+
+  const getContentMargin = () => {
+    if (deviceType === 'mobile' && !sidebarCollapsed) return '0'; // No margin when sidebar is overlay
+    if (sidebarCollapsed) return 'ml-14'; // 3.5rem (56px) when collapsed
+    if (deviceType === 'tablet') return 'ml-56'; // 14rem (224px) for tablet
+    return 'ml-64'; // 16rem (256px) for desktop
+  };
+
+  const getContentMaxWidth = () => {
+    if (deviceType === 'mobile' && !sidebarCollapsed) return '100%'; // Full width when sidebar is overlay
+    if (sidebarCollapsed) return 'calc(100% - 3.5rem)'; // Subtract collapsed sidebar width
+    if (deviceType === 'tablet') return 'calc(100% - 14rem)'; // Subtract tablet sidebar width
+    return 'calc(100% - 16rem)'; // Subtract desktop sidebar width
+  };
+
+  const getContentPadding = () => {
+    if (deviceType === 'mobile') return '0.5rem 0.75rem 0.5rem 1.25rem';
+    if (deviceType === 'tablet') return '0.75rem 1rem 0.75rem 1.5rem';
+    return '1rem 1.5rem 1rem 2rem';
+  };
+
   // Smart matching user role (from UserContext)
   const getSmartMatchingUserRole = () => {
     const role = userContext?.userRole || 'lender';
@@ -103,48 +168,68 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className={`app ${theme} text-sm`}>
+    <div className={`app ${theme} text-sm`} data-device-type={deviceType} data-orientation={orientation}>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
         <div className="flex h-screen overflow-hidden">
           <SideNavigation />
           <div
-            className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${
-              sidebarCollapsed ? 'ml-14' : 'ml-56'
-            }`}
+            className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${getContentMargin()}`}
             style={{
-              maxWidth: sidebarCollapsed ? 'calc(100% - 3.5rem)' : 'calc(100% - 14rem)',
+              maxWidth: getContentMaxWidth(),
               padding: '0',
+              width: '100%',
             }}
           >
             <Navbar />
             <main
               className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900"
               style={{
-                padding: '1rem 1.5rem',
+                padding: getContentPadding(),
                 maxWidth: '100%',
+                width: '100%',
               }}
             >
               <LoadableRouter />
 
-              {/* Chat widgets */}
-              <div className="fixed bottom-4 right-4 flex flex-col space-y-4 z-40">
-                <ChatWidget
-                  mode="communications"
-                  initialPosition={{ x: 24, y: -240 }}
-                  zIndexBase={50}
-                />
-                <ChatWidget mode="eva" initialPosition={{ x: 24, y: 0 }} zIndexBase={45} />
-              </div>
+              {/* Chat widgets - conditionally render based on device */}
+              {deviceType !== 'mobile' && (
+                <div className="fixed bottom-4 right-4 flex flex-col space-y-4 z-40">
+                  <ChatWidget
+                    mode="communications"
+                    initialPosition={{ x: 24, y: -240 }}
+                    zIndexBase={50}
+                  />
+                  <ChatWidget mode="eva" initialPosition={{ x: 24, y: 0 }} zIndexBase={45} />
+                </div>
+              )}
+
+              {/* Mobile chat widgets - simplified for mobile */}
+              {deviceType === 'mobile' && (
+                <div className="fixed bottom-4 right-4 z-40">
+                  <button className="bg-blue-600 text-white p-3 rounded-full shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                  </button>
+                </div>
+              )}
 
               {/* PWA Install Prompt */}
               <PWAInstallPrompt />
+              
+              {/* Responsive Testing Panel */}
+              <ResponsiveTestingPanel />
             </main>
 
             {/* Smart Matching Component */}
             {showSmartMatching && (
               <SmartMatching
                 isOpen={showSmartMatching}
-                onClose={() => setShowSmartMatching?.(false)}
+                onClose={() => {
+                  if (setShowSmartMatching) {
+                    setShowSmartMatching(false);
+                  }
+                }}
                 userRole={getSmartMatchingUserRole()}
               />
             )}

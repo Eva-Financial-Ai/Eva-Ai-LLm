@@ -22,6 +22,20 @@ const AssetPress = lazy(() => import('../../pages/AssetPress'));
 const CustomerRetention = lazy(() => import('../../pages/CustomerRetention'));
 const FormTemplate = lazy(() => import('../../pages/FormTemplate'));
 
+// Customer Retention sub-pages
+const CustomerRetentionContacts = lazy(() => import('../../pages/customerRetention/CustomerRetentionContacts'));
+const CustomerRetentionCalendar = lazy(() => import('../../pages/customerRetention/CustomerRetentionCalendar'));
+const CustomerRetentionCustomers = lazy(() => import('../../pages/customerRetention/CustomerRetentionCustomers'));
+const CustomerRetentionCommitments = lazy(() => import('../../pages/customerRetention/CustomerRetentionCommitments'));
+
+// Preload the calendar component to avoid initial loading delay
+const preloadCalendarComponent = () => {
+  import('../../pages/customerRetention/CustomerRetentionCalendar');
+};
+
+// Preload on initial load
+preloadCalendarComponent();
+
 const AppRouter: React.FC = () => {
   return (
     <Suspense fallback={<LoadingFallback />}>
@@ -34,6 +48,14 @@ const AppRouter: React.FC = () => {
         {/* <Route path="/document-center" element={<DocumentCenter />} /> */}
         <Route path="/asset-press" element={<AssetPress />} />
         <Route path="/customer-retention" element={<CustomerRetention />} />
+        <Route path="/customer-retention/contacts" element={<CustomerRetentionContacts />} />
+        <Route path="/customer-retention/customers" element={<CustomerRetentionCustomers />} />
+        <Route path="/customer-retention/commitments" element={<CustomerRetentionCommitments />} />
+        
+        {/* Calendar routes - put the more specific route first */}
+        <Route path="/customer-retention/calendar/:provider" element={<CustomerRetentionCalendar />} />
+        <Route path="/customer-retention/calendar" element={<CustomerRetentionCalendar />} />
+        
         <Route path="/form-template" element={<FormTemplate />} />
       </Routes>
     </Suspense>

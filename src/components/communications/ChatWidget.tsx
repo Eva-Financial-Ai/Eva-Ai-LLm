@@ -425,17 +425,38 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     }, 1500);
   };
 
-  // Handle file uploads
-  const handleFileUpload = (files: FileList | null) => {
-    if (!files) return;
-
-    const newFiles = Array.from(files);
-    setUploadedFiles(prev => [...prev, ...newFiles]);
+  // File handling functions
+  const handleFileButtonClick = () => {
+    fileInputRef.current?.click();
   };
 
-  // Remove an uploaded file
-  const removeUploadedFile = (index: number) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setUploadedFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  const removeFile = (index: number) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Input handling functions
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputText(e.target.value);
+    
+    // Auto-resize textarea
+    if (e.target) {
+      e.target.style.height = 'auto';
+      e.target.style.height = Math.min(120, e.target.scrollHeight) + 'px';
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey && (inputText.trim() || uploadedFiles.length > 0)) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
 
   // Function to create a new conversation
@@ -917,10 +938,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
       <div
         className="bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col"
         style={{
-          width: '85%',
-          height: '85%',
-          maxWidth: '1500px',
-          maxHeight: '900px',
+          width: '95%',
+          height: '95%',
+          maxWidth: '1800px',
+          maxHeight: '1200px',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -931,12 +952,12 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
             <div className="w-64 border-r border-gray-200 flex flex-col bg-white">
               {/* Sidebar Header */}
               <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Conversations</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Conversations</h2>
                 <div className="mt-2 relative">
                   <input
                     type="text"
                     placeholder="Search conversations..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-base"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                   />
@@ -979,7 +1000,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                 <button className="mr-2 text-gray-500 hover:text-gray-700" onClick={toggleSidebar}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
+                    className="h-7 w-7"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -993,12 +1014,9 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                   </svg>
                 </button>
                 <div>
-                  <h2 className="text-lg font-semibold">{getTitle()}</h2>
+                  <h2 className="text-2xl font-semibold">{getTitle()}</h2>
                   <div className="flex items-center">
-                    <p className="text-sm text-gray-500">{getSubtitle()}</p>
-                    <span className="ml-2 text-xs font-bold bg-green-500 text-white px-2 py-0.5 rounded-full">
-                      FIXED VERSION
-                    </span>
+                    <p className="text-base text-gray-500">{getSubtitle()}</p>
                   </div>
                 </div>
               </div>
@@ -1048,7 +1066,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {messages.map(message => (
                 <div
                   key={message.id}
@@ -1058,19 +1076,19 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                     // User message
                     <div className="max-w-[70%]">
                       <div className="flex items-start justify-end mb-1">
-                        <p className="text-sm font-medium text-gray-900 mr-2">You</p>
-                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                        <p className="text-base font-medium text-gray-900 mr-2">You</p>
+                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
                           {message.sender === 'user' ? 'U' : selectedAgent?.name?.charAt(0) || 'E'}
                         </div>
                       </div>
-                      <div className="bg-blue-600 text-white rounded-lg p-3 shadow-sm">
+                      <div className="bg-blue-600 text-white rounded-lg p-4 shadow-sm text-base">
                         {message.text}
 
                         {message.attachment && (
                           <div className="mt-2 p-2 bg-blue-700 rounded-md">
                             <div className="flex items-center">
-                              <DocumentTextIcon className="h-4 w-4 text-blue-200 mr-2" />
-                              <span className="text-sm font-medium text-white">
+                              <DocumentTextIcon className="h-5 w-5 text-blue-200 mr-2" />
+                              <span className="text-base font-medium text-white">
                                 {message.attachment.name}
                               </span>
                             </div>
@@ -1087,13 +1105,13 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                           agentName={selectedAgent?.name || 'EVA'}
                           iconUrl={selectedAgent?.imageUrl || '/icons/eva-avatar.svg'}
                           size="md"
-                          className="mr-2"
+                          className="mr-2 w-10 h-10"
                         />
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-base font-medium text-gray-900">
                           {selectedAgent?.name || 'EVA'}
                         </p>
                       </div>
-                      <div className="bg-white rounded-lg p-3 text-gray-800 shadow-sm">
+                      <div className="bg-white rounded-lg p-4 text-gray-800 shadow-sm text-base">
                         <div className="whitespace-pre-line">{message.text}</div>
 
                         {/* Suggestions or bulletpoints */}
@@ -1104,7 +1122,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                                 key={index}
                                 onClick={() => handleSuggestionClick(point)}
                                 className="w-full text-left py-2 px-3 bg-gray-50 rounded-md hover:bg-gray-100 
-                                         transition-colors border border-gray-200 text-sm"
+                                         transition-colors border border-gray-200 text-base"
                               >
                                 {point}
                               </button>
@@ -1174,94 +1192,99 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
             {renderSentimentAnalysis()}
 
             {/* Message Input Area */}
-            <div className="bg-white border-t border-gray-200 p-4">
-              {/* Uploaded files */}
-              {uploadedFiles.length > 0 && (
-                <div className="mb-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-xs font-medium text-gray-700 mb-1">Uploaded files:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {uploadedFiles.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center bg-white px-2 py-1 rounded border border-gray-200"
-                      >
-                        <DocumentTextIcon className="h-4 w-4 text-gray-500 mr-1" />
-                        <span className="text-xs mr-1 truncate max-w-[120px]">{file.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeUploadedFile(index)}
-                          className="text-gray-400 hover:text-red-500"
-                        >
-                          <XMarkIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div className="p-4 bg-white border-t border-gray-200">
+              <div className="flex items-start">
+                {/* File Upload Button */}
+                <button
+                  onClick={() => {
+                    if (fileInputRef.current) {
+                      fileInputRef.current.click();
+                    }
+                  }}
+                  className="p-3 text-gray-500 hover:text-gray-700 rounded-md mr-2 mt-1"
+                >
+                  <PaperClipIcon className="h-6 w-6" />
+                </button>
 
-              {/* Input form */}
-              <form onSubmit={handleSendMessage} className="flex items-end">
-                <div className="flex-1 relative">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    multiple
-                    onChange={e => handleFileUpload(e.target.files)}
-                  />
+                {/* Hidden file input */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      const newFiles = Array.from(e.target.files);
+                      setUploadedFiles(prev => [...prev, ...newFiles]);
+                    }
+                  }}
+                  className="hidden"
+                  multiple
+                />
 
+                {/* Message Input */}
+                <div className="flex-1 rounded-lg border border-gray-300 bg-white overflow-hidden">
                   <textarea
                     ref={inputRef}
                     value={inputText}
-                    onChange={e => setInputText(e.target.value)}
-                    onKeyDown={e => {
-                      if (
-                        e.key === 'Enter' &&
-                        !e.shiftKey &&
-                        (inputText.trim() || uploadedFiles.length > 0)
-                      ) {
+                    onChange={(e) => {
+                      setInputText(e.target.value);
+                    }}
+                    placeholder="Type a message..."
+                    className="w-full px-4 py-3 text-base focus:outline-none resize-none"
+                    style={{
+                      minHeight: '60px',
+                      maxHeight: '120px',
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         handleSendMessage();
                       }
                     }}
-                    placeholder="Type your message here..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
-                    rows={2}
                   />
 
-                  <div className="absolute bottom-3 right-3 flex space-x-1">
-                    <button
-                      type="button"
-                      className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <PaperClipIcon className="h-5 w-5" />
-                    </button>
-
-                    <button
-                      type="button"
-                      className={`p-1.5 rounded-full ${
-                        isListening
-                          ? 'text-red-500 bg-red-50'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                      onClick={toggleListening}
-                    >
-                      <MicrophoneIcon className="h-5 w-5" />
-                    </button>
-                  </div>
+                  {/* Uploaded Files Display */}
+                  {uploadedFiles.length > 0 && (
+                    <div className="px-4 pb-3 flex flex-wrap gap-2">
+                      {uploadedFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center bg-blue-50 text-blue-700 px-2 py-1 rounded-md"
+                        >
+                          <DocumentTextIcon className="h-5 w-5 mr-1" />
+                          <span className="text-sm truncate max-w-[150px]">{file.name}</span>
+                          <button onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))} className="ml-1 text-gray-500">
+                            <XMarkIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+              </div>
 
+              {/* Send button and other controls */}
+              <div className="flex justify-end mt-3">
+                <button 
+                  onClick={toggleListening}
+                  className={`p-3 mr-3 rounded-full ${
+                    isListening 
+                      ? 'bg-red-100 text-red-600' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <MicrophoneIcon className="h-6 w-6" />
+                </button>
+                
                 <button
-                  type="submit"
+                  onClick={handleSendMessage}
                   disabled={(!inputText.trim() && uploadedFiles.length === 0) || isTyping}
-                  className={`ml-3 px-4 py-3 rounded-lg text-white ${
+                  className={`px-6 py-3 rounded-lg text-white font-medium flex items-center ${
                     (inputText.trim() || uploadedFiles.length > 0) && !isTyping
                       ? 'bg-blue-600 hover:bg-blue-700'
                       : 'bg-gray-400 cursor-not-allowed'
                   }`}
                 >
+                  <span className="mr-2">Send</span>
                   <svg
                     className="w-5 h-5"
                     fill="none"
@@ -1277,14 +1300,14 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                     ></path>
                   </svg>
                 </button>
-              </form>
-
+              </div>
+              
               {/* Listening indicator */}
               {isListening && (
-                <div className="mt-2 px-3 py-1 bg-red-50 text-red-600 text-xs rounded-md flex items-center">
-                  <span className="relative flex h-2 w-2 mr-2">
+                <div className="mt-2 px-3 py-2 bg-red-50 text-red-600 text-sm rounded-md flex items-center">
+                  <span className="relative flex h-3 w-3 mr-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                   </span>
                   Listening... speak now
                 </div>
@@ -1292,19 +1315,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Dialogs */}
-        <AgentManagementDialog
-          isOpen={isAgentManagementOpen}
-          onClose={() => setIsAgentManagementOpen(false)}
-          onSelectAgent={handleSelectAgent}
-        />
-
-        <AddParticipantDialog
-          isOpen={isAddParticipantOpen}
-          onClose={() => setIsAddParticipantOpen(false)}
-          onAdd={email => setParticipants(prev => [...prev, email])}
-        />
       </div>
     </div>
   );

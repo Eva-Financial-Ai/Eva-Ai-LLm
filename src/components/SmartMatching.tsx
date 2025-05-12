@@ -640,6 +640,8 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({
           <button
             onClick={onClose}
             className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+            aria-label="Close"
+            type="button"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
@@ -823,6 +825,24 @@ const SmartMatching: React.FC<SmartMatchingProps> = ({
 
             <button className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
               Start Smart Matching
+            </button>
+          </div>
+        </div>
+        
+        {/* Footer with Cancel button */}
+        <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-6 py-4 flex justify-between">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            Cancel
+          </button>
+          <div className="space-x-3">
+            <button
+              onClick={() => onClose()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Close
             </button>
           </div>
         </div>

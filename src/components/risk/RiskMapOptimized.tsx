@@ -30,13 +30,14 @@ const SkeletonLoader = ({ rows = 3, className = '' }: { rows?: number; className
 
 // Define types for risk categories and view modes
 export type RiskCategory =
+  | 'all'
   | 'credit'
   | 'capacity'
   | 'collateral'
   | 'capital'
   | 'conditions'
   | 'character'
-  | 'all';
+  | 'customer_retention';
 export type ViewMode = 'standard' | 'detailed' | 'summary';
 
 interface RiskScore {
@@ -94,6 +95,7 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
     conditions: false,
     character: false,
     all: false,
+    customer_retention: false
   });
   const [loadedCategories, setLoadedCategories] = useState<Set<RiskCategory>>(new Set());
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +107,7 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
     conditions: { value: 0, label: 'Conditions', color: '#8B5CF6' },
     character: { value: 0, label: 'Character', color: '#EC4899' },
     all: { value: 0, label: 'Overall', color: '#6366F1' },
+    customer_retention: { value: 0, label: 'Customer Retention', color: '#059669' }
   });
 
   const isTxIdProvided = Boolean(transactionId);

@@ -3,6 +3,12 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import loadable from '@loadable/component';
 import PageLayout from '../layout/PageLayout';
 import PortfolioWalletPage from '../../pages/PortfolioWalletPage';
+import SideNavigationTest from '../layout/__tests__/SideNavigationTest';
+import CustomerRetentionCustomers from '../../pages/customerRetention/CustomerRetentionCustomers';
+import CustomerRetentionContacts from '../../pages/customerRetention/CustomerRetentionContacts';
+import CustomerRetentionCommitments from '../../pages/customerRetention/CustomerRetentionCommitments';
+import CustomerRetentionCalendar from '../../pages/customerRetention/CustomerRetentionCalendar';
+import PostClosingCustomers from '../../pages/PostClosingCustomers';
 
 // Loading spinner component
 const LoadingSpinner = ({ pageName = 'page' }: { pageName?: string }) => (
@@ -116,13 +122,19 @@ const ShieldVault = loadable(() => import('../../pages/ShieldVault'), {
   resolveComponent: components => components.default,
 });
 
+// Add AIAssistant Page
+const AIAssistantPage = loadable(() => import('../../pages/AIAssistantPage'), {
+  fallback: <LoadingSpinner pageName="AI Assistant" />,
+  resolveComponent: components => components.default,
+});
+
 // Add FormsList component
 const FormsList = loadable(() => import('../../pages/FormsList'), {
   fallback: <LoadingSpinner pageName="Forms List" />,
   resolveComponent: components => components.default,
 });
 
-// Add Contacts and Commitments components
+// Update Loadable components with improved loading handling
 const Contacts = loadable(() => import('../../pages/Contacts'), {
   fallback: <LoadingSpinner pageName="Contacts" />,
   resolveComponent: components => components.default,
@@ -130,6 +142,18 @@ const Contacts = loadable(() => import('../../pages/Contacts'), {
 
 const Commitments = loadable(() => import('../../pages/Commitments'), {
   fallback: <LoadingSpinner pageName="Commitments" />,
+  resolveComponent: components => components.default,
+});
+
+// Add TransactionExecutionPage to imports
+const TransactionExecutionPage = loadable(() => import('../../pages/TransactionExecutionPage'), {
+  fallback: <LoadingSpinner pageName="Transaction Execution" />,
+  resolveComponent: components => components.default,
+});
+
+// Create calendar integration loadable component
+const CalendarIntegration = loadable(() => import('../../pages/CalendarIntegration'), {
+  fallback: <LoadingSpinner pageName="Calendar Integration" />,
   resolveComponent: components => components.default,
 });
 
@@ -162,6 +186,14 @@ const LoadableRouter: React.FC = () => {
         }
       />
       <Route
+        path="/transaction-execution"
+        element={
+          <PageLayout title="Transaction Execution">
+            <TransactionExecutionPage />
+          </PageLayout>
+        }
+      />
+      <Route
         path="/documents"
         element={
           <PageLayout title="Documents">
@@ -178,7 +210,23 @@ const LoadableRouter: React.FC = () => {
         }
       />
       <Route
+        path="/ai-assistant"
+        element={
+          <PageLayout title="AI Assistant" fullWidth>
+            <AIAssistantPage />
+          </PageLayout>
+        }
+      />
+      <Route
         path="/risk-assessment"
+        element={
+          <PageLayout title="Risk Assessment">
+            <RiskAssessment />
+          </PageLayout>
+        }
+      />
+      <Route
+        path="/risk-assessment/:view"
         element={
           <PageLayout title="Risk Assessment">
             <RiskAssessment />
@@ -232,6 +280,10 @@ const LoadableRouter: React.FC = () => {
             <AutoOriginations />
           </PageLayout>
         }
+      />
+      <Route
+        path="/post-closing"
+        element={<PostClosingCustomers />}
       />
       <Route
         path="/deal-structuring"
@@ -306,20 +358,28 @@ const LoadableRouter: React.FC = () => {
         }
       />
       <Route
+        path="/customer-retention/customers"
+        element={<CustomerRetentionCustomers />}
+      />
+      <Route
+        path="/customer-retention/contacts"
+        element={<CustomerRetentionContacts />}
+      />
+      <Route
+        path="/customer-retention/commitments"
+        element={<CustomerRetentionCommitments />}
+      />
+      <Route
+        path="/customer-retention/calendar/:provider"
+        element={<CustomerRetentionCalendar />}
+      />
+      <Route
         path="/contacts"
-        element={
-          <PageLayout title="Contacts">
-            <Contacts />
-          </PageLayout>
-        }
+        element={<Contacts />}
       />
       <Route
         path="/commitments"
-        element={
-          <PageLayout title="Commitments">
-            <Commitments />
-          </PageLayout>
-        }
+        element={<Commitments />}
       />
       <Route
         path="/forms"
@@ -353,6 +413,8 @@ const LoadableRouter: React.FC = () => {
           </PageLayout>
         }
       />
+      <Route path="/test/navigation" element={<SideNavigationTest />} />
+      <Route path="/calendar-integration" element={<CalendarIntegration />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

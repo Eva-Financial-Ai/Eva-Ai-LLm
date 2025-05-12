@@ -9,47 +9,44 @@ const root = createRoot(containerElement);
 root.render(
   <React.StrictMode>
     <ComponentTesterApp
-      componentDirs={['./src/components', './src/pages']}
+      componentDirs={[
+        './src/components',
+        './src/pages'
+      ]}
       options={{
-        excludeDirs: ['__tests__', 'node_modules', 'coverage', 'dist'],
-        excludeFiles: [
-          'index.ts',
-          'index.tsx',
-          'types.ts',
-          'types.tsx',
-          '*.test.tsx',
-          '*.spec.tsx',
-        ],
-        recursive: true,
+        excludeDirs: ["__tests__","node_modules","coverage","dist"],
+        excludeFiles: ["index.ts","index.tsx","types.ts","types.tsx","*.test.tsx","*.spec.tsx"],
+        recursive: true
       }}
-      onComplete={results => {
+      onComplete={(results) => {
         console.log('Component testing complete!');
         console.log(JSON.stringify(results, null, 2));
-
-        // Count results by status
-        const counts: {
+        
+        // Count results by status with proper typing
+        interface StatusCounts {
           success?: number;
           warning?: number;
           error?: number;
           [key: string]: number | undefined;
-        } = results.reduce(
-          (acc, result) => {
-            const status = result.status;
-            acc[status] = (acc[status] || 0) + 1;
-            return acc;
-          },
-          {} as { [key: string]: number }
-        );
-
+        }
+        
+        const counts = results.reduce<StatusCounts>((acc, result) => {
+          acc[result.status] = (acc[result.status] || 0) + 1;
+          return acc;
+        }, {});
+        
         console.log(`Summary: ${results.length} components tested`);
         console.log(`Success: ${counts.success || 0}`);
         console.log(`Warnings: ${counts.warning || 0}`);
         console.log(`Errors: ${counts.error || 0}`);
-
+        
         // Save results to file
         try {
           const fs = require('fs');
-          fs.writeFileSync('./component-test-results.json', JSON.stringify(results, null, 2));
+          fs.writeFileSync(
+            './component-test-results.json', 
+            JSON.stringify(results, null, 2)
+          );
           console.log('Results saved to component-test-results.json');
         } catch (e) {
           console.error('Failed to save results:', e);
@@ -58,3 +55,4 @@ root.render(
     />
   </React.StrictMode>
 );
+  

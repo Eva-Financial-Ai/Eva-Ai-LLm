@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add custom animations for risk dashboard */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .animate-slide-in {
+    animation: slideIn 0.4s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+/* Custom styling for risk dashboard components */
+.risk-category-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Responsive fixes for risk dashboard */
+@media (max-width: 768px) {
+  .risk-nav-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .risk-tab-button {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+/* Fix for overlapping menu items */
+.risk-nav-tab {
+  white-space: nowrap;
+  overflow: visible;
+  z-index: 10;
+  position: relative;
+}
+
+/* Tooltip styling for risk dashboard */
+.risk-tooltip {
+  position: relative;
+}
+
+.risk-tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 20;
+} 

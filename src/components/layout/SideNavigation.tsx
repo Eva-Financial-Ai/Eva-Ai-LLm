@@ -3,27 +3,118 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUserType } from '../../contexts/UserTypeContext';
 import { UserType } from '../../types/UserTypes';
 import { useTranslation } from 'react-i18next';
+import { UsersIcon, PhoneIcon, ClipboardIcon, CalendarIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 
 interface NavigationItem {
-  name: string;
-  href: string;
-  icon: (active: boolean) => React.ReactElement;
-  current: boolean;
+  id?: string;
+  name?: string;
+  label?: string;
+  href?: string;
+  path?: string;
+  icon?: any;
+  current?: boolean;
   badge?: string;
-  children?: NavigationItem[];
   isOpen?: boolean;
-  isDefault?: boolean;
+  children?: any[];
+  hasChildren?: boolean;
+  expanded?: boolean;
+  toggle?: () => void;
   onClick?: () => void;
+  selected?: boolean;
 }
 
-const SideNavigation: React.FC = () => {
+interface SideNavigationProps {
+  deviceType?: 'mobile' | 'tablet' | 'desktop';
+  orientation?: 'portrait' | 'landscape';
+}
+
+const SideNavigation: React.FC<SideNavigationProps> = ({ 
+  deviceType = 'desktop',
+  orientation = 'landscape'
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { userType } = useUserType();
   const { t } = useTranslation();
+  
   // Initialize with no items expanded by default
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+
+  // Add state for customer retention submenu
+  const [customerRetentionExpanded, setCustomerRetentionExpanded] = useState(false);
+  const [customersExpanded, setCustomersExpanded] = useState(false);
+  const [selectedCustomerType, setSelectedCustomerType] = useState<string>('businesses');
+  
+  // Determine if we're on a small screen
+  const isMobile = deviceType === 'mobile';
+  const isTablet = deviceType === 'tablet';
+  const isPortrait = orientation === 'portrait';
+  const isSmallScreen = isMobile || (isTablet && isPortrait);
+
+  // Auto-collapse sidebar on small screens
+  useEffect(() => {
+    if (isSmallScreen) {
+      setSidebarCollapsed(true);
+    }
+  }, [isSmallScreen, deviceType, orientation]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Check if current path matches this navigation item
+  useEffect(() => {
+    // Auto-expand the items that contain the current path
+    const currentPath = location.pathname;
+    
+    // Find all navigation items that should be expanded based on the current path
+    const shouldExpandItems: string[] = [];
+    
+    // For main items with the current route
+    navigationItems.forEach(item => {
+      const itemPath = item.href || item.path || '';
+      if (currentPath === itemPath || currentPath.startsWith(itemPath + '/')) {
+        if (item.name) shouldExpandItems.push(item.name);
+        if (item.id) shouldExpandItems.push(item.id);
+      }
+      
+      // For child items
+      if (item.children && item.children.length > 0) {
+        item.children.forEach(child => {
+          const childPath = child.href || child.path || '';
+          if (currentPath === childPath || currentPath.startsWith(childPath + '/')) {
+            if (item.name) shouldExpandItems.push(item.name);
+            if (item.id) shouldExpandItems.push(item.id);
+          }
+        });
+      }
+    });
+    
+    // If customer retention or calendar page is active, expand its menu
+    if (currentPath.includes('customer-retention')) {
+      setCustomerRetentionExpanded(true);
+      
+      // Check specific subpaths
+      if (currentPath.includes('/calendar')) {
+        // Make sure Customer Retention is expanded when on calendar pages
+        setCustomerRetentionExpanded(true);
+      }
+    }
+    
+    // Set the expanded items
+    if (shouldExpandItems.length > 0) {
+      setExpandedItems(shouldExpandItems);
+    }
+  }, [location.pathname]);
 
   const toggleItem = (name: string) => {
     if (expandedItems.includes(name)) {
@@ -34,7 +125,27 @@ const SideNavigation: React.FC = () => {
   };
 
   const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+    const newCollapsedState = !sidebarCollapsed;
+    setSidebarCollapsed(newCollapsedState);
+    
+    // If we're on mobile and expanding the sidebar, show the overlay
+    if (isMobile && !newCollapsedState) {
+      setIsOverlayVisible(true);
+    } else {
+      setIsOverlayVisible(false);
+    }
+  };
+
+  // Close sidebar when clicking a link on mobile
+  const handleNavItemClick = (onClick?: () => void) => {
+    if (onClick) {
+      onClick();
+    }
+    
+    if (isMobile && !sidebarCollapsed) {
+      setSidebarCollapsed(true);
+      setIsOverlayVisible(false);
+    }
   };
 
   // Function to handle user-type specific navigation for Asset Marketplace
@@ -54,7 +165,103 @@ const SideNavigation: React.FC = () => {
     }
   };
 
-  const navigation: NavigationItem[] = [
+  // Customer Retention menu items
+  const customerRetentionMenuItems = [
+    {
+      id: 'customers',
+      label: 'Customers',
+      icon: <UsersIcon className="w-5 h-5" />,
+      hasChildren: true,
+      expanded: customersExpanded,
+      toggle: () => setCustomersExpanded(!customersExpanded),
+      current: location.pathname.startsWith('/customer-retention/customers'),
+      children: [
+        {
+          id: 'businesses',
+          label: 'Businesses',
+          selected: location.pathname === '/customer-retention/customers' && selectedCustomerType === 'businesses',
+          onClick: () => {
+            setSelectedCustomerType('businesses');
+            navigate('/customer-retention/customers?type=businesses');
+          },
+          path: '/customer-retention/customers?type=businesses',
+          current: location.pathname === '/customer-retention/customers?type=businesses'
+        },
+        {
+          id: 'business-owners',
+          label: 'Business Owners',
+          selected: selectedCustomerType === 'business-owners',
+          onClick: () => {
+            setSelectedCustomerType('business-owners');
+            navigate('/customer-retention/customers?type=business-owners');
+          },
+          path: '/customer-retention/customers?type=business-owners',
+          current: location.pathname === '/customer-retention/customers?type=business-owners'
+        },
+        {
+          id: 'asset-sellers',
+          label: 'Asset Sellers',
+          selected: selectedCustomerType === 'asset-sellers',
+          onClick: () => {
+            setSelectedCustomerType('asset-sellers');
+            navigate('/customer-retention/customers?type=asset-sellers');
+          },
+          path: '/customer-retention/customers?type=asset-sellers',
+          current: location.pathname === '/customer-retention/customers?type=asset-sellers'
+        },
+        {
+          id: 'brokers-originators',
+          label: 'Brokers & Originators',
+          selected: selectedCustomerType === 'brokers-originators',
+          onClick: () => {
+            setSelectedCustomerType('brokers-originators');
+            navigate('/customer-retention/customers?type=brokers-originators');
+          },
+          path: '/customer-retention/customers?type=brokers-originators',
+          current: location.pathname === '/customer-retention/customers?type=brokers-originators'
+        },
+        {
+          id: 'service-providers',
+          label: 'Service Providers',
+          selected: selectedCustomerType === 'service-providers',
+          onClick: () => {
+            setSelectedCustomerType('service-providers');
+            navigate('/customer-retention/customers?type=service-providers');
+          },
+          path: '/customer-retention/customers?type=service-providers',
+          current: location.pathname === '/customer-retention/customers?type=service-providers'
+        }
+      ]
+    },
+    {
+      id: 'contacts',
+      label: 'Contacts',
+      icon: <PhoneIcon className="w-5 h-5" />,
+      path: '/customer-retention/contacts',
+      onClick: () => navigate('/customer-retention/contacts'),
+      current: location.pathname.startsWith('/customer-retention/contacts')
+    },
+    {
+      id: 'commitments',
+      label: 'Commitments',
+      icon: <ClipboardIcon className="w-5 h-5" />,
+      path: '/customer-retention/commitments',
+      onClick: () => navigate('/customer-retention/commitments'),
+      current: location.pathname.startsWith('/customer-retention/commitments')
+    },
+    {
+      id: 'calendar',
+      label: 'Calendar Integration',
+      icon: <CalendarIcon className="w-5 h-5" />,
+      path: '/customer-retention/calendar',
+      onClick: () => navigate('/customer-retention/calendar'),
+      hasChildren: false,
+      current: location.pathname.startsWith('/customer-retention/calendar')
+    }
+  ];
+
+  // Define navigation items with both old and new style compatible structure
+  const navigationItems = [
     {
       name: t('common.dashboard'),
       href: '/',
@@ -78,6 +285,31 @@ const SideNavigation: React.FC = () => {
         </svg>
       ),
       current: location.pathname === '/' || location.pathname === '/dashboard',
+    },
+    {
+      name: t('common.aiAssistant', 'Eva AI Assistant'),
+      href: '/ai-assistant',
+      onClick: () => {
+        navigate('/ai-assistant');
+      },
+      icon: active => (
+        <svg
+          className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 001.357 2.059l.59.225M14.25 3.104c.251.023.501.05.75.082M14.25 3.104A24.301 24.301 0 0010.5 3.187m3.75 0c1.701.072 3.369.283 4.963.621.096.021.193.037.291.056v5.038a2.25 2.25 0 01-.659 1.591L14.5 14.5m0-5.25a.75.75 0 100-1.5.75.75 0 000 1.5zM12 10.5a.75.75 0 100-1.5.75.75 0 000 1.5zm-2.25.75a.75.75 0 100-1.5.75.75 0 000 1.5z"
+          />
+        </svg>
+      ),
+      current: location.pathname === '/ai-assistant',
+      badge: 'New',
     },
     {
       name: t('common.creditApplication'),
@@ -130,7 +362,7 @@ const SideNavigation: React.FC = () => {
           current: location.pathname === '/credit-application',
         },
         {
-          name: t('common.autoOriginations'),
+          name: t('common.autoOriginations', 'Auto Originations'),
           href: '/auto-originations',
           onClick: () => {
             navigate('/auto-originations');
@@ -147,17 +379,45 @@ const SideNavigation: React.FC = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
           ),
           current: location.pathname === '/auto-originations',
         },
+        {
+          name: t('common.postClosingCustomers', 'Post Closing Customers'),
+          href: '/post-closing',
+          onClick: () => {
+            navigate('/post-closing');
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          ),
+          current: location.pathname === '/post-closing',
+          badge: 'New',
+        },
       ],
     },
+    // Customer Retention moved above Filelock Drive
     {
-      name: t('navigation.customerRetention', 'Customer Retention'),
+      id: 'customer-retention',
+      name: 'Customer Retention',
       href: '/customer-retention',
+      path: '/customer-retention',
       onClick: () => {
         navigate('/customer-retention');
       },
@@ -177,85 +437,15 @@ const SideNavigation: React.FC = () => {
           />
         </svg>
       ),
-      current:
-        location.pathname === '/customer-retention' ||
-        location.pathname === '/contacts' ||
-        location.pathname === '/commitments',
-      isOpen: expandedItems.includes(t('navigation.customerRetention', 'Customer Retention')),
-      children: [
-        {
-          name: t('common.overview', 'Overview'),
-          href: '/customer-retention',
-          onClick: () => {
-            navigate('/customer-retention');
-          },
-          icon: active => (
-            <svg
-              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
-              />
-            </svg>
-          ),
-          current: location.pathname === '/customer-retention',
-        },
-        {
-          name: 'Contacts',
-          href: '/contacts',
-          onClick: () => {
-            navigate('/contacts');
-          },
-          icon: active => (
-            <svg
-              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
-          ),
-          current: location.pathname === '/contacts',
-        },
-        {
-          name: 'Commitments',
-          href: '/commitments',
-          onClick: () => {
-            navigate('/commitments');
-          },
-          icon: active => (
-            <svg
-              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
-          ),
-          current: location.pathname === '/commitments',
-        },
-      ],
+      current: 
+        location.pathname === '/customer-retention' || 
+        location.pathname.startsWith('/customer-retention/'),
+      isOpen: customerRetentionExpanded,
+      expanded: customerRetentionExpanded, 
+      toggle: () => setCustomerRetentionExpanded(!customerRetentionExpanded),
+      hasChildren: true,
+      children: customerRetentionMenuItems,
+      badge: 'New'
     },
     {
       name: 'Filelock Drive',
@@ -364,6 +554,7 @@ const SideNavigation: React.FC = () => {
       href: '/risk-assessment',
       onClick: () => {
         navigate('/risk-assessment/standard');
+        toggleItem('Risk Map Navigator');
       },
       icon: active => (
         <svg
@@ -569,9 +760,9 @@ const SideNavigation: React.FC = () => {
         },
         {
           name: 'Transaction Execution',
-          href: '/transactions',
+          href: '/transaction-execution',
           onClick: () => {
-            navigate('/transactions');
+            navigate('/transaction-execution');
           },
           icon: active => (
             <svg
@@ -590,7 +781,8 @@ const SideNavigation: React.FC = () => {
             </svg>
           ),
           current:
-            location.pathname === '/transactions' || location.pathname.includes('/transactions/'),
+            location.pathname === '/transaction-execution' || location.pathname.includes('/transaction-execution/'),
+          badge: 'New',
         },
       ],
     },
@@ -749,298 +941,181 @@ const SideNavigation: React.FC = () => {
     },
   ];
 
-  // Helper function to render badge
-  const renderBadge = (badge?: string) => {
-    if (!badge) return null;
+  // Render function for navigation items
+  const renderNavItem = (item: NavigationItem) => {
+    // Handle either the old navigation structure or new customer retention structure
+    const itemName = item.name || item.label || '';
+    const itemPath = item.href || item.path || '#';
+    const itemIcon = typeof item.icon === 'function' ? item.icon(item.current || false) : item.icon;
+    const hasChildren = (item.children && item.children.length > 0) || item.hasChildren;
+    const isExpanded = item.isOpen || item.expanded || expandedItems.includes(itemName);
+    const toggleFn = item.toggle || (() => toggleItem(itemName));
+    
+    // Check if this item or any of its children is active
+    const isActive = item.current || Boolean(item.selected) || 
+                     location.pathname === itemPath || 
+                     location.pathname.startsWith(itemPath + '/');
 
-    const getBadgeClass = (badge: string) => {
-      switch (badge.toLowerCase()) {
-        case 'new':
-          return 'bg-blue-100 text-blue-800';
-        case 'beta':
-          return 'bg-gray-100 text-gray-800';
-        case 'coming soon':
-          return 'bg-gray-100 text-gray-800';
-        default:
-          return 'bg-gray-100 text-gray-800';
-      }
-    };
+    // Style classes
+    const linkBaseClasses = "flex items-center px-3 py-2.5 text-base font-medium rounded-md";
+    const activeClasses = "text-primary-600 bg-primary-50 hover:bg-primary-100";
+    const inactiveClasses = "text-gray-600 hover:bg-gray-50 hover:text-gray-900";
+    const styleClasses = `${linkBaseClasses} ${isActive ? activeClasses : inactiveClasses}`;
 
-    return (
-      <span
-        className={`ml-auto inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getBadgeClass(badge)}`}
-      >
-        {badge}
-      </span>
-    );
-  };
-
-  // Helper function to render chevron for expandable items
-  const renderChevron = (isOpen?: boolean) => {
-    if (isOpen === undefined) return null;
-
-    return isOpen ? (
-      <svg
-        className="h-5 w-5 ml-auto"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fillRule="evenodd"
-          d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-          clipRule="evenodd"
-        />
-      </svg>
-    ) : (
-      <svg
-        className="h-5 w-5 ml-auto"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fillRule="evenodd"
-          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-          clipRule="evenodd"
-        />
-      </svg>
-    );
-  };
-
-  // Render a navigation item
-  const renderNavItem = (item: NavigationItem, isChild = false) => {
-    // Use conditional rendering instead of dynamic component to avoid TypeScript errors
-    if (item.children && item.children.length) {
+    // Render differently based on whether the item has children
+    if (!hasChildren) {
       return (
-        <li key={item.name}>
-          {item.children ? (
-            <>
-              <button
-                onClick={() => toggleItem(item.name)}
-                className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md ${
-                  item.current
-                    ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+        <li key={itemName}>
+          <Link
+            to={itemPath}
+            className={styleClasses}
+            onClick={() => handleNavItemClick(item.onClick)}
+          >
+            <span className="mr-3">{itemIcon}</span>
+            <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{itemName}</span>
+            {item.badge && !sidebarCollapsed && (
+              <span
+                className={`ml-2 px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                  item.badge === 'New'
+                    ? 'bg-green-100 text-green-800'
+                    : item.badge === 'Beta'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-amber-100 text-amber-800'
                 }`}
               >
-                <div className="flex items-center">
-                  <span className="mr-3">{item.icon(item.current)}</span>
-                  <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
-                  {item.badge && !sidebarCollapsed && (
-                    <span
-                      className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                        item.badge === 'New'
-                          ? 'bg-green-100 text-green-800'
-                          : item.badge === 'Beta'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-amber-100 text-amber-800'
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
-                <svg
-                  className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
-                    expandedItems.includes(item.name) ? 'rotate-90' : ''
-                  }`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-              {expandedItems.includes(item.name) && (
-                <ul className="mt-1 pl-4 space-y-1">
-                  {item.children.map(subItem => (
-                    <li key={subItem.name} className="mt-1">
-                      {subItem.onClick ? (
-                        <button
-                          onClick={subItem.onClick}
-                          className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                            subItem.current
-                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                        >
-                          <span className="mr-3">{subItem.icon(subItem.current)}</span>
-                          <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                            {subItem.name}
-                          </span>
-                          {subItem.badge && !sidebarCollapsed && (
-                            <span
-                              className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                subItem.badge === 'New'
-                                  ? 'bg-green-100 text-green-800'
-                                  : subItem.badge === 'Beta'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-amber-100 text-amber-800'
-                              }`}
-                            >
-                              {subItem.badge}
-                            </span>
-                          )}
-                        </button>
-                      ) : (
-                        <Link
-                          to={subItem.href}
-                          className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                            subItem.current
-                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                        >
-                          <span className="mr-3">{subItem.icon(subItem.current)}</span>
-                          <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                            {subItem.name}
-                          </span>
-                          {subItem.badge && !sidebarCollapsed && (
-                            <span
-                              className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                subItem.badge === 'New'
-                                  ? 'bg-green-100 text-green-800'
-                                  : subItem.badge === 'Beta'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-amber-100 text-amber-800'
-                              }`}
-                            >
-                              {subItem.badge}
-                            </span>
-                          )}
-                        </Link>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          ) : item.name === 'Commercial Truck & Equipment Market' ? (
-            <Link
-              to={item.href}
-              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                item.current
-                  ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <span className="mr-3">{item.icon(item.current)}</span>
-              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
-              {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
-            </Link>
-          ) : (
-            <Link
-              to={item.href}
-              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                item.current
-                  ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <span className="mr-3">{item.icon(item.current)}</span>
-              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
-              {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
-            </Link>
-          )}
-        </li>
-      );
-    } else {
-      // Use the correct href based on whether this is a default landing page
-      const href = isChild ? item.href : item.href;
-
-      return (
-        <li key={item.name}>
-          {item.onClick ? (
-            <button
-              onClick={e => {
-                e.preventDefault();
-                if (item.onClick) {
-                  item.onClick();
-                }
-              }}
-              className={`w-full flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                item.current
-                  ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-              title={item.name}
-            >
-              <span className="mr-3">{item.icon(item.current)}</span>
-              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
-              {item.badge && !sidebarCollapsed && (
-                <span
-                  className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                    item.badge === 'New'
-                      ? 'bg-green-100 text-green-800'
-                      : item.badge === 'Beta'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-amber-100 text-amber-800'
-                  }`}
-                >
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          ) : item.name === 'Commercial Truck & Equipment Market' ? (
-            <Link
-              to={item.href}
-              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                item.current
-                  ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <span className="mr-3">{item.icon(item.current)}</span>
-              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
-              {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
-            </Link>
-          ) : (
-            <Link
-              to={href}
-              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                item.current
-                  ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <span className="mr-3">{item.icon(item.current)}</span>
-              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{item.name}</span>
-              {item.badge && !sidebarCollapsed && (
-                <span
-                  className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                    item.badge === 'New'
-                      ? 'bg-green-100 text-green-800'
-                      : item.badge === 'Beta'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-amber-100 text-amber-800'
-                  }`}
-                >
-                  {item.badge}
-                </span>
-              )}
-            </Link>
-          )}
+                {item.badge}
+              </span>
+            )}
+          </Link>
         </li>
       );
     }
+
+    // Item with children/submenu
+    return (
+      <li key={itemName}>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            toggleFn();
+          }}
+          className={`w-full ${styleClasses} flex items-center justify-between`}
+        >
+          <div className="flex items-center">
+            <span className="mr-3">{itemIcon}</span>
+            <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{itemName}</span>
+            {item.badge && !sidebarCollapsed && (
+              <span
+                className={`ml-2 px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                  item.badge === 'New'
+                    ? 'bg-green-100 text-green-800'
+                    : item.badge === 'Beta'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-amber-100 text-amber-800'
+                }`}
+              >
+                {item.badge}
+              </span>
+            )}
+          </div>
+          <svg
+            className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
+              isExpanded ? 'rotate-90' : ''
+            }`}
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fillRule="evenodd"
+              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+              clipRule="evenodd"
+            ></path>
+          </svg>
+        </button>
+        
+        {isExpanded && (
+          <ul className={`mt-1 pl-4 space-y-1 ${isMobile ? 'bg-gray-50' : ''}`}>
+            {item.children?.map((subItem: NavigationItem) => {
+              const subItemName = subItem.name || subItem.label || '';
+              const subItemPath = subItem.href || subItem.path || '#';
+              const subItemIcon = typeof subItem.icon === 'function' ? subItem.icon(subItem.current || false) : subItem.icon;
+              const isSelected = subItem.current || subItem.selected;
+              
+              const subStyleClasses = `flex items-center px-3 py-2.5 text-base font-medium rounded-md ${
+                isSelected ? activeClasses : inactiveClasses
+              }`;
+              
+              return (
+                <li key={subItemName} className="mt-1">
+                  {subItem.onClick ? (
+                    <button
+                      onClick={() => handleNavItemClick(subItem.onClick)}
+                      className={subStyleClasses}
+                    >
+                      {subItemIcon && <span className="mr-3">{subItemIcon}</span>}
+                      <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                        {subItemName}
+                      </span>
+                      {subItem.badge && !sidebarCollapsed && (
+                        <span
+                          className={`ml-2 px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                            subItem.badge === 'New'
+                              ? 'bg-green-100 text-green-800'
+                              : subItem.badge === 'Beta'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {subItem.badge}
+                        </span>
+                      )}
+                    </button>
+                  ) : (
+                    <Link
+                      to={subItemPath}
+                      className={subStyleClasses}
+                      onClick={() => handleNavItemClick()}
+                    >
+                      {subItemIcon && <span className="mr-3">{subItemIcon}</span>}
+                      <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
+                        {subItemName}
+                      </span>
+                      {subItem.badge && !sidebarCollapsed && (
+                        <span
+                          className={`ml-2 px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                            subItem.badge === 'New'
+                              ? 'bg-green-100 text-green-800'
+                              : subItem.badge === 'Beta'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {subItem.badge}
+                        </span>
+                      )}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </li>
+    );
   };
 
-  // Sidebar toggle button
+  // Mobile-optimized sidebar toggle button
   const renderSidebarToggle = () => (
     <button
       onClick={toggleSidebar}
-      className="absolute -right-3 top-12 bg-white border border-gray-200 rounded-full p-1 shadow-md"
+      className={`${isMobile ? 'absolute right-4 top-4 z-50' : 'absolute -right-3 top-12'} bg-white border border-gray-200 rounded-full p-1 shadow-md z-10 hover:shadow-lg transition-all`}
       aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
     >
       {sidebarCollapsed ? (
         <svg
-          className="h-4 w-4 text-gray-500"
+          className="h-4 w-4 text-gray-700"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
@@ -1053,7 +1128,7 @@ const SideNavigation: React.FC = () => {
         </svg>
       ) : (
         <svg
-          className="h-4 w-4 text-gray-500"
+          className="h-4 w-4 text-gray-700"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
@@ -1068,14 +1143,20 @@ const SideNavigation: React.FC = () => {
     </button>
   );
 
+  // Determines sidebar widths for different screen sizes
+  const getSidebarWidth = () => {
+    if (sidebarCollapsed) return 'w-20'; // Wider collapsed sidebar (was w-14)
+    if (isMobile) return 'w-72'; // Wider for mobile sidebar (was w-64)
+    if (isTablet) return 'w-64'; // Wider for tablet (was w-56)
+    return 'w-72'; // Wider for desktop (was w-64)
+  };
+
   return (
     <>
       <nav
-        className={`fixed h-full bg-white dark:bg-gray-900 z-20 overflow-y-auto transition-all duration-300 border-r border-gray-200 dark:border-gray-800 ${
-          sidebarCollapsed ? 'w-14' : 'w-56'
-        }`}
+        className={`fixed h-full bg-white dark:bg-gray-900 z-20 overflow-y-auto transition-all duration-300 border-r border-gray-200 dark:border-gray-800 ${getSidebarWidth()} ${isMobile && !sidebarCollapsed ? 'left-0' : sidebarCollapsed && isMobile ? '-left-20' : ''}`}
         style={{
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         }}
       >
         <div className="flex flex-col h-full">
@@ -1092,254 +1173,24 @@ const SideNavigation: React.FC = () => {
                 )}
               </div>
               <nav className="flex-1 px-2 bg-white space-y-0">
-                {sidebarCollapsed ? (
-                  // Collapsed view with visible sub-items
-                  <ul className="space-y-1">
-                    {navigation.map(item => (
-                      <li key={item.name}>
-                        {item.onClick ? (
-                          <button
-                            onClick={e => {
-                              e.preventDefault();
-                              if (item.children && item.children.length) {
-                                toggleItem(item.name);
-                              } else if (item.onClick) {
-                                item.onClick();
-                              }
-                            }}
-                            className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                              item.current ? 'bg-pink-50' : 'hover:bg-gray-50'
-                            }`}
-                            title={item.name}
-                          >
-                            {item.icon(item.current)}
-                            {item.badge && (
-                              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-                            )}
-                          </button>
-                        ) : (
-                          <Link
-                            to={item.href}
-                            className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                              item.current ? 'bg-pink-50' : 'hover:bg-gray-50'
-                            }`}
-                            title={item.name}
-                            onClick={e => {
-                              if (item.onClick) {
-                                e.preventDefault();
-                                item.onClick();
-                              }
-                            }}
-                          >
-                            {item.icon(item.current)}
-                            {item.badge && (
-                              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-                            )}
-                          </Link>
-                        )}
-
-                        {/* Show children even when collapsed */}
-                        {item.children && expandedItems.includes(item.name) && (
-                          <ul className="pl-3 mt-1">
-                            {item.children.map(subItem => (
-                              <li key={subItem.name}>
-                                {subItem.onClick ? (
-                                  <button
-                                    onClick={e => {
-                                      e.preventDefault();
-                                      if (subItem.onClick) {
-                                        subItem.onClick();
-                                      }
-                                    }}
-                                    className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                                      subItem.current ? 'bg-primary-50' : 'hover:bg-gray-50'
-                                    }`}
-                                    title={subItem.name}
-                                  >
-                                    {subItem.icon(subItem.current)}
-                                    {subItem.badge && (
-                                      <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-                                    )}
-                                  </button>
-                                ) : (
-                                  <Link
-                                    to={subItem.href}
-                                    className={`flex justify-center items-center p-2 my-1 rounded-md ${
-                                      subItem.current ? 'bg-primary-50' : 'hover:bg-gray-50'
-                                    }`}
-                                    title={subItem.name}
-                                    onClick={e => {
-                                      if (subItem.onClick) {
-                                        e.preventDefault();
-                                        subItem.onClick();
-                                      }
-                                    }}
-                                  >
-                                    {subItem.icon(subItem.current)}
-                                    {subItem.badge && (
-                                      <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-                                    )}
-                                  </Link>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  // Regular expanded view
-                  navigation.map(item => (
-                    <li key={item.name}>
-                      {item.children ? (
-                        <>
-                          <button
-                            onClick={() => toggleItem(item.name)}
-                            className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md ${
-                              item.current
-                                ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                            }`}
-                          >
-                            <div className="flex items-center">
-                              <span className="mr-3">{item.icon(item.current)}</span>
-                              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                                {item.name}
-                              </span>
-                              {item.badge && !sidebarCollapsed && (
-                                <span
-                                  className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                    item.badge === 'New'
-                                      ? 'bg-green-100 text-green-800'
-                                      : item.badge === 'Beta'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'bg-amber-100 text-amber-800'
-                                  }`}
-                                >
-                                  {item.badge}
-                                </span>
-                              )}
-                            </div>
-                            <svg
-                              className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
-                                expandedItems.includes(item.name) ? 'rotate-90' : ''
-                              }`}
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                              aria-hidden="true"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </button>
-                          {expandedItems.includes(item.name) && (
-                            <ul className="mt-1 pl-4 space-y-1">
-                              {item.children.map(subItem => (
-                                <li key={subItem.name} className="mt-1">
-                                  {subItem.onClick ? (
-                                    <button
-                                      onClick={subItem.onClick}
-                                      className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                                        subItem.current
-                                          ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                      }`}
-                                    >
-                                      <span className="mr-3">{subItem.icon(subItem.current)}</span>
-                                      <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                                        {subItem.name}
-                                      </span>
-                                      {subItem.badge && !sidebarCollapsed && (
-                                        <span
-                                          className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                            subItem.badge === 'New'
-                                              ? 'bg-green-100 text-green-800'
-                                              : subItem.badge === 'Beta'
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : 'bg-amber-100 text-amber-800'
-                                          }`}
-                                        >
-                                          {subItem.badge}
-                                        </span>
-                                      )}
-                                    </button>
-                                  ) : (
-                                    <Link
-                                      to={subItem.href}
-                                      className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                                        subItem.current
-                                          ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                      }`}
-                                    >
-                                      <span className="mr-3">{subItem.icon(subItem.current)}</span>
-                                      <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                                        {subItem.name}
-                                      </span>
-                                      {subItem.badge && !sidebarCollapsed && (
-                                        <span
-                                          className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                            subItem.badge === 'New'
-                                              ? 'bg-green-100 text-green-800'
-                                              : subItem.badge === 'Beta'
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : 'bg-amber-100 text-amber-800'
-                                          }`}
-                                        >
-                                          {subItem.badge}
-                                        </span>
-                                      )}
-                                    </Link>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </>
-                      ) : item.name === 'Commercial Truck & Equipment Market' ? (
-                        <Link
-                          to={item.href}
-                          className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                            item.current
-                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                        >
-                          <span className="mr-3">{item.icon(item.current)}</span>
-                          <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                            {item.name}
-                          </span>
-                          {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
-                        </Link>
-                      ) : (
-                        <Link
-                          to={item.href}
-                          className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                            item.current
-                              ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                        >
-                          <span className="mr-3">{item.icon(item.current)}</span>
-                          <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
-                            {item.name}
-                          </span>
-                          {item.badge && !sidebarCollapsed && renderBadge(item.badge)}
-                        </Link>
-                      )}
-                    </li>
-                  ))
-                )}
+                {/* Render navigation items */}
+                <ul className="space-y-1">
+                  {navigationItems.map(item => renderNavItem(item))}
+                </ul>
               </nav>
             </div>
           </div>
         </div>
       </nav>
+      
+      {/* Mobile overlay backdrop when sidebar is open on small screens */}
+      {isOverlayVisible && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-10"
+          onClick={toggleSidebar}
+          aria-hidden="true"
+        />
+      )}
     </>
   );
 };
