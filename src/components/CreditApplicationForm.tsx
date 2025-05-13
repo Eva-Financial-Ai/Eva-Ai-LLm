@@ -315,6 +315,27 @@ interface CreditApplicationFormProps {
   businessType?: 'new' | 'existing';
 }
 
+// Asset class list (deduplicated)
+const ASSET_CLASSES = [
+  'Cash & Cash Equivalents',
+  'Commercial Paper (Secured by Collateral)',
+  'Government Bonds',
+  'Corporate Bonds',
+  'Equities (Stocks & Shares)',
+  'Mutual Funds / ETFs',
+  'Real Estate (REITs & Property Holdings)',
+  'Commodities (Gold, Oil, Raw Materials)',
+  'Crypto & Blockchain Assets',
+  'Derivatives (Futures, Options, Swaps)',
+  'Private Equity / Venture Capital',
+  'Forex (Foreign Exchange Currency Holdings)',
+  'Equipment & Machinery',
+  'Motor Vehicles & Aircraft',
+  'Unsecured Commercial Paper (Non-Collateralized Debt Holdings)',
+  'Patents, Trademarks, & Intellectual Property',
+  'Digital Assets (Non-Crypto) - Media, Podcasts, SaaS Licenses',
+];
+
 const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
   onSubmit,
   initialData = {},
@@ -1198,35 +1219,38 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
     } catch (error) {
       console.error('Error searching addresses:', error);
 
-      // Fallback to mock suggestions if API fails
-      const mockSuggestions: AddressSuggestion[] = [
+      // Improved mock suggestion logic
+      const isSingleWord = query.trim().split(/\s+/).length === 1;
+      const suggestions: AddressSuggestion[] = [
         {
           id: '1',
-          address: `${Math.floor(Math.random() * 1000) + 100} ${query} St`,
-          city: 'San Francisco',
-          state: 'CA',
-          zipCode: '94103',
-          fullAddress: `${Math.floor(Math.random() * 1000) + 100} ${query} St, San Francisco, CA 94103`,
-          confidence: 85,
+          address: isSingleWord ? `${Math.floor(Math.random() * 1000) + 100} ${query} St` : query,
+          city: 'Las Vegas',
+          state: 'NV',
+          zipCode: '89128',
+          fullAddress: isSingleWord
+            ? `${Math.floor(Math.random() * 1000) + 100} ${query} St, Las Vegas, NV 89128`
+            : `${query}, Las Vegas, NV 89128`,
+          confidence: 90,
           verified: false,
         },
         {
           id: '2',
-          address: `${Math.floor(Math.random() * 1000) + 100} ${query} Ave`,
-          city: 'Oakland',
+          address: query,
+          city: 'San Francisco',
           state: 'CA',
-          zipCode: '94612',
-          fullAddress: `${Math.floor(Math.random() * 1000) + 100} ${query} Ave, Oakland, CA 94612`,
-          confidence: 75,
+          zipCode: '94103',
+          fullAddress: `${query}, San Francisco, CA 94103`,
+          confidence: 80,
           verified: false,
         },
       ];
 
       if (isBusinessAddress) {
-        setBusinessAddressSuggestions(mockSuggestions);
+        setBusinessAddressSuggestions(suggestions);
         setIsSearchingBusinessAddress(false);
       } else {
-        setOwnerAddressSuggestions(mockSuggestions);
+        setOwnerAddressSuggestions(suggestions);
         setIsSearchingOwnerAddress(false);
       }
     }
@@ -2126,6 +2150,10 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
     );
   };
 
+  const [ltv, setLtv] = useState('');
+  const [primaryAssetClass, setPrimaryAssetClass] = useState('');
+  const [secondaryAssetClasses, setSecondaryAssetClasses] = useState<string[]>([]);
+
   // ... existing code ...
 
   // In the Step 1: Business Information section, replace the comment about including existing fields with:
@@ -2496,7 +2524,6 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
             <h3 className="text-lg font-medium text-gray-800 mb-4">Loan Request Details</h3>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Requested Amount */}
               <div>
@@ -2525,7 +2552,26 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
                   <p className="mt-1 text-sm text-red-600">{errors.requestedAmount}</p>
                 )}
               </div>
-
+              {/* LTV / Down Payment */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="ltv">
+                  Budgeted Down Payment (LTV %)
+                  <span className="ml-1 text-xs text-gray-400">
+                    Loan-to-Value ratio for this request
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  id="ltv"
+                  name="ltv"
+                  value={ltv}
+                  onChange={e => setLtv(e.target.value)}
+                  className="block w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  placeholder="e.g. 20"
+                  min="0"
+                  max="100"
+                />
+              </div>
               {/* Financial Instrument */}
               <div>
                 <label
@@ -2559,6 +2605,71 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
                 {errors.financialInstrument && (
                   <p className="mt-1 text-sm text-red-600">{errors.financialInstrument}</p>
                 )}
+              </div>
+              {/* Primary Asset Class */}
+              <div>
+                <label
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                  htmlFor="primaryAssetClass"
+                >
+                  Primary Asset Class *
+                  <span className="ml-1 text-xs text-gray-400">
+                    Main collateral for this request
+                  </span>
+                </label>
+                <select
+                  id="primaryAssetClass"
+                  name="primaryAssetClass"
+                  value={primaryAssetClass}
+                  onChange={e => {
+                    setPrimaryAssetClass(e.target.value);
+                    // Remove from secondary if selected as primary
+                    setSecondaryAssetClasses(prev => prev.filter(a => a !== e.target.value));
+                  }}
+                  className="block w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  required
+                >
+                  <option value="">Select Primary Asset</option>
+                  {ASSET_CLASSES.map(asset => (
+                    <option
+                      key={asset}
+                      value={asset}
+                      disabled={secondaryAssetClasses.includes(asset)}
+                    >
+                      {asset}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {/* Secondary Collateralized Assets */}
+              <div>
+                <label
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                  htmlFor="secondaryAssetClasses"
+                >
+                  Secondary Collateralized Assets
+                  <span className="ml-1 text-xs text-gray-400">
+                    Select additional collateral (optional)
+                  </span>
+                </label>
+                <select
+                  id="secondaryAssetClasses"
+                  name="secondaryAssetClasses"
+                  multiple
+                  value={secondaryAssetClasses}
+                  onChange={e => {
+                    const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
+                    // Remove primary if selected as secondary
+                    setSecondaryAssetClasses(selected.filter(a => a !== primaryAssetClass));
+                  }}
+                  className="block w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm h-32"
+                >
+                  {ASSET_CLASSES.map(asset => (
+                    <option key={asset} value={asset} disabled={primaryAssetClass === asset}>
+                      {asset}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -2644,14 +2755,38 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
               onUpload={handleFinancialStatementsUpload}
             />
           </div>
-
           {/* Plaid Integration */}
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
             <h3 className="text-lg font-medium text-gray-800 mb-4">Banking Information</h3>
-
-            {/* Banking fields... */}
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={initializePlaid}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Connect Bank Account with Plaid
+              </button>
+              {isPlaidLoading && <span className="ml-2 text-blue-500">Connecting...</span>}
+              {formData.plaidConnected && <span className="ml-2 text-green-600">Connected!</span>}
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Upload Bank Statements (PDF)
+              </label>
+              <input
+                type="file"
+                accept="application/pdf"
+                multiple
+                onChange={e => {
+                  if (e.target.files) {
+                    // You can implement a handler for uploaded PDFs here
+                    alert('PDF upload not yet implemented.');
+                  }
+                }}
+                className="block w-full text-sm text-gray-700 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
           </div>
-
           {/* Lien & UCC Management */}
           <LienUCCManagement
             businessId={

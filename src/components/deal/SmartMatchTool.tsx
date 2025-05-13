@@ -53,7 +53,8 @@ interface SmartMatchToolProps {
   instrumentType?: string;
   onSelectMatch?: (match: DealStructureMatch) => void;
   className?: string;
-  userRole?: UserRole; // Add user role
+  userRole?: UserRole;
+  onClose?: () => void;
 }
 
 const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
@@ -63,7 +64,8 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
   instrumentType = '',
   onSelectMatch,
   className = '',
-  userRole: initialUserRole = 'borrower', // Default to borrower
+  userRole: initialUserRole = 'borrower',
+  onClose,
 }) => {
   const { currentTransaction } = useWorkflow();
   const navigate = useNavigate();
@@ -816,9 +818,12 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
           <div className="bg-gray-50 px-6 py-4 flex justify-between">
             <button
               onClick={() => {
-                console.log('Canceling match dialog');
-                setSelectedMatchId(null);
-                setDialogTab('single');
+                if (onClose) {
+                  onClose();
+                } else {
+                  setSelectedMatchId(null);
+                  setDialogTab('single');
+                }
               }}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
             >

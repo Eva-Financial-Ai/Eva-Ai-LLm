@@ -35,6 +35,9 @@ const SmartMatchPage: React.FC = () => {
   const [matches, setMatches] = useState<DealStructureMatch[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<DealStructureMatch | null>(null);
 
+  // State for Smart Match Tool
+  const [showSmartMatchTool, setShowSmartMatchTool] = useState(false);
+
   // Handle matches being generated
   const handleMatchesGenerated = (generatedMatches: DealStructureMatch[]) => {
     setMatches(generatedMatches);
@@ -80,16 +83,25 @@ const SmartMatchPage: React.FC = () => {
               Our AI will recommend optimal financing options based on your financial profile and
               preferences.
             </p>
+            <button
+              className="mt-4 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+              onClick={() => setShowSmartMatchTool(true)}
+            >
+              Open Smart Match Tool
+            </button>
           </div>
 
-          <SmartMatchTool
-            loanAmount={loanAmount}
-            initialFinancialProfile={financialProfile}
-            onMatchesGenerated={handleMatchesGenerated}
-            onSelectMatch={handleSelectMatch}
-            className="w-full"
-            userRole={currentView}
-          />
+          {showSmartMatchTool && (
+            <SmartMatchTool
+              loanAmount={loanAmount}
+              initialFinancialProfile={financialProfile}
+              onMatchesGenerated={handleMatchesGenerated}
+              onSelectMatch={handleSelectMatch}
+              className="w-full"
+              userRole={currentView}
+              onClose={() => setShowSmartMatchTool(false)}
+            />
+          )}
         </div>
 
         {/* Custom Financial Profile Modal */}

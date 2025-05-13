@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
-import AIAgentCustomizationOptions, { 
-  FormatType, 
-  ToneType, 
+import AIAgentCustomizationOptions, {
+  FormatType,
+  ToneType,
   LengthType,
-  DataOption
+  DataOption,
 } from './AIAgentCustomizationOptions';
 
 interface CustomAIAgentProps {
@@ -37,10 +37,11 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
   const [performanceGoals, setPerformanceGoals] = useState('');
   const [knowledgeFiles, setKnowledgeFiles] = useState<KnowledgeBaseFile[]>([]);
   const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const knowledgeFileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Data options
   const [dataOptions, setDataOptions] = useState<DataOption[]>([
     { id: 'customer-data', name: 'Customer Data', isSelected: false },
@@ -56,7 +57,7 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         setIconPreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
@@ -71,12 +72,12 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
         name: file.name,
         size: file.size,
         type: file.type,
-        file: file
+        file: file,
       }));
-      
+
       setKnowledgeFiles([...knowledgeFiles, ...newFiles]);
     }
-    
+
     // Reset the input to allow re-uploading the same file
     if (knowledgeFileInputRef.current) {
       knowledgeFileInputRef.current.value = '';
@@ -107,10 +108,10 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
         id: file.id,
         name: file.name,
         size: file.size,
-        type: file.type
-      }))
+        type: file.type,
+      })),
     };
-    
+
     onSave(agentConfig);
   };
 
@@ -120,8 +121,19 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
 
   // Define the Format options based on the UI screenshot
   const formatOptions = [
-    { category: 'Email', options: ['Formal Email', 'Follow-up Email', 'Risk Assessment Inquiry Email', 'Essay'] }
+    {
+      category: 'Email',
+      options: ['Formal Email', 'Follow-up Email', 'Risk Assessment Inquiry Email', 'Essay'],
+    },
   ];
+
+  // Add send handler for chat preview
+  const handleSendChat = () => {
+    if (chatInput.trim()) {
+      setChatMessages([...chatMessages, chatInput]);
+      setChatInput('');
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-gray-100 bg-opacity-80 flex items-center justify-center z-50">
@@ -130,20 +142,31 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center space-x-4">
             <button onClick={onCancel} className="text-gray-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
             <h2 className="text-xl font-medium text-gray-800">Create Custom Ai</h2>
           </div>
           <div className="flex items-center space-x-2">
-            <button 
+            <button
               onClick={handleDelete}
               className="px-4 py-2 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50"
             >
               Delete
             </button>
-            <button 
+            <button
               onClick={handleCreate}
               className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
             >
@@ -162,28 +185,34 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
                 {iconPreview ? (
                   <img src={iconPreview} alt="Agent Icon" className="w-full h-full object-cover" />
                 ) : (
-                  <img src="/brain-icon.svg" alt="Agent Icon" className="w-16 h-16 object-contain" />
+                  <img
+                    src="/brain-icon.svg"
+                    alt="Agent Icon"
+                    className="w-16 h-16 object-contain"
+                  />
                 )}
               </div>
-              <input 
-                type="file" 
-                id="agent-icon" 
-                className="hidden" 
-                accept="image/*" 
-                onChange={handleIconUpload} 
+              <input
+                type="file"
+                id="agent-icon"
+                className="hidden"
+                accept="image/*"
+                onChange={handleIconUpload}
                 ref={fileInputRef}
               />
             </div>
 
             {/* Model Name Input with Label */}
             <div className="mb-6">
-              <label htmlFor="model-name" className="block text-xs text-gray-500 mb-1">Modal Name</label>
+              <label htmlFor="model-name" className="block text-xs text-gray-500 mb-1">
+                Modal Name
+              </label>
               <input
                 type="text"
                 id="model-name"
                 className="w-full p-3 border border-gray-300 rounded-md"
                 value={modelName}
-                onChange={(e) => {
+                onChange={e => {
                   setModelName(e.target.value);
                   if (!fullName) setFullName(e.target.value);
                 }}
@@ -193,53 +222,71 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
 
             {/* Customization Options */}
             <div className="mb-6 bg-gray-100 p-4 rounded-md">
-              <div 
+              <div
                 className="flex justify-between items-center mb-4 cursor-pointer"
                 onClick={toggleCustomizationOptions}
               >
                 <h3 className="text-md font-medium text-gray-800">Customization Options</h3>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className={`h-5 w-5 text-gray-500 transform ${isExpanded ? 'rotate-180' : ''}`} 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-5 w-5 text-gray-500 transform ${isExpanded ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
-              
+
               {isExpanded && (
                 <div className="space-y-6">
                   {/* Format */}
                   <div>
                     <h4 className="text-sm font-medium mb-3 text-gray-700">Format</h4>
-                    
+
                     {/* Format selection showing the selected format with X button */}
                     <div className="mb-4">
                       <div className="p-3 border border-gray-300 rounded-md flex justify-between items-center">
                         <span>Email</span>
                         <button className="text-gray-500">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                         </button>
                       </div>
                     </div>
-                    
+
                     {/* Format options */}
                     <div className="flex flex-wrap gap-2">
-                      {formatOptions[0].options.map((format) => (
+                      {formatOptions[0].options.map(format => (
                         <button
                           key={format}
                           className={`px-3 py-1 rounded-full text-sm border ${
-                            selectedFormats.includes(format as FormatType) 
-                              ? 'bg-blue-500 text-white border-blue-500' 
+                            selectedFormats.includes(format as FormatType)
+                              ? 'bg-blue-500 text-white border-blue-500'
                               : 'bg-white text-gray-700 border-gray-300'
                           }`}
                           onClick={() => {
                             if (selectedFormats.includes(format as FormatType)) {
-                              setSelectedFormats(selectedFormats.filter(f => f !== format as FormatType));
+                              setSelectedFormats(
+                                selectedFormats.filter(f => f !== (format as FormatType))
+                              );
                             } else {
                               setSelectedFormats([...selectedFormats, format as FormatType]);
                             }
@@ -255,12 +302,12 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
                   <div>
                     <h4 className="text-sm font-medium mb-3 text-gray-700">Tone</h4>
                     <div className="flex flex-wrap gap-2">
-                      {['Formal', 'Professional', 'Casual', 'Informational'].map((tone) => (
+                      {['Formal', 'Professional', 'Casual', 'Informational'].map(tone => (
                         <button
                           key={tone}
                           className={`px-3 py-1 rounded-full text-sm border ${
-                            selectedTone === tone 
-                              ? 'bg-blue-500 text-white border-blue-500' 
+                            selectedTone === tone
+                              ? 'bg-blue-500 text-white border-blue-500'
                               : 'bg-white text-gray-700 border-gray-300'
                           }`}
                           onClick={() => setSelectedTone(tone as ToneType)}
@@ -275,12 +322,12 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
                   <div>
                     <h4 className="text-sm font-medium mb-3 text-gray-700">Length</h4>
                     <div className="flex flex-wrap gap-2">
-                      {['Short', 'Medium', 'Long'].map((length) => (
+                      {['Short', 'Medium', 'Long'].map(length => (
                         <button
                           key={length}
                           className={`px-3 py-1 rounded-full text-sm border ${
-                            selectedLength === length 
-                              ? 'bg-blue-500 text-white border-blue-500' 
+                            selectedLength === length
+                              ? 'bg-blue-500 text-white border-blue-500'
                               : 'bg-white text-gray-700 border-gray-300'
                           }`}
                           onClick={() => setSelectedLength(length as LengthType)}
@@ -301,16 +348,24 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
                   type="text"
                   className="w-full outline-none"
                   value={priorityFeatures}
-                  onChange={(e) => setPriorityFeatures(e.target.value)}
+                  onChange={e => setPriorityFeatures(e.target.value)}
                   placeholder="Which features or data points do you want to prioritize in the model?"
                 />
                 {priorityFeatures && (
-                  <button 
-                    className="text-gray-500"
-                    onClick={() => setPriorityFeatures('')}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <button className="text-gray-500" onClick={() => setPriorityFeatures('')}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 )}
@@ -324,16 +379,24 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
                   type="text"
                   className="w-full outline-none"
                   value={performanceGoals}
-                  onChange={(e) => setPerformanceGoals(e.target.value)}
+                  onChange={e => setPerformanceGoals(e.target.value)}
                   placeholder="Do you have any specific performance metrics or goals for the model?"
                 />
                 {performanceGoals && (
-                  <button 
-                    className="text-gray-500"
-                    onClick={() => setPerformanceGoals('')}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <button className="text-gray-500" onClick={() => setPerformanceGoals('')}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 )}
@@ -342,41 +405,68 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
           </div>
 
           {/* Right side - Preview */}
-          <div className="w-1/2 bg-gray-50 p-6 border-l flex flex-col">
-            <h3 className="text-lg font-medium mb-6 text-gray-800">Preview</h3>
-            
-            <div className="flex-1 flex flex-col justify-between">
-              {/* Agent Preview */}
-              <div className="flex justify-center pt-8">
-                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center">
-                  {iconPreview ? (
-                    <img src={iconPreview} alt="Agent Icon" className="w-full h-full object-cover rounded-full" />
-                  ) : (
-                    <img src="/brain-icon.svg" alt="Agent Icon" className="w-12 h-12 object-contain" />
-                  )}
+          <div className="w-1/2 p-6 flex flex-col">
+            <h3 className="text-lg font-medium mb-4">Preview</h3>
+            <div className="flex-1 bg-gray-50 rounded-lg p-4 mb-4 overflow-y-auto">
+              {chatMessages.length === 0 ? (
+                <div className="text-gray-400 text-center mt-16">
+                  No messages yet. Try sending a message!
                 </div>
-              </div>
-              
-              {/* Chat Input */}
-              <div className="mt-auto border-t pt-4">
-                <div className="flex items-center gap-2">
-                  <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                  </svg>
-                  <input
-                    type="text"
-                    className="w-full p-2 outline-none"
-                    placeholder="Enter a prompt here and ask me something..."
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
+              ) : (
+                chatMessages.map((msg, idx) => (
+                  <div key={idx} className="mb-2 flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center mr-2">
+                      <span role="img" aria-label="AI">
+                        🧠
+                      </span>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-800">
+                      {msg}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="mt-auto border-t pt-4">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="h-6 w-6 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
                   />
-                  <button className="text-blue-500 px-2 flex items-center gap-1">
-                    Send
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </button>
-                </div>
+                </svg>
+                <input
+                  type="text"
+                  className="w-full p-2 outline-none"
+                  placeholder="Enter a prompt here and ask me something..."
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleSendChat();
+                  }}
+                />
+                <button
+                  className="text-blue-500 px-2 flex items-center gap-1 disabled:text-gray-300"
+                  onClick={handleSendChat}
+                  disabled={!chatInput.trim()}
+                >
+                  Send
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -386,4 +476,4 @@ const CreateCustomAIAgent: React.FC<CustomAIAgentProps> = ({ onCancel, onSave })
   );
 };
 
-export default CreateCustomAIAgent; 
+export default CreateCustomAIAgent;
