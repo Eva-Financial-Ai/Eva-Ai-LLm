@@ -544,7 +544,8 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
     // Close the dialog first
     setSelectedMatchId(null);
 
-    navigate('/credit-application', {
+    // Navigate to auto originations dashboard showing the match was added
+    navigate('/auto-originations', {
       state: {
         prefilledData: {
           requestedAmount: loanAmount || currentTransaction?.amount || 0,
@@ -555,6 +556,8 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
           operatingHistory: financialProfile.operatingHistory,
           collateralValue: financialProfile.collateralValue,
         },
+        sourcedFromMatch: true,
+        matchScore: selectedMatch?.matchScore || 0,
       },
     });
   };
@@ -603,7 +606,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full overflow-hidden">
+        <div className="bg-white rounded-xl shadow-xl max-w-5xl w-11/12 lg:w-4/5 overflow-hidden">
           {/* Header with top navigation from main component - updated to match other tables */}
           <div className="bg-white border-b border-gray-200">
             {/* Match tabs navigation */}
@@ -627,16 +630,13 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
                 Match Suggestions
               </button>
               <button
-                className={`whitespace-nowrap px-4 py-3 text-sm font-medium ${activeTab === 'analytics' ? 'border-b-2 border-primary-500 text-primary-600' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                className={`whitespace-nowrap px-4 py-3 text-sm font-medium ${activeTab === 'analytics' ? 'border-b-2 border-primary-500 text-primary-600' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'} flex items-center`}
                 onClick={() => setActiveTab('analytics')}
               >
                 Match Analytics
-              </button>
-              <button
-                className={`whitespace-nowrap px-4 py-3 text-sm font-medium ${activeTab === 'speed' ? 'border-b-2 border-primary-500 text-primary-600' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-                onClick={() => setActiveTab('speed')}
-              >
-                Speed Match
+                <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">
+                  Coming Soon
+                </span>
               </button>
             </div>
           </div>
@@ -838,6 +838,21 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
                 Send Credit Application
+              </button>
+              <button
+                onClick={() => {
+                  navigate('/risk-map', {
+                    state: {
+                      fromMatch: true,
+                      matchId: match.id,
+                      matchName: match.name,
+                      matchScore: match.matchScore,
+                    },
+                  });
+                }}
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+              >
+                Go to Risk Map
               </button>
               <button
                 onClick={() => {
@@ -1110,16 +1125,13 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
             Match Suggestions
           </button>
           <button
-            className={`whitespace-nowrap rounded-t-lg px-5 py-2.5 text-sm font-medium ${activeTab === 'analytics' ? 'bg-white text-black' : 'bg-black text-white'}`}
+            className={`whitespace-nowrap rounded-t-lg px-5 py-2.5 text-sm font-medium ${activeTab === 'analytics' ? 'bg-white text-black' : 'bg-black text-white'} flex items-center`}
             onClick={() => setActiveTab('analytics')}
           >
             Match Analytics
-          </button>
-          <button
-            className={`whitespace-nowrap rounded-t-lg px-5 py-2.5 text-sm font-medium ${activeTab === 'speed' ? 'bg-white text-black' : 'bg-black text-white'}`}
-            onClick={() => setActiveTab('speed')}
-          >
-            Speed Match
+            <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">
+              Coming Soon
+            </span>
           </button>
         </div>
       </div>

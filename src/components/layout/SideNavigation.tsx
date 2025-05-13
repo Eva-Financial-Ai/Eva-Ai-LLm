@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUserType } from '../../contexts/UserTypeContext';
+import { UserContext } from '../../contexts/UserContext';
 import { UserType } from '../../types/UserTypes';
 import { useTranslation } from 'react-i18next';
 import {
@@ -42,10 +43,10 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
   const navigate = useNavigate();
   const { userType } = useUserType();
   const { t } = useTranslation();
+  const { setIsEvaChatOpen, sidebarCollapsed, setSidebarCollapsed } = useContext(UserContext);
 
   // Initialize with no items expanded by default
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
 
@@ -62,7 +63,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
 
   // Auto-collapse sidebar on small screens - RESTORE collapse functionality
   useEffect(() => {
-    if (isSmallScreen) {
+    if (isSmallScreen && setSidebarCollapsed) {
       setSidebarCollapsed(true);
     }
   }, [isSmallScreen, deviceType, orientation, setSidebarCollapsed]);
@@ -131,24 +132,39 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
   };
 
   const toggleSidebar = () => {
-    const newCollapsedState = !sidebarCollapsed;
-    setSidebarCollapsed(newCollapsedState);
+    if (setSidebarCollapsed) {
+      const newCollapsedState = !sidebarCollapsed;
+      setSidebarCollapsed(newCollapsedState);
 
-    // If we're on mobile and expanding the sidebar, show the overlay
-    if (isMobile && !newCollapsedState) {
-      setIsOverlayVisible(true);
-    } else {
-      setIsOverlayVisible(false);
+      // If we're on mobile and expanding the sidebar, show the overlay
+      if (isMobile && !newCollapsedState) {
+        setIsOverlayVisible(true);
+      } else {
+        setIsOverlayVisible(false);
+      }
     }
   };
 
   // Close sidebar when clicking a link on mobile
   const handleNavItemClick = (onClick?: () => void) => {
+    console.log(
+      'handleNavItemClick called with:',
+      onClick ? 'onClick function provided' : 'no onClick'
+    );
+
     if (onClick) {
-      onClick();
+      console.log('Executing onClick function');
+      try {
+        onClick();
+        console.log('onClick function executed successfully');
+      } catch (error) {
+        console.error('Error executing onClick function:', error);
+      }
     }
 
-    if (isMobile && !sidebarCollapsed) {
+    // Only collapse sidebar on mobile
+    if (isMobile && !sidebarCollapsed && setSidebarCollapsed) {
+      console.log('Collapsing sidebar on mobile');
       setSidebarCollapsed(true);
       setIsOverlayVisible(false);
     }
@@ -181,6 +197,11 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
       expanded: customersExpanded,
       toggle: () => setCustomersExpanded(!customersExpanded),
       current: location.pathname.includes('/customer-retention/customers'),
+      onClick: () => {
+        // Adding direct debug navigation to test the Customers route
+        console.log('Clicked main Customers item - testing navigation');
+        debugNavigate('/customer-retention/customers?type=businesses&debug=true');
+      },
       children: [
         {
           id: 'businesses',
@@ -190,7 +211,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             selectedCustomerType === 'businesses',
           onClick: () => {
             setSelectedCustomerType('businesses');
-            navigate('/customer-retention/customers?type=businesses');
+            debugNavigate('/customer-retention/customers?type=businesses');
           },
           path: '/customer-retention/customers?type=businesses',
           current:
@@ -203,7 +224,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
           selected: selectedCustomerType === 'business-owners',
           onClick: () => {
             setSelectedCustomerType('business-owners');
-            navigate('/customer-retention/customers?type=business-owners');
+            debugNavigate('/customer-retention/customers?type=business-owners');
           },
           path: '/customer-retention/customers?type=business-owners',
           current:
@@ -216,7 +237,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
           selected: selectedCustomerType === 'asset-sellers',
           onClick: () => {
             setSelectedCustomerType('asset-sellers');
-            navigate('/customer-retention/customers?type=asset-sellers');
+            debugNavigate('/customer-retention/customers?type=asset-sellers');
           },
           path: '/customer-retention/customers?type=asset-sellers',
           current:
@@ -229,7 +250,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
           selected: selectedCustomerType === 'brokers-originators',
           onClick: () => {
             setSelectedCustomerType('brokers-originators');
-            navigate('/customer-retention/customers?type=brokers-originators');
+            debugNavigate('/customer-retention/customers?type=brokers-originators');
           },
           path: '/customer-retention/customers?type=brokers-originators',
           current:
@@ -242,7 +263,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
           selected: selectedCustomerType === 'service-providers',
           onClick: () => {
             setSelectedCustomerType('service-providers');
-            navigate('/customer-retention/customers?type=service-providers');
+            debugNavigate('/customer-retention/customers?type=service-providers');
           },
           path: '/customer-retention/customers?type=service-providers',
           current:
@@ -257,7 +278,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
       icon: <PhoneIcon className="w-5 h-5" />,
       path: '/customer-retention/contacts',
       onClick: () => {
-        navigate('/customer-retention/contacts');
+        debugNavigate('/customer-retention/contacts');
       },
       current: location.pathname.includes('/customer-retention/contacts'),
     },
@@ -267,7 +288,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
       icon: <ClipboardIcon className="w-5 h-5" />,
       path: '/customer-retention/commitments',
       onClick: () => {
-        navigate('/customer-retention/commitments');
+        debugNavigate('/customer-retention/commitments');
       },
       current: location.pathname.includes('/customer-retention/commitments'),
     },
@@ -275,12 +296,38 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
       id: 'calendar',
       label: 'Calendar Integration',
       icon: <CalendarIcon className="w-5 h-5" />,
-      path: '/customer-retention/calendar',
+      path: '/calendar-integration',
       onClick: () => {
-        navigate('/customer-retention/calendar');
+        console.log('Clicked Calendar Integration item - testing navigation');
+        debugNavigate('/calendar-integration?debug=true');
       },
       hasChildren: false,
-      current: location.pathname.includes('/customer-retention/calendar'),
+      current: location.pathname.includes('/calendar-integration'),
+    },
+    {
+      name: t('common.postClosingCustomers', 'Post Closing Customers'),
+      href: '/post-closing',
+      onClick: () => {
+        navigate('/post-closing');
+      },
+      icon: active => (
+        <svg
+          className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+      ),
+      current: location.pathname === '/post-closing',
+      badge: 'New',
     },
   ];
 
@@ -312,9 +359,11 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
     },
     {
       name: t('common.aiAssistant', 'Eva AI Assistant'),
-      href: '/ai-assistant',
+      href: '#',
       onClick: () => {
-        navigate('/ai-assistant');
+        if (setIsEvaChatOpen) {
+          setIsEvaChatOpen(true);
+        }
       },
       icon: active => (
         <svg
@@ -360,31 +409,8 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
       current:
         location.pathname === '/credit-application' || location.pathname === '/auto-originations',
       isOpen: expandedItems.includes(t('common.creditApplication')),
+      hasChildren: true,
       children: [
-        {
-          name: t('common.applicationForm', 'Application Form'),
-          href: '/credit-application',
-          onClick: () => {
-            navigate('/credit-application');
-          },
-          icon: active => (
-            <svg
-              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          ),
-          current: location.pathname === '/credit-application',
-        },
         {
           name: t('common.autoOriginations', 'Auto Originations'),
           href: '/auto-originations',
@@ -408,31 +434,6 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             </svg>
           ),
           current: location.pathname === '/auto-originations',
-        },
-        {
-          name: t('common.postClosingCustomers', 'Post Closing Customers'),
-          href: '/post-closing',
-          onClick: () => {
-            navigate('/post-closing');
-          },
-          icon: active => (
-            <svg
-              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-          ),
-          current: location.pathname === '/post-closing',
-          badge: 'New',
         },
       ],
     },
@@ -966,6 +967,50 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
     },
   ];
 
+  // Debug navigate function
+  const debugNavigate = (path: string) => {
+    console.log(`%cAttempting to navigate to: ${path}`, 'color: blue; font-weight: bold');
+    try {
+      // Log the current state before navigation
+      console.log('Current path before navigation:', location.pathname + location.search);
+      console.log(
+        'Current navigate function:',
+        typeof navigate === 'function' ? 'Function' : 'Not a function'
+      );
+
+      // Actually perform the navigation
+      navigate(path);
+      console.log(`%cNavigation called for: ${path}`, 'color: green; font-weight: bold');
+
+      // Check the result after a short delay
+      setTimeout(() => {
+        console.log(`%cCurrent location after navigate: ${window.location.href}`, 'color: purple');
+        console.log(
+          'Did location change?',
+          location.pathname + location.search === path
+            ? 'Yes'
+            : 'No - still at ' + location.pathname + location.search
+        );
+
+        // Add a warning if we seem to be at the dashboard still
+        if (location.pathname === '/' || location.pathname === '/dashboard') {
+          console.warn('⚠️ Navigation appears to have been redirected to dashboard ⚠️');
+        }
+      }, 500);
+    } catch (error) {
+      console.error(`%cNavigation error for ${path}:`, 'color: red; font-weight: bold', error);
+    }
+  };
+
+  // Test navigation on mount
+  useEffect(() => {
+    console.log(
+      'SideNavigation mounted, navigate function:',
+      typeof navigate === 'function' ? 'Available' : 'Not available'
+    );
+    console.log('Current location:', location.pathname + location.search);
+  }, []);
+
   // Render function for navigation items
   const renderNavItem = (item: NavigationItem) => {
     // Handle either the old navigation structure or new customer retention structure
@@ -991,29 +1036,64 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
 
     // Render differently based on whether the item has children
     if (!hasChildren) {
+      // For items without children
       return (
         <li key={itemName}>
-          <Link
-            to={itemPath}
-            className={styleClasses}
-            onClick={() => handleNavItemClick(item.onClick)}
-          >
-            <span className="mr-3 min-w-[20px] min-h-[20px]">{itemIcon}</span>
-            <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{itemName}</span>
-            {item.badge && !sidebarCollapsed && (
-              <span
-                className={`ml-2 px-2.5 py-0.5 text-xs font-semibold rounded-full ${
-                  item.badge === 'New'
-                    ? 'bg-green-100 text-green-800'
-                    : item.badge === 'Beta'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-amber-100 text-amber-800'
-                }`}
-              >
-                {item.badge}
-              </span>
-            )}
-          </Link>
+          {item.onClick ? (
+            // If onClick is provided, use a button instead of a Link
+            <button
+              className={styleClasses}
+              onClick={e => {
+                e.preventDefault(); // Prevent any default behavior
+                console.log(`Clicked item: ${itemName}`);
+                handleNavItemClick(item.onClick);
+              }}
+              title={sidebarCollapsed ? itemName : undefined}
+            >
+              <span className="mr-3 min-w-[20px] min-h-[20px]">{itemIcon}</span>
+              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{itemName}</span>
+              {item.badge && !sidebarCollapsed && (
+                <span
+                  className={`ml-2 px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                    item.badge === 'New'
+                      ? 'bg-green-100 text-green-800'
+                      : item.badge === 'Beta'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          ) : (
+            // If no onClick, use a Link
+            <Link
+              to={itemPath}
+              className={styleClasses}
+              onClick={e => {
+                if (itemPath === '#') e.preventDefault();
+                console.log(`Link clicked: ${itemName} to path: ${itemPath}`);
+              }}
+              title={sidebarCollapsed ? itemName : undefined}
+            >
+              <span className="mr-3 min-w-[20px] min-h-[20px]">{itemIcon}</span>
+              <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{itemName}</span>
+              {item.badge && !sidebarCollapsed && (
+                <span
+                  className={`ml-2 px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                    item.badge === 'New'
+                      ? 'bg-green-100 text-green-800'
+                      : item.badge === 'Beta'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          )}
         </li>
       );
     }
@@ -1024,9 +1104,11 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
         <button
           onClick={e => {
             e.preventDefault();
+            console.log(`Toggle clicked: ${itemName}`);
             toggleFn();
           }}
           className={`w-full ${styleClasses} flex items-center justify-between`}
+          title={sidebarCollapsed ? itemName : undefined}
         >
           <div className="flex items-center">
             <span className="mr-3 min-w-[20px] min-h-[20px]">{itemIcon}</span>
@@ -1081,8 +1163,13 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                 <li key={subItemName} className="mt-1">
                   {subItem.onClick ? (
                     <button
-                      onClick={() => handleNavItemClick(subItem.onClick)}
+                      onClick={e => {
+                        e.preventDefault(); // Prevent default button behavior
+                        console.log(`Sub-item clicked: ${subItemName} with path: ${subItemPath}`);
+                        handleNavItemClick(subItem.onClick);
+                      }}
                       className={subStyleClasses}
+                      title={sidebarCollapsed ? subItemName : undefined}
                     >
                       {subItemIcon && (
                         <span className="mr-3 min-w-[20px] min-h-[20px]">{subItemIcon}</span>
@@ -1108,7 +1195,13 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                     <Link
                       to={subItemPath}
                       className={subStyleClasses}
-                      onClick={() => handleNavItemClick()}
+                      onClick={e => {
+                        if (subItemPath === '#') e.preventDefault();
+                        console.log(
+                          `Sub-item Link clicked: ${subItemName} to path: ${subItemPath}`
+                        );
+                      }}
+                      title={sidebarCollapsed ? subItemName : undefined}
                     >
                       {subItemIcon && (
                         <span className="mr-3 min-w-[20px] min-h-[20px]">{subItemIcon}</span>
@@ -1217,6 +1310,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                   />
                 )}
               </div>
+
               <nav className="flex-1 px-2 bg-white space-y-0">
                 {/* Render navigation items */}
                 <ul className="space-y-3">{navigationItems.map(item => renderNavItem(item))}</ul>

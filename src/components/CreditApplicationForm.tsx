@@ -16,6 +16,7 @@ import AddressVerificationModal from './AddressVerificationModal';
 import DatabaseSearch, { BusinessRecord, OwnerRecord } from './DatabaseSearch';
 import LienUCCManagement from './credit/LienUCCManagement';
 import EnhancedAddressInput from './EnhancedAddressInput';
+import StateDropdown, { US_STATES } from './common/StateDropdown';
 
 // Define types for Plaid-related data
 interface PlaidAccount {
@@ -189,60 +190,6 @@ const isValidEin = (ein: string) => {
   const pattern = /^\d{2}-\d{7}$/;
   return pattern.test(ein);
 };
-
-// Add this after imports
-const US_STATES = [
-  { value: 'AL', label: 'Alabama' },
-  { value: 'AK', label: 'Alaska' },
-  { value: 'AZ', label: 'Arizona' },
-  { value: 'AR', label: 'Arkansas' },
-  { value: 'CA', label: 'California' },
-  { value: 'CO', label: 'Colorado' },
-  { value: 'CT', label: 'Connecticut' },
-  { value: 'DE', label: 'Delaware' },
-  { value: 'FL', label: 'Florida' },
-  { value: 'GA', label: 'Georgia' },
-  { value: 'HI', label: 'Hawaii' },
-  { value: 'ID', label: 'Idaho' },
-  { value: 'IL', label: 'Illinois' },
-  { value: 'IN', label: 'Indiana' },
-  { value: 'IA', label: 'Iowa' },
-  { value: 'KS', label: 'Kansas' },
-  { value: 'KY', label: 'Kentucky' },
-  { value: 'LA', label: 'Louisiana' },
-  { value: 'ME', label: 'Maine' },
-  { value: 'MD', label: 'Maryland' },
-  { value: 'MA', label: 'Massachusetts' },
-  { value: 'MI', label: 'Michigan' },
-  { value: 'MN', label: 'Minnesota' },
-  { value: 'MS', label: 'Mississippi' },
-  { value: 'MO', label: 'Missouri' },
-  { value: 'MT', label: 'Montana' },
-  { value: 'NE', label: 'Nebraska' },
-  { value: 'NV', label: 'Nevada' },
-  { value: 'NH', label: 'New Hampshire' },
-  { value: 'NJ', label: 'New Jersey' },
-  { value: 'NM', label: 'New Mexico' },
-  { value: 'NY', label: 'New York' },
-  { value: 'NC', label: 'North Carolina' },
-  { value: 'ND', label: 'North Dakota' },
-  { value: 'OH', label: 'Ohio' },
-  { value: 'OK', label: 'Oklahoma' },
-  { value: 'OR', label: 'Oregon' },
-  { value: 'PA', label: 'Pennsylvania' },
-  { value: 'RI', label: 'Rhode Island' },
-  { value: 'SC', label: 'South Carolina' },
-  { value: 'SD', label: 'South Dakota' },
-  { value: 'TN', label: 'Tennessee' },
-  { value: 'TX', label: 'Texas' },
-  { value: 'UT', label: 'Utah' },
-  { value: 'VT', label: 'Vermont' },
-  { value: 'VA', label: 'Virginia' },
-  { value: 'WA', label: 'Washington' },
-  { value: 'WV', label: 'West Virginia' },
-  { value: 'WI', label: 'Wisconsin' },
-  { value: 'WY', label: 'Wyoming' },
-];
 
 // Create a comprehensive FormData interface to define all form fields
 interface FormData {
@@ -1973,28 +1920,16 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
           )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="businessState">
-            State *
-          </label>
-          <select
+        <div className="col-span-3 sm:col-span-1">
+          <StateDropdown
             id="businessState"
             name="businessState"
+            label="State *"
             value={formData.businessState}
             onChange={handleInputChange}
-            className={`block w-full rounded-md border ${errors.businessState ? 'border-red-300' : 'border-gray-300'} shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+            error={errors.businessState}
             required
-          >
-            <option value="">Select State</option>
-            {US_STATES.map(state => (
-              <option key={state.value} value={state.value}>
-                {state.label}
-              </option>
-            ))}
-          </select>
-          {errors.businessState && (
-            <p className="mt-1 text-sm text-red-600">{errors.businessState}</p>
-          )}
+          />
         </div>
 
         {/* ZIP Code with confirmation - Enhanced version with verification status */}
@@ -2425,24 +2360,15 @@ const CreditApplicationForm: React.FC<CreditApplicationFormProps> = ({
                   >
                     State *
                   </label>
-                  <select
+                  <StateDropdown
                     id="businessState"
                     name="businessState"
+                    label="State *"
                     value={formData.businessState}
                     onChange={handleInputChange}
-                    className={`block w-full rounded-md border ${errors.businessState ? 'border-red-300' : 'border-gray-300'} shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                    error={errors.businessState}
                     required
-                  >
-                    <option value="">Select State</option>
-                    {US_STATES.map(state => (
-                      <option key={state.value} value={state.value}>
-                        {state.label}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.businessState && (
-                    <p className="mt-1 text-sm text-red-600">{errors.businessState}</p>
-                  )}
+                  />
                 </div>
 
                 <div className="md:col-span-1">

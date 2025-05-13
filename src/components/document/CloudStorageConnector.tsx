@@ -168,6 +168,7 @@ const CloudStorageConnector: React.FC<CloudStorageConnectorProps> = ({
     if (selectedCloudFiles.length === 0) return;
 
     setIsLoading(true);
+    setError(null);
 
     try {
       // In a real implementation, this would download the files from the cloud provider
@@ -178,7 +179,7 @@ const CloudStorageConnector: React.FC<CloudStorageConnectorProps> = ({
 
       // Convert CloudFile objects to FileItem objects
       const fileItems: FileItem[] = selectedCloudFiles.map(cloudFile => ({
-        id: `imported-${cloudFile.provider}-${cloudFile.id}`,
+        id: `imported-${cloudFile.provider}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         name: cloudFile.name,
         type: cloudFile.type,
         size: cloudFile.size,
@@ -203,11 +204,23 @@ const CloudStorageConnector: React.FC<CloudStorageConnectorProps> = ({
         blockchainVerified: false,
       }));
 
+      // Dispatch successful import event to parent components
+      const event = new CustomEvent('filelock-import-success', {
+        detail: { files: fileItems, provider: selectedProvider },
+      });
+      window.dispatchEvent(event);
+
       onFileImport(fileItems);
       setIsLoading(false);
       onClose();
+
+      // Show success toast (in a real implementation, you'd use a toast notification system)
+      alert(`Successfully imported ${fileItems.length} files from ${selectedProvider}`);
     } catch (err) {
-      setError('Failed to import files. Please try again.');
+      console.error('Import error:', err);
+      setError(
+        'Failed to import files. Please try again or contact support if the issue persists.'
+      );
       setIsLoading(false);
     }
   };
