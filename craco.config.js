@@ -37,6 +37,28 @@ module.exports = {
         "react": require.resolve("react"),
         "react-dom": require.resolve("react-dom")
       };
+      
+      // Increase chunk loading timeout to prevent failures
+      webpackConfig.output.chunkLoadTimeout = 60000;
+      
+      // Optimize chunking for better code splitting
+      webpackConfig.optimization = {
+        ...webpackConfig.optimization,
+        splitChunks: {
+          chunks: 'all',
+          name: false,
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+            },
+          },
+        },
+        runtimeChunk: {
+          name: entrypoint => `runtime-${entrypoint.name}`,
+        },
+      };
 
       return webpackConfig;
     },
@@ -54,8 +76,9 @@ module.exports = {
       '@babel/preset-react',
     ],
   },
-  // Disable Fast Refresh to prevent the related error
+  // Enable hot module replacement with safer options
   devServer: {
-    hot: false,
+    hot: true,
+    liveReload: false,
   },
 }; 

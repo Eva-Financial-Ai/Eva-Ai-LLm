@@ -22,6 +22,8 @@ const mockUserContextValue = {
   setShowCreditAnalysis: jest.fn(),
   showAILifecycleAssistant: false,
   setShowAILifecycleAssistant: jest.fn(),
+  isEvaChatOpen: false,
+  setIsEvaChatOpen: jest.fn(),
   toggleTool: jest.fn(),
   sidebarCollapsed: false,
   setSidebarCollapsed: jest.fn(),

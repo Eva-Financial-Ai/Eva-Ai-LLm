@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import Draggable from 'react-draggable';
 import { useWorkflow } from '../../contexts/WorkflowContext';
+import { UserContext } from '../../contexts/UserContext';
 import {
   XMarkIcon,
   PaperClipIcon,
@@ -30,6 +31,7 @@ interface ChatWidgetProps {
   mode?: 'eva' | 'risk' | 'communications';
   initialPosition?: { x: number; y: number };
   isOpen?: boolean;
+  onClose?: () => void;
   zIndexBase?: number;
 }
 
@@ -114,11 +116,26 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     x: window.innerWidth - window.innerWidth * 0.85 - 40,
     y: window.innerHeight - window.innerHeight * 0.85 - 120,
   },
-  isOpen: initialIsOpen = false,
+  isOpen: isOpenProp,
+  onClose: onCloseProp,
   zIndexBase = 50,
 }) => {
-  // Keep state simpler
-  const [isVisible, setIsVisible] = useState(initialIsOpen);
+  // Internal visibility state, used if isOpenProp is not provided
+  const [internalIsVisible, setInternalIsVisible] = useState(
+    isOpenProp !== undefined ? isOpenProp : false
+  );
+  const { setIsEvaChatOpen } = useContext(UserContext); // Consume from context for default close
+
+  // Determine effective visibility: prop takes precedence
+  const effectiveIsVisible = isOpenProp !== undefined ? isOpenProp : internalIsVisible;
+
+  // Sync internal state if isOpenProp changes
+  useEffect(() => {
+    if (isOpenProp !== undefined) {
+      setInternalIsVisible(isOpenProp);
+    }
+  }, [isOpenProp]);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -242,12 +259,12 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
 
   // Focus on input when chat opens
   useEffect(() => {
-    if (isVisible) {
+    if (effectiveIsVisible) {
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
     }
-  }, [isVisible]);
+  }, [effectiveIsVisible]);
 
   // Set up speech recognition
   useEffect(() => {
@@ -444,7 +461,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   // Input handling functions
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(e.target.value);
-    
+
     // Auto-resize textarea
     if (e.target) {
       e.target.style.height = 'auto';
@@ -892,8 +909,21 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
       </div>
     );
 
+  const handleClose = () => {
+    if (onCloseProp) {
+      onCloseProp();
+    } else {
+      // Fallback for internally managed state, or if it's the EVA chat that should use context
+      if (mode === 'eva' && setIsEvaChatOpen) {
+        setIsEvaChatOpen(false);
+      } else {
+        setInternalIsVisible(false);
+      }
+    }
+  };
+
   // CHAT BUTTON COMPONENT
-  if (!isVisible) {
+  if (!effectiveIsVisible) {
     return (
       <div
         style={{
@@ -904,7 +934,13 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         }}
       >
         <button
-          onClick={() => setIsVisible(true)}
+          onClick={() => {
+            if (isOpenProp === undefined) {
+              setInternalIsVisible(true);
+            } else if (mode === 'eva' && setIsEvaChatOpen) {
+              setIsEvaChatOpen(true);
+            }
+          }}
           className="rounded-full p-3 text-white shadow-lg bg-blue-600 hover:bg-blue-700"
           aria-label="Open chat"
         >
@@ -1032,10 +1068,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                   customAgents={customAgents}
                 />
 
-                <button
-                  className="p-2 text-gray-500 hover:text-gray-700"
-                  onClick={() => setIsVisible(false)}
-                >
+                <button className="p-2 text-gray-500 hover:text-gray-700" onClick={handleClose}>
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
@@ -1210,7 +1243,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                 <input
                   type="file"
                   ref={fileInputRef}
-                  onChange={(e) => {
+                  onChange={e => {
                     if (e.target.files) {
                       const newFiles = Array.from(e.target.files);
                       setUploadedFiles(prev => [...prev, ...newFiles]);
@@ -1225,7 +1258,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                   <textarea
                     ref={inputRef}
                     value={inputText}
-                    onChange={(e) => {
+                    onChange={e => {
                       setInputText(e.target.value);
                     }}
                     placeholder="Type a message..."
@@ -1234,7 +1267,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                       minHeight: '60px',
                       maxHeight: '120px',
                     }}
-                    onKeyDown={(e) => {
+                    onKeyDown={e => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         handleSendMessage();
@@ -1252,7 +1285,12 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                         >
                           <DocumentTextIcon className="h-5 w-5 mr-1" />
                           <span className="text-sm truncate max-w-[150px]">{file.name}</span>
-                          <button onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))} className="ml-1 text-gray-500">
+                          <button
+                            onClick={() =>
+                              setUploadedFiles(prev => prev.filter((_, i) => i !== index))
+                            }
+                            className="ml-1 text-gray-500"
+                          >
                             <XMarkIcon className="h-4 w-4" />
                           </button>
                         </div>
@@ -1264,17 +1302,17 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
 
               {/* Send button and other controls */}
               <div className="flex justify-end mt-3">
-                <button 
+                <button
                   onClick={toggleListening}
                   className={`p-3 mr-3 rounded-full ${
-                    isListening 
-                      ? 'bg-red-100 text-red-600' 
+                    isListening
+                      ? 'bg-red-100 text-red-600'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <MicrophoneIcon className="h-6 w-6" />
                 </button>
-                
+
                 <button
                   onClick={handleSendMessage}
                   disabled={(!inputText.trim() && uploadedFiles.length === 0) || isTyping}
@@ -1301,7 +1339,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                   </svg>
                 </button>
               </div>
-              
+
               {/* Listening indicator */}
               {isListening && (
                 <div className="mt-2 px-3 py-2 bg-red-50 text-red-600 text-sm rounded-md flex items-center">

@@ -215,6 +215,8 @@ const EVAAssistantChat: React.FC<EVAAssistantChatProps> = ({
   const [currentTab, setCurrentTab] = useState('conversations');
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Add state for suggested next prompts
+  const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>([]);
 
   // Function to scroll to bottom of messages
   const scrollToBottom = () => {
@@ -306,6 +308,8 @@ const EVAAssistantChat: React.FC<EVAAssistantChatProps> = ({
 
     setInputValue('');
     setIsProcessing(true);
+    // Clear suggestions when user sends a message
+    setSuggestedPrompts([]);
 
     // Simulate AI response after delay
     setTimeout(() => {
@@ -317,9 +321,10 @@ const EVAAssistantChat: React.FC<EVAAssistantChatProps> = ({
       const agent =
         participants.find(p => p.id === currentConversation.participantId) || selectedAgent;
 
+      const aiResponse = generateResponse(inputValue, agent);
       const aiMessage: Message = {
         id: `ai-${Date.now()}`,
-        text: generateResponse(inputValue, agent),
+        text: aiResponse,
         sender: agent,
         timestamp: new Date(),
       };
@@ -335,6 +340,10 @@ const EVAAssistantChat: React.FC<EVAAssistantChatProps> = ({
             : conv
         )
       );
+
+      // Generate suggested follow-up prompts
+      const nextPrompts = generateSuggestedPrompts(inputValue, aiResponse, agent);
+      setSuggestedPrompts(nextPrompts);
 
       setIsProcessing(false);
     }, 1500);
@@ -374,6 +383,101 @@ const EVAAssistantChat: React.FC<EVAAssistantChatProps> = ({
 
     // Generic response if no specific triggers are matched
     return `Thanks for your question. As ${agent.fullName}, I can help you with detailed analysis and insights on this matter. Could you provide more specific details about what you'd like to know?`;
+  };
+
+  // Function to generate suggested follow-up prompts based on context
+  const generateSuggestedPrompts = (
+    userInput: string,
+    aiResponse: string,
+    agent: Participant
+  ): string[] => {
+    const inputLower = userInput.toLowerCase();
+    const responseLower = aiResponse.toLowerCase();
+    const agentId = agent.id;
+
+    // Base suggestions that are generally useful for any conversation
+    const basePrompts = [
+      'Can you elaborate on that point?',
+      'What specific metrics should I focus on?',
+      'What are the next steps you recommend?',
+      'How does this compare to industry standards?',
+      'Could you provide a specific example?',
+      'What are the potential risks to consider?',
+      'Are there any additional opportunities here?',
+    ];
+
+    // Agent-specific and context-sensitive prompts
+    let contextualPrompts: string[] = [];
+
+    if (agentId === 'eva-risk') {
+      if (inputLower.includes('risk') || responseLower.includes('risk')) {
+        contextualPrompts = [
+          'What risk mitigation strategies do you recommend?',
+          'How would you rate the overall risk level on a scale of 1-10?',
+          'What additional data points would improve this risk assessment?',
+        ];
+      } else if (
+        inputLower.includes('loan') ||
+        responseLower.includes('loan') ||
+        responseLower.includes('portfolio')
+      ) {
+        contextualPrompts = [
+          "What's the delinquency trend over the past 6 months?",
+          'Which loan segments are performing best/worst?',
+          'How would a 1% interest rate change impact this portfolio?',
+        ];
+      }
+    } else if (agentId === 'doc-easy') {
+      if (inputLower.includes('document') || responseLower.includes('document')) {
+        contextualPrompts = [
+          'Are there any missing documents in this application?',
+          'Can you identify any inconsistencies in these documents?',
+          'What documentation is typically required for this type of transaction?',
+        ];
+      } else if (responseLower.includes('discrepanc') || responseLower.includes('inconsisten')) {
+        contextualPrompts = [
+          'How serious are these discrepancies?',
+          'What additional verification would you recommend?',
+          'Are these common issues in similar applications?',
+        ];
+      }
+    } else if (agentId.includes('ben')) {
+      contextualPrompts = [
+        'What are the key financial ratios I should be monitoring?',
+        'How does cash flow compare to projections?',
+        'What tax implications should I be aware of?',
+      ];
+    } else if (agentId.includes('mira-sales')) {
+      contextualPrompts = [
+        "What's our competitive advantage with this client?",
+        'How can we increase cross-selling opportunities?',
+        'What customer retention strategies would work best here?',
+      ];
+    } else if (agentId.includes('steve-branding')) {
+      contextualPrompts = [
+        'How does this align with our brand values?',
+        'What messaging would resonate best with this audience?',
+        'How should we position this in our marketing materials?',
+      ];
+    } else if (responseLower.includes('compliance') || responseLower.includes('regulatory')) {
+      contextualPrompts = [
+        'What specific regulations apply in this case?',
+        'Are there any recent regulatory changes we should be aware of?',
+        'What documentation is needed for compliance?',
+      ];
+    } else if (responseLower.includes('analysis') || responseLower.includes('financial')) {
+      contextualPrompts = [
+        'Can you break down these financial trends by quarter?',
+        'How reliable are these financial projections?',
+        "What's driving the change in these financial metrics?",
+      ];
+    }
+
+    // If we have contextual prompts, use those, otherwise use a mix of base prompts
+    const promptOptions = contextualPrompts.length > 0 ? contextualPrompts : basePrompts;
+
+    // Shuffle array and take the first 3
+    return promptOptions.sort(() => 0.5 - Math.random()).slice(0, 3);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -1063,41 +1167,61 @@ const EVAAssistantChat: React.FC<EVAAssistantChatProps> = ({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Message input */}
+          {/* Message input and suggested prompts section */}
           <div className="p-5 border-t border-gray-200 bg-white">
-            <div className="flex items-center">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                placeholder="Type a message..."
-                className="flex-1 p-4 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-              />
-              <button
-                onClick={sendMessage}
-                disabled={!inputValue.trim() || isProcessing}
-                className={`px-6 py-4 rounded-r-lg text-white font-medium ${
-                  inputValue.trim() && !isProcessing
-                    ? 'bg-blue-600 hover:bg-blue-700'
-                    : 'bg-gray-400 cursor-not-allowed'
-                }`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+            <div className="flex flex-col">
+              <div className="flex items-center">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type a message..."
+                  className="flex-1 p-4 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                />
+                <button
+                  onClick={sendMessage}
+                  disabled={!inputValue.trim() || isProcessing}
+                  className={`px-6 py-4 rounded-r-lg text-white font-medium ${
+                    inputValue.trim() && !isProcessing
+                      ? 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-gray-400 cursor-not-allowed'
+                  }`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Suggested prompts section */}
+              {suggestedPrompts.length > 0 && !isProcessing && (
+                <div className="mt-3">
+                  <p className="text-sm text-gray-500 mb-2">Suggested next prompts:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestedPrompts.map((prompt, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(prompt)}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm text-gray-700 transition-colors"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

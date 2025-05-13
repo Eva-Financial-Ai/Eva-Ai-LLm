@@ -6,6 +6,19 @@ export enum UserType {
   LENDER = 'lender', // Financial institutions providing loans
 }
 
+// User interface for application-wide use
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
+  profilePhoto?: string;
+  type?: UserType;
+  businessName?: string;
+  taxId?: string;
+  profileData?: Record<string, any>;
+}
+
 // Permission levels from most restricted to most permissive
 export enum PermissionLevel {
   NONE = 0,

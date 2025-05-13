@@ -2,16 +2,14 @@ import React, { useState, useCallback, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserContext } from '../../contexts/UserContext';
+import SearchBar from '../search/SearchBar';
 
 interface NavbarProps {
   deviceType?: 'mobile' | 'tablet' | 'desktop';
   orientation?: 'portrait' | 'landscape';
 }
 
-const Navbar: React.FC<NavbarProps> = ({ 
-  deviceType = 'desktop',
-  orientation = 'landscape'
-}) => {
+const Navbar: React.FC<NavbarProps> = ({ deviceType = 'desktop', orientation = 'landscape' }) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { theme, setTheme, sidebarCollapsed, setSidebarCollapsed } = useContext(UserContext);
@@ -28,28 +26,41 @@ const Navbar: React.FC<NavbarProps> = ({
     navigate('/login');
   }, [logout, navigate]);
 
-  // Add the missing functions
+  // Toggle theme function
   const toggleTheme = useCallback(() => {
     setTheme(theme === 'light' ? 'dark' : 'light');
   }, [theme, setTheme]);
 
+  // Restore sidebar toggle function
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsed(!sidebarCollapsed);
   }, [sidebarCollapsed, setSidebarCollapsed]);
 
+  // Calculate margin based on sidebar state
+  const getMarginClass = () => {
+    if (sidebarCollapsed) return 'ml-16';
+    if (isMobile) return sidebarCollapsed ? 'ml-0' : 'ml-[260px]';
+    if (isTablet) return 'ml-72';
+    return 'ml-80';
+  };
+
   return (
-    <nav className="bg-white border-b border-gray-200 shadow-sm">
-      <div className="px-2 sm:px-3">
-        <div className="flex justify-between h-14">
-          {/* Mobile menu button and logo */}
+    <nav
+      className={`bg-white border-b border-gray-200 shadow-sm ${getMarginClass()} transition-all duration-300`}
+    >
+      <div className="px-4 sm:px-6">
+        <div className="flex justify-between h-16">
+          {/* Left side - hamburger menu and search bar */}
           <div className="flex items-center">
+            {/* Restore hamburger menu */}
             <button
               onClick={toggleSidebar}
-              className="p-1.5 mr-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none"
+              className="p-3 mr-3 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              aria-label="Toggle sidebar"
             >
               <span className="sr-only">Toggle sidebar</span>
               <svg
-                className="h-5 w-5"
+                className="h-6 w-6"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -64,28 +75,29 @@ const Navbar: React.FC<NavbarProps> = ({
               </svg>
             </button>
 
-            {/* Search bar - simplified and responsive */}
-            <div className={`ml-2 ${isMobile ? 'w-32' : 'w-64'}`}>
-              <input
-                type="text"
-                className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                placeholder={isMobile ? "Search..." : "Search EVA Platform..."}
+            {/* Search Bar Component */}
+            <div>
+              <SearchBar
+                deviceType={deviceType}
+                width={isMobile ? 'w-60' : isTablet ? 'w-80' : 'w-96'}
+                placeholder={isMobile ? 'Search...' : 'Search EVA Platform...'}
               />
             </div>
           </div>
 
           {/* Right side - user menu */}
-          <div className="flex items-center space-x-1 sm:space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Theme Toggle - only shown on larger screens */}
             {!isMobile && (
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-full text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none"
+                className="p-3 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                aria-label="Toggle theme"
               >
                 {theme === 'dark' ? (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
+                    className="h-6 w-6"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -98,7 +110,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 ) : (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
+                    className="h-6 w-6"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -112,12 +124,13 @@ const Navbar: React.FC<NavbarProps> = ({
             <div className="relative">
               <button
                 type="button"
-                className="flex items-center space-x-2 bg-gray-100 p-1 rounded-full text-gray-700 hover:text-gray-900 focus:outline-none"
+                className="flex items-center space-x-2 bg-gray-100 p-2 rounded-full text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 onClick={() => {}}
+                aria-label="Open user menu"
               >
                 <span className="sr-only">Open user menu</span>
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                  <span className="text-sm font-medium">U</span>
+                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                  <span className="text-base font-medium">U</span>
                 </div>
               </button>
             </div>

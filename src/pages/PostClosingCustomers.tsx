@@ -2,7 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import TopNavigation from '../components/layout/TopNavigation';
-import { CalendarIcon, BellIcon, UserGroupIcon, ChartBarIcon, CurrencyDollarIcon, ArrowPathIcon, PlusIcon } from '@heroicons/react/24/outline';
+import {
+  CalendarIcon,
+  BellIcon,
+  UserGroupIcon,
+  ChartBarIcon,
+  CurrencyDollarIcon,
+  ArrowPathIcon,
+  PlusIcon,
+} from '@heroicons/react/24/outline';
 
 // Types for our application
 interface Customer {
@@ -18,9 +26,21 @@ interface Customer {
   lifetimeValue: number;
   profileComplete: number;
   tags: string[];
+  productsUsed: string[];
+  attritionRisk: 'low' | 'medium' | 'high';
+  closedDeals: number;
+  retentionScore: number; // 0-100 scale
+  lastTransactionDate: string;
 }
 
-type CustomerType = 'business' | 'business-owner' | 'vendor' | 'broker' | 'lender' | 'asset-seller' | 'service-provider';
+type CustomerType =
+  | 'business'
+  | 'business-owner'
+  | 'vendor'
+  | 'broker'
+  | 'lender'
+  | 'asset-seller'
+  | 'service-provider';
 
 interface CrossSellOpportunity {
   id: string;
@@ -56,7 +76,7 @@ const PostClosingCustomers: React.FC = () => {
     customerId: '',
     date: new Date(Date.now() + 86400000).toISOString().substring(0, 10), // Tomorrow
     description: '',
-    type: 'email'
+    type: 'email',
   });
 
   // Mock data for customers
@@ -77,7 +97,7 @@ const PostClosingCustomers: React.FC = () => {
           probability: 0.7,
           potentialValue: 100000,
           category: 'financial',
-          description: 'Working capital line to support seasonal inventory needs'
+          description: 'Working capital line to support seasonal inventory needs',
         },
         {
           id: 'cs-2',
@@ -85,12 +105,17 @@ const PostClosingCustomers: React.FC = () => {
           probability: 0.5,
           potentialValue: 5000,
           category: 'insurance',
-          description: 'Comprehensive business insurance for their new equipment'
-        }
+          description: 'Comprehensive business insurance for their new equipment',
+        },
       ],
       lifetimeValue: 35000,
       profileComplete: 85,
-      tags: ['manufacturing', 'equipment', 'growth']
+      tags: ['manufacturing', 'equipment', 'growth'],
+      productsUsed: ['Working Capital Line', 'Business Insurance'],
+      attritionRisk: 'low',
+      closedDeals: 5,
+      retentionScore: 90,
+      lastTransactionDate: '2023-05-01',
     },
     {
       id: 'cust-2',
@@ -108,12 +133,17 @@ const PostClosingCustomers: React.FC = () => {
           probability: 0.6,
           potentialValue: 25000,
           category: 'advisory',
-          description: 'Wealth management services for business proceeds'
-        }
+          description: 'Wealth management services for business proceeds',
+        },
       ],
       lifetimeValue: 62000,
       profileComplete: 90,
-      tags: ['real-estate', 'high-value', 'repeat-customer']
+      tags: ['real-estate', 'high-value', 'repeat-customer'],
+      productsUsed: ['Personal Wealth Management'],
+      attritionRisk: 'low',
+      closedDeals: 10,
+      retentionScore: 95,
+      lastTransactionDate: '2023-05-05',
     },
     {
       id: 'cust-3',
@@ -131,12 +161,17 @@ const PostClosingCustomers: React.FC = () => {
           probability: 0.8,
           potentialValue: 15000,
           category: 'technology',
-          description: 'Upgraded vendor portal with advanced financing options'
-        }
+          description: 'Upgraded vendor portal with advanced financing options',
+        },
       ],
       lifetimeValue: 120000,
       profileComplete: 75,
-      tags: ['machinery', 'high-volume', 'partnership']
+      tags: ['machinery', 'high-volume', 'partnership'],
+      productsUsed: ['Enhanced Vendor Portal'],
+      attritionRisk: 'medium',
+      closedDeals: 3,
+      retentionScore: 80,
+      lastTransactionDate: '2023-05-10',
     },
     {
       id: 'cust-4',
@@ -154,13 +189,18 @@ const PostClosingCustomers: React.FC = () => {
           probability: 0.9,
           potentialValue: 8000,
           category: 'advisory',
-          description: 'Specialized training on new financing products'
-        }
+          description: 'Specialized training on new financing products',
+        },
       ],
       lifetimeValue: 230000,
       profileComplete: 95,
-      tags: ['high-producer', 'multiple-deals', 'strategic']
-    }
+      tags: ['high-producer', 'multiple-deals', 'strategic'],
+      productsUsed: ['Broker Training Program'],
+      attritionRisk: 'high',
+      closedDeals: 15,
+      retentionScore: 100,
+      lastTransactionDate: '2023-05-15',
+    },
   ]);
 
   // Mock notifications
@@ -172,7 +212,7 @@ const PostClosingCustomers: React.FC = () => {
         date: '2023-06-15',
         description: 'Follow-up on Working Capital Line opportunity',
         type: 'call',
-        status: 'scheduled'
+        status: 'scheduled',
       },
       {
         id: 'not-2',
@@ -180,7 +220,7 @@ const PostClosingCustomers: React.FC = () => {
         date: '2023-06-20',
         description: 'Present Wealth Management options',
         type: 'meeting',
-        status: 'scheduled'
+        status: 'scheduled',
       },
       {
         id: 'not-3',
@@ -188,57 +228,61 @@ const PostClosingCustomers: React.FC = () => {
         date: '2023-06-18',
         description: 'Broker Training Program scheduling',
         type: 'email',
-        status: 'scheduled'
-      }
+        status: 'scheduled',
+      },
     ]);
   }, []);
 
   // Filter customers based on active tab and search term
   const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          customer.loanType.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch =
+      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.loanType.toLowerCase().includes(searchTerm.toLowerCase());
+
     if (activeTab === 'all') {
       return matchesSearch;
     }
-    
+
     return customer.type === activeTab && matchesSearch;
   });
 
   // Add a new notification
   const handleAddNotification = () => {
     if (!selectedCustomer || !newNotification.description || !newNotification.date) return;
-    
+
     const notification: Notification = {
       id: `not-${Date.now()}`,
       customerId: selectedCustomer.id,
       date: newNotification.date,
       description: newNotification.description,
       type: newNotification.type,
-      status: 'scheduled'
+      status: 'scheduled',
     };
-    
+
     setNotifications([...notifications, notification]);
-    
+
     // Update the customer's next follow-up date if it's earlier than the current one
     // or if there isn't one set yet
     const updatedCustomers = customers.map(customer => {
       if (customer.id === selectedCustomer.id) {
-        if (!customer.nextFollowUp || new Date(notification.date) < new Date(customer.nextFollowUp)) {
+        if (
+          !customer.nextFollowUp ||
+          new Date(notification.date) < new Date(customer.nextFollowUp)
+        ) {
           return { ...customer, nextFollowUp: notification.date };
         }
       }
       return customer;
     });
     setCustomers(updatedCustomers);
-    
+
     // Reset form
     setShowAddNotification(false);
     setNewNotification({
       customerId: '',
       date: new Date(Date.now() + 86400000).toISOString().substring(0, 10),
       description: '',
-      type: 'email'
+      type: 'email',
     });
     setSelectedCustomer(null);
   };
@@ -253,23 +297,25 @@ const PostClosingCustomers: React.FC = () => {
     <PageLayout title="Post Closing Customers">
       <div className="container mx-auto px-4 py-6">
         <TopNavigation title="Post Closing Customers" />
-        
+
         <div className="bg-white shadow rounded-lg p-6 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Post Closing Customer Management</h1>
-              <p className="text-gray-600">Maximize customer lifetime value with strategic follow-ups and cross-selling</p>
+              <p className="text-gray-600">
+                Maximize customer lifetime value with strategic follow-ups and cross-selling
+              </p>
             </div>
-            
+
             <div className="flex space-x-2">
-              <input 
-                type="text" 
-                placeholder="Search customers..." 
+              <input
+                type="text"
+                placeholder="Search customers..."
                 className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
               />
-              <button 
+              <button
                 className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 flex items-center"
                 onClick={() => {
                   setShowAddNotification(true);
@@ -280,7 +326,7 @@ const PostClosingCustomers: React.FC = () => {
               </button>
             </div>
           </div>
-          
+
           {/* Customer Type Tabs */}
           <div className="border-b border-gray-200 mb-6">
             <nav className="-mb-px flex space-x-6 overflow-x-auto pb-1">
@@ -366,9 +412,9 @@ const PostClosingCustomers: React.FC = () => {
               </button>
             </nav>
           </div>
-          
+
           {/* Dashboard Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
               <div className="flex items-center">
                 <UserGroupIcon className="h-8 w-8 text-blue-500 mr-3" />
@@ -378,19 +424,22 @@ const PostClosingCustomers: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-green-50 p-4 rounded-lg border border-green-100">
               <div className="flex items-center">
                 <ChartBarIcon className="h-8 w-8 text-green-500 mr-3" />
                 <div>
                   <p className="text-sm font-medium text-green-600">Avg. Lifetime Value</p>
                   <p className="text-2xl font-bold text-green-800">
-                    ${Math.round(customers.reduce((acc, c) => acc + c.lifetimeValue, 0) / customers.length).toLocaleString()}
+                    $
+                    {Math.round(
+                      customers.reduce((acc, c) => acc + c.lifetimeValue, 0) / customers.length
+                    ).toLocaleString()}
                   </p>
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
               <div className="flex items-center">
                 <CurrencyDollarIcon className="h-8 w-8 text-purple-500 mr-3" />
@@ -402,49 +451,139 @@ const PostClosingCustomers: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-amber-50 p-4 rounded-lg border border-amber-100">
               <div className="flex items-center">
                 <ArrowPathIcon className="h-8 w-8 text-amber-500 mr-3" />
                 <div>
                   <p className="text-sm font-medium text-amber-600">Follow-ups This Month</p>
                   <p className="text-2xl font-bold text-amber-800">
-                    {notifications.filter(n => {
-                      const today = new Date();
-                      const notifDate = new Date(n.date);
-                      return notifDate.getMonth() === today.getMonth() && 
-                             notifDate.getFullYear() === today.getFullYear();
-                    }).length}
+                    {
+                      notifications.filter(n => {
+                        const today = new Date();
+                        const notifDate = new Date(n.date);
+                        return (
+                          notifDate.getMonth() === today.getMonth() &&
+                          notifDate.getFullYear() === today.getFullYear()
+                        );
+                      }).length
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+              <div className="flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8 text-red-500 mr-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
+                  />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-red-600">Attrition Risk</p>
+                  <p className="text-2xl font-bold text-red-800">
+                    {Math.round(
+                      (customers.filter(c => c.attritionRisk === 'high').length /
+                        customers.length) *
+                        100
+                    )}
+                    %
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+              <div className="flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8 text-indigo-500 mr-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-indigo-600">Multi-Product</p>
+                  <p className="text-2xl font-bold text-indigo-800">
+                    {Math.round(
+                      (customers.filter(c => c.productsUsed.length > 1).length / customers.length) *
+                        100
+                    )}
+                    %
                   </p>
                 </div>
               </div>
             </div>
           </div>
-          
+
           {/* Customer Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Customer
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Type
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Loan Details
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Last Contact
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Next Follow-up
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cross-Sell Opportunities
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Products & Opportunities
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Retention
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Actions
                   </th>
                 </tr>
@@ -468,7 +607,8 @@ const PostClosingCustomers: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{customer.loanType}</div>
                       <div className="text-sm text-gray-500">
-                        ${customer.loanAmount.toLocaleString()} • {new Date(customer.closingDate).toLocaleDateString()}
+                        ${customer.loanAmount.toLocaleString()} •{' '}
+                        {new Date(customer.closingDate).toLocaleDateString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -486,40 +626,99 @@ const PostClosingCustomers: React.FC = () => {
                         <span className="text-sm text-gray-500">Not scheduled</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col space-y-1">
-                        {customer.crossSellOpportunities.length > 0 ? (
-                          customer.crossSellOpportunities.map(opportunity => (
-                            <div key={opportunity.id} className="flex items-center">
-                              <div 
-                                className="w-2 h-2 rounded-full mr-2" 
-                                style={{ 
-                                  backgroundColor: opportunity.probability > 0.7 
-                                    ? '#10B981' // green 
-                                    : opportunity.probability > 0.4 
-                                      ? '#F59E0B' // amber
-                                      : '#EF4444' // red
-                                }}
-                              />
-                              <span className="text-sm text-gray-900">
-                                {opportunity.productName}
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col space-y-2">
+                        {/* Products Used */}
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">
+                            Current Products ({customer.productsUsed.length})
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {customer.productsUsed.map((product, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800"
+                              >
+                                {product}
                               </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Cross-Sell Opportunities */}
+                        {customer.crossSellOpportunities.length > 0 && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Opportunities</p>
+                            <div className="flex flex-col space-y-1">
+                              {customer.crossSellOpportunities.map(opportunity => (
+                                <div key={opportunity.id} className="flex items-center">
+                                  <div
+                                    className="w-2 h-2 rounded-full mr-2"
+                                    style={{
+                                      backgroundColor:
+                                        opportunity.probability > 0.7
+                                          ? '#10B981' // green
+                                          : opportunity.probability > 0.4
+                                            ? '#F59E0B' // amber
+                                            : '#EF4444', // red
+                                    }}
+                                  />
+                                  <span className="text-sm text-gray-900">
+                                    {opportunity.productName}
+                                  </span>
+                                </div>
+                              ))}
                             </div>
-                          ))
-                        ) : (
-                          <span className="text-sm text-gray-500">None identified</span>
+                          </div>
                         )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col space-y-2">
+                        {/* Retention Score */}
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full ${
+                              customer.retentionScore >= 80
+                                ? 'bg-green-500'
+                                : customer.retentionScore >= 60
+                                  ? 'bg-yellow-500'
+                                  : 'bg-red-500'
+                            }`}
+                            style={{ width: `${customer.retentionScore}%` }}
+                          />
+                        </div>
+
+                        {/* Attrition Risk */}
+                        <div className="flex items-center">
+                          <span
+                            className={`px-2 py-1 text-xs rounded-full ${
+                              customer.attritionRisk === 'low'
+                                ? 'bg-green-100 text-green-800'
+                                : customer.attritionRisk === 'medium'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {customer.attritionRisk.charAt(0).toUpperCase() +
+                              customer.attritionRisk.slice(1)}{' '}
+                            Risk
+                          </span>
+                          <span className="ml-2 text-xs text-gray-500">
+                            {customer.closedDeals} deals
+                          </span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex space-x-2">
-                        <button 
+                        <button
                           onClick={() => {
                             setSelectedCustomer(customer);
                             setShowAddNotification(true);
                             setNewNotification(prev => ({
                               ...prev,
-                              customerId: customer.id
+                              customerId: customer.id,
                             }));
                           }}
                           className="text-primary-600 hover:text-primary-900 flex items-center"
@@ -527,7 +726,7 @@ const PostClosingCustomers: React.FC = () => {
                           <BellIcon className="h-4 w-4 mr-1" />
                           Schedule
                         </button>
-                        <button 
+                        <button
                           onClick={() => navigateToCustomerDetails(customer.id)}
                           className="text-gray-600 hover:text-gray-900"
                         >
@@ -540,38 +739,56 @@ const PostClosingCustomers: React.FC = () => {
               </tbody>
             </table>
           </div>
-          
+
           {filteredCustomers.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500">No customers found matching your criteria.</p>
             </div>
           )}
         </div>
-        
+
         {/* Upcoming Follow-ups Section */}
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Upcoming Follow-ups</h2>
-          
+
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Date
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Customer
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Description
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Type
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Status
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Actions
                   </th>
                 </tr>
@@ -593,52 +810,72 @@ const PostClosingCustomers: React.FC = () => {
                           {notification.description}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            ${notification.type === 'email' ? 'bg-blue-100 text-blue-800' :
-                              notification.type === 'call' ? 'bg-green-100 text-green-800' :
-                              notification.type === 'meeting' ? 'bg-purple-100 text-purple-800' :
-                              'bg-gray-100 text-gray-800'}
-                          `}>
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${
+                              notification.type === 'email'
+                                ? 'bg-blue-100 text-blue-800'
+                                : notification.type === 'call'
+                                  ? 'bg-green-100 text-green-800'
+                                  : notification.type === 'meeting'
+                                    ? 'bg-purple-100 text-purple-800'
+                                    : 'bg-gray-100 text-gray-800'
+                            }
+                          `}
+                          >
                             {notification.type}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            ${notification.status === 'scheduled' ? 'bg-yellow-100 text-yellow-800' :
-                              notification.status === 'sent' ? 'bg-blue-100 text-blue-800' :
-                              notification.status === 'completed' ? 'bg-green-100 text-green-800' :
-                              'bg-red-100 text-red-800'}
-                          `}>
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${
+                              notification.status === 'scheduled'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : notification.status === 'sent'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : notification.status === 'completed'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                            }
+                          `}
+                          >
                             {notification.status}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
-                            <button 
+                            <button
                               className="text-primary-600 hover:text-primary-900"
                               onClick={() => {
                                 // Mark as completed logic would go here
-                                const updatedNotifications = notifications.map(n => 
-                                  n.id === notification.id ? {...n, status: 'completed' as const} : n
+                                const updatedNotifications = notifications.map(n =>
+                                  n.id === notification.id
+                                    ? { ...n, status: 'completed' as const }
+                                    : n
                                 );
                                 setNotifications(updatedNotifications);
                               }}
                             >
                               Complete
                             </button>
-                            <button 
+                            <button
                               className="text-gray-600 hover:text-gray-900"
                               onClick={() => {
                                 // Reschedule logic would go here
-                                const customer = customers.find(c => c.id === notification.customerId);
+                                const customer = customers.find(
+                                  c => c.id === notification.customerId
+                                );
                                 if (customer) {
                                   setSelectedCustomer(customer);
                                   setShowAddNotification(true);
                                   setNewNotification({
                                     customerId: customer.id,
-                                    date: new Date(Date.now() + 86400000).toISOString().substring(0, 10),
+                                    date: new Date(Date.now() + 86400000)
+                                      .toISOString()
+                                      .substring(0, 10),
                                     description: `Rescheduled: ${notification.description}`,
-                                    type: notification.type
+                                    type: notification.type,
                                   });
                                 }
                               }}
@@ -653,7 +890,7 @@ const PostClosingCustomers: React.FC = () => {
               </tbody>
             </table>
           </div>
-          
+
           {notifications.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500">No upcoming follow-ups scheduled.</p>
@@ -661,37 +898,40 @@ const PostClosingCustomers: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       {/* Add Notification Modal */}
       {showAddNotification && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-lg font-medium text-gray-900">Schedule Follow-up</h3>
-              <button 
+              <button
                 className="text-gray-400 hover:text-gray-500"
                 onClick={() => setShowAddNotification(false)}
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Customer
-                </label>
-                <select 
+                <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+                <select
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   value={selectedCustomer?.id || ''}
-                  onChange={(e) => {
+                  onChange={e => {
                     const customer = customers.find(c => c.id === e.target.value);
                     setSelectedCustomer(customer || null);
                     setNewNotification(prev => ({
                       ...prev,
-                      customerId: e.target.value
+                      customerId: e.target.value,
                     }));
                   }}
                 >
@@ -703,139 +943,280 @@ const PostClosingCustomers: React.FC = () => {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Follow-up Date
                 </label>
-                <input 
+                <input
                   type="date"
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   value={newNotification.date}
-                  onChange={(e) => setNewNotification(prev => ({
-                    ...prev,
-                    date: e.target.value
-                  }))}
+                  onChange={e =>
+                    setNewNotification(prev => ({
+                      ...prev,
+                      date: e.target.value,
+                    }))
+                  }
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea 
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   rows={3}
                   placeholder="Describe the purpose of this follow-up..."
                   value={newNotification.description}
-                  onChange={(e) => setNewNotification(prev => ({
-                    ...prev,
-                    description: e.target.value
-                  }))}
+                  onChange={e =>
+                    setNewNotification(prev => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Contact Method
                 </label>
                 <div className="flex space-x-4">
                   <label className="inline-flex items-center">
-                    <input 
+                    <input
                       type="radio"
                       className="form-radio text-primary-600"
                       name="contactMethod"
                       value="email"
                       checked={newNotification.type === 'email'}
-                      onChange={() => setNewNotification(prev => ({
-                        ...prev,
-                        type: 'email'
-                      }))}
+                      onChange={() =>
+                        setNewNotification(prev => ({
+                          ...prev,
+                          type: 'email',
+                        }))
+                      }
                     />
                     <span className="ml-2">Email</span>
                   </label>
                   <label className="inline-flex items-center">
-                    <input 
+                    <input
                       type="radio"
                       className="form-radio text-primary-600"
                       name="contactMethod"
                       value="call"
                       checked={newNotification.type === 'call'}
-                      onChange={() => setNewNotification(prev => ({
-                        ...prev,
-                        type: 'call'
-                      }))}
+                      onChange={() =>
+                        setNewNotification(prev => ({
+                          ...prev,
+                          type: 'call',
+                        }))
+                      }
                     />
                     <span className="ml-2">Call</span>
                   </label>
                   <label className="inline-flex items-center">
-                    <input 
+                    <input
                       type="radio"
                       className="form-radio text-primary-600"
                       name="contactMethod"
                       value="meeting"
                       checked={newNotification.type === 'meeting'}
-                      onChange={() => setNewNotification(prev => ({
-                        ...prev,
-                        type: 'meeting'
-                      }))}
+                      onChange={() =>
+                        setNewNotification(prev => ({
+                          ...prev,
+                          type: 'meeting',
+                        }))
+                      }
                     />
                     <span className="ml-2">Meeting</span>
                   </label>
                   <label className="inline-flex items-center">
-                    <input 
+                    <input
                       type="radio"
                       className="form-radio text-primary-600"
                       name="contactMethod"
                       value="task"
                       checked={newNotification.type === 'task'}
-                      onChange={() => setNewNotification(prev => ({
-                        ...prev,
-                        type: 'task'
-                      }))}
+                      onChange={() =>
+                        setNewNotification(prev => ({
+                          ...prev,
+                          type: 'task',
+                        }))
+                      }
                     />
                     <span className="ml-2">Task</span>
                   </label>
                 </div>
               </div>
-              
+
               {/* Cross-sell suggestions if customer is selected */}
-              {selectedCustomer && selectedCustomer.crossSellOpportunities.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Suggested Cross-Sell Opportunities
-                  </label>
-                  <div className="bg-gray-50 p-3 rounded-md">
-                    {selectedCustomer.crossSellOpportunities.map(opportunity => (
-                      <div key={opportunity.id} className="flex items-center mb-2 last:mb-0">
-                        <div 
-                          className="w-3 h-3 rounded-full mr-2" 
-                          style={{ 
-                            backgroundColor: opportunity.probability > 0.7 
-                              ? '#10B981' // green 
-                              : opportunity.probability > 0.4 
-                                ? '#F59E0B' // amber
-                                : '#EF4444' // red
-                          }}
-                        />
-                        <button
-                          className="text-left text-sm text-primary-600 hover:text-primary-800 cursor-pointer"
-                          onClick={() => {
-                            setNewNotification(prev => ({
-                              ...prev,
-                              description: `Discuss ${opportunity.productName}: ${opportunity.description}`
-                            }));
-                          }}
-                        >
-                          {opportunity.productName} (${opportunity.potentialValue.toLocaleString()})
-                        </button>
+              {selectedCustomer && (
+                <div className="space-y-4">
+                  {/* Cross-sell opportunities */}
+                  {selectedCustomer.crossSellOpportunities.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Suggested Cross-Sell Opportunities
+                      </label>
+                      <div className="bg-gray-50 p-3 rounded-md">
+                        {selectedCustomer.crossSellOpportunities.map(opportunity => (
+                          <div key={opportunity.id} className="flex items-center mb-2 last:mb-0">
+                            <div
+                              className="w-3 h-3 rounded-full mr-2"
+                              style={{
+                                backgroundColor:
+                                  opportunity.probability > 0.7
+                                    ? '#10B981' // green
+                                    : opportunity.probability > 0.4
+                                      ? '#F59E0B' // amber
+                                      : '#EF4444', // red
+                              }}
+                            />
+                            <button
+                              className="text-left text-sm text-primary-600 hover:text-primary-800 cursor-pointer"
+                              onClick={() => {
+                                setNewNotification(prev => ({
+                                  ...prev,
+                                  description: `Discuss ${opportunity.productName}: ${opportunity.description}`,
+                                }));
+                              }}
+                            >
+                              {opportunity.productName} ($
+                              {opportunity.potentialValue.toLocaleString()})
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
+                  )}
+
+                  {/* Retention suggestions based on attrition risk */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Retention Strategy Suggestions
+                    </label>
+                    <div
+                      className={`bg-gray-50 p-3 rounded-md ${
+                        selectedCustomer.attritionRisk === 'high'
+                          ? 'border-l-4 border-red-500'
+                          : selectedCustomer.attritionRisk === 'medium'
+                            ? 'border-l-4 border-yellow-500'
+                            : 'border-l-4 border-green-500'
+                      }`}
+                    >
+                      <p className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Attrition Risk:</span>{' '}
+                        {selectedCustomer.attritionRisk.charAt(0).toUpperCase() +
+                          selectedCustomer.attritionRisk.slice(1)}
+                      </p>
+                      <p className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Products Used:</span>{' '}
+                        {selectedCustomer.productsUsed.length}
+                      </p>
+                      <p className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Closed Deals:</span>{' '}
+                        {selectedCustomer.closedDeals}
+                      </p>
+
+                      <div className="mt-3">
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                          Suggested Talking Points:
+                        </p>
+                        <div className="space-y-1">
+                          {selectedCustomer.attritionRisk === 'high' && (
+                            <>
+                              <button
+                                className="text-left text-sm text-primary-600 hover:text-primary-800 block w-full"
+                                onClick={() => {
+                                  setNewNotification(prev => ({
+                                    ...prev,
+                                    description: `Customer satisfaction check-in: Review recent transactions and address any concerns. Discuss upcoming financing needs and ways we can better serve you.`,
+                                    type: 'call',
+                                  }));
+                                }}
+                              >
+                                🔴 Customer Satisfaction Check-in
+                              </button>
+                              <button
+                                className="text-left text-sm text-primary-600 hover:text-primary-800 block w-full"
+                                onClick={() => {
+                                  setNewNotification(prev => ({
+                                    ...prev,
+                                    description: `Schedule VIP lunch meeting: Invite to exclusive customer appreciation event. Discuss long-term partnership opportunities and gather feedback.`,
+                                    type: 'meeting',
+                                  }));
+                                }}
+                              >
+                                🔴 VIP Customer Appreciation
+                              </button>
+                            </>
+                          )}
+
+                          {selectedCustomer.attritionRisk === 'medium' && (
+                            <>
+                              <button
+                                className="text-left text-sm text-primary-600 hover:text-primary-800 block w-full"
+                                onClick={() => {
+                                  setNewNotification(prev => ({
+                                    ...prev,
+                                    description: `Product usage review: Analyze current product utilization and identify opportunities to maximize value from existing services.`,
+                                    type: 'call',
+                                  }));
+                                }}
+                              >
+                                🟠 Product Usage Review
+                              </button>
+                              <button
+                                className="text-left text-sm text-primary-600 hover:text-primary-800 block w-full"
+                                onClick={() => {
+                                  setNewNotification(prev => ({
+                                    ...prev,
+                                    description: `Quarterly business review: Discuss business goals, review financing solutions, and identify additional ways to support growth plans.`,
+                                    type: 'meeting',
+                                  }));
+                                }}
+                              >
+                                🟠 Quarterly Business Review
+                              </button>
+                            </>
+                          )}
+
+                          {selectedCustomer.attritionRisk === 'low' && (
+                            <>
+                              <button
+                                className="text-left text-sm text-primary-600 hover:text-primary-800 block w-full"
+                                onClick={() => {
+                                  setNewNotification(prev => ({
+                                    ...prev,
+                                    description: `Relationship expansion: Explore additional financial services that could benefit this loyal customer. Focus on complementary products to their existing portfolio.`,
+                                    type: 'call',
+                                  }));
+                                }}
+                              >
+                                🟢 Relationship Expansion
+                              </button>
+                              <button
+                                className="text-left text-sm text-primary-600 hover:text-primary-800 block w-full"
+                                onClick={() => {
+                                  setNewNotification(prev => ({
+                                    ...prev,
+                                    description: `Referral program introduction: Thank customer for their loyalty and introduce our referral program for business partners who might benefit from our services.`,
+                                    type: 'email',
+                                  }));
+                                }}
+                              >
+                                🟢 Referral Program Introduction
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
-            
+
             <div className="flex justify-end mt-6 space-x-3">
               <button
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -857,4 +1238,4 @@ const PostClosingCustomers: React.FC = () => {
   );
 };
 
-export default PostClosingCustomers; 
+export default PostClosingCustomers;

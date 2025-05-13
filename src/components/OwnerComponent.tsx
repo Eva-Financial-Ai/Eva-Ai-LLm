@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export interface Owner {
   files: never[];
@@ -75,6 +75,7 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
   const [isSearchingAddress, setIsSearchingAddress] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSharesInput, setShowSharesInput] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Format SSN
   const formatSsn = (value: string) => {
@@ -200,10 +201,69 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
     setIsSearchingAddress(true);
 
     try {
-      // In a real implementation, this would call a geocoding API
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Using OpenStreetMap Nominatim API for address lookup
+      const encodedQuery = encodeURIComponent(query);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodedQuery}&addressdetails=1&limit=5&countrycodes=us`,
+        {
+          headers: {
+            Accept: 'application/json',
+            'User-Agent': 'EVA Credit Application (https://www.evaplatform.com)',
+          },
+        }
+      );
 
-      // Mock address suggestions
+      if (!response.ok) {
+        throw new Error('Failed to fetch address suggestions');
+      }
+
+      const data = await response.json();
+
+      // Transform OSM response into our suggestion format
+      const suggestions: AddressSuggestion[] = data
+        .map((item: any, index: number) => {
+          const addr = item.address;
+          let street = '';
+
+          // Construct street address from OSM components
+          if (addr.house_number && addr.road) {
+            street = `${addr.house_number} ${addr.road}`;
+          } else if (addr.road) {
+            street = addr.road;
+          } else if (addr.pedestrian) {
+            street = addr.pedestrian;
+          } else if (addr.neighbourhood) {
+            street = addr.neighbourhood;
+          }
+
+          // Get city from various possible fields
+          const city = addr.city || addr.town || addr.village || addr.hamlet || addr.county || '';
+
+          // Get state
+          const state = addr.state_code || addr.state || '';
+
+          // Get ZIP code
+          const zipCode = addr.postcode || '';
+
+          return {
+            id: `osm-${index}-${item.place_id}`,
+            address: street,
+            city: city,
+            state: state,
+            zipCode: zipCode,
+            fullAddress: item.display_name,
+          };
+        })
+        .filter(
+          (item: AddressSuggestion) =>
+            // Filter out suggestions without complete address information
+            item.address && item.city && item.state && item.zipCode
+        );
+
+      setAddressSuggestions(suggestions);
+    } catch (error) {
+      console.error('Error searching addresses:', error);
+      // Fallback to mock data if API fails
       const mockSuggestions: AddressSuggestion[] = [
         {
           id: '1',
@@ -221,20 +281,9 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
           zipCode: '94612',
           fullAddress: `${Math.floor(Math.random() * 1000) + 100} ${query} Ave, Oakland, CA 94612`,
         },
-        {
-          id: '3',
-          address: `${Math.floor(Math.random() * 1000) + 100} ${query} Blvd`,
-          city: 'San Jose',
-          state: 'CA',
-          zipCode: '95112',
-          fullAddress: `${Math.floor(Math.random() * 1000) + 100} ${query} Blvd, San Jose, CA 95112`,
-        },
       ];
-
       setAddressSuggestions(mockSuggestions);
-      setIsSearchingAddress(false);
-    } catch (error) {
-      console.error('Error searching addresses:', error);
+    } finally {
       setIsSearchingAddress(false);
     }
   };
@@ -246,12 +295,19 @@ const OwnerComponent: React.FC<OwnerComponentProps> = ({
     setAddressInput(value);
     onChange({ ...owner, address: value });
 
+    // Clear suggestions if input is empty
+    if (!value.trim()) {
+      setAddressSuggestions([]);
+      return;
+    }
+
     // Debounce address search
-    const debounceTimer = setTimeout(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
       searchAddresses(value);
     }, 300);
-
-    return () => clearTimeout(debounceTimer);
   };
 
   // Handle address selection

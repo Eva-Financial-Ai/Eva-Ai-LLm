@@ -38,13 +38,14 @@ const EVAAssistantWithCustomAgents: React.FC = () => {
 
   return (
     <div className="bg-white h-full w-full overflow-hidden flex flex-col">
-      <EVAAssistantChat 
-        customAgents={customAgents} 
+      <EVAAssistantChat
+        customAgents={customAgents}
         selectedAgentId={selectedAgentId}
         onSelectAgent={handleSelectAgent}
         onCreateCustomAgent={() => setShowCreateModal(true)}
+        onClose={() => {}}
       />
-      
+
       {showCreateModal && (
         <CreateCustomAIAgent
           onSave={handleCreateAgent}
@@ -55,4 +56,4 @@ const EVAAssistantWithCustomAgents: React.FC = () => {
   );
 };
 
-export default EVAAssistantWithCustomAgents; 
+export default EVAAssistantWithCustomAgents;
