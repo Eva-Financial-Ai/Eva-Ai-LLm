@@ -386,24 +386,20 @@ const EVAAssistantChat: React.FC<EVAAssistantChatProps> = ({
   };
 
   // Function to generate suggested follow-up prompts based on context
-  const generateSuggestedPrompts = (
-    userInput: string,
-    aiResponse: string,
-    agent: Participant
-  ): string[] => {
+  const generateSuggestedPrompts = (userInput: string, aiResponse: string, agent: Participant): string[] => {
     const inputLower = userInput.toLowerCase();
     const responseLower = aiResponse.toLowerCase();
     const agentId = agent.id;
 
     // Base suggestions that are generally useful for any conversation
     const basePrompts = [
-      'Can you elaborate on that point?',
-      'What specific metrics should I focus on?',
-      'What are the next steps you recommend?',
-      'How does this compare to industry standards?',
-      'Could you provide a specific example?',
-      'What are the potential risks to consider?',
-      'Are there any additional opportunities here?',
+      "Can you elaborate on that point?",
+      "What specific metrics should I focus on?",
+      "What are the next steps you recommend?",
+      "How does this compare to industry standards?",
+      "Could you provide a specific example?",
+      "What are the potential risks to consider?",
+      "Are there any additional opportunities here?"
     ];
 
     // Agent-specific and context-sensitive prompts
@@ -412,70 +408,66 @@ const EVAAssistantChat: React.FC<EVAAssistantChatProps> = ({
     if (agentId === 'eva-risk') {
       if (inputLower.includes('risk') || responseLower.includes('risk')) {
         contextualPrompts = [
-          'What risk mitigation strategies do you recommend?',
-          'How would you rate the overall risk level on a scale of 1-10?',
-          'What additional data points would improve this risk assessment?',
+          "What risk mitigation strategies do you recommend?",
+          "How would you rate the overall risk level on a scale of 1-10?",
+          "What additional data points would improve this risk assessment?"
         ];
-      } else if (
-        inputLower.includes('loan') ||
-        responseLower.includes('loan') ||
-        responseLower.includes('portfolio')
-      ) {
+      } else if (inputLower.includes('loan') || responseLower.includes('loan') || responseLower.includes('portfolio')) {
         contextualPrompts = [
           "What's the delinquency trend over the past 6 months?",
-          'Which loan segments are performing best/worst?',
-          'How would a 1% interest rate change impact this portfolio?',
+          "Which loan segments are performing best/worst?",
+          "How would a 1% interest rate change impact this portfolio?"
         ];
       }
     } else if (agentId === 'doc-easy') {
       if (inputLower.includes('document') || responseLower.includes('document')) {
         contextualPrompts = [
-          'Are there any missing documents in this application?',
-          'Can you identify any inconsistencies in these documents?',
-          'What documentation is typically required for this type of transaction?',
+          "Are there any missing documents in this application?",
+          "Can you identify any inconsistencies in these documents?",
+          "What documentation is typically required for this type of transaction?"
         ];
       } else if (responseLower.includes('discrepanc') || responseLower.includes('inconsisten')) {
         contextualPrompts = [
-          'How serious are these discrepancies?',
-          'What additional verification would you recommend?',
-          'Are these common issues in similar applications?',
+          "How serious are these discrepancies?",
+          "What additional verification would you recommend?",
+          "Are these common issues in similar applications?"
         ];
       }
     } else if (agentId.includes('ben')) {
       contextualPrompts = [
-        'What are the key financial ratios I should be monitoring?',
-        'How does cash flow compare to projections?',
-        'What tax implications should I be aware of?',
+        "What are the key financial ratios I should be monitoring?",
+        "How does cash flow compare to projections?",
+        "What tax implications should I be aware of?"
       ];
     } else if (agentId.includes('mira-sales')) {
       contextualPrompts = [
         "What's our competitive advantage with this client?",
-        'How can we increase cross-selling opportunities?',
-        'What customer retention strategies would work best here?',
+        "How can we increase cross-selling opportunities?",
+        "What customer retention strategies would work best here?"
       ];
     } else if (agentId.includes('steve-branding')) {
       contextualPrompts = [
-        'How does this align with our brand values?',
-        'What messaging would resonate best with this audience?',
-        'How should we position this in our marketing materials?',
+        "How does this align with our brand values?",
+        "What messaging would resonate best with this audience?",
+        "How should we position this in our marketing materials?"
       ];
     } else if (responseLower.includes('compliance') || responseLower.includes('regulatory')) {
       contextualPrompts = [
-        'What specific regulations apply in this case?',
-        'Are there any recent regulatory changes we should be aware of?',
-        'What documentation is needed for compliance?',
+        "What specific regulations apply in this case?",
+        "Are there any recent regulatory changes we should be aware of?",
+        "What documentation is needed for compliance?"
       ];
     } else if (responseLower.includes('analysis') || responseLower.includes('financial')) {
       contextualPrompts = [
-        'Can you break down these financial trends by quarter?',
-        'How reliable are these financial projections?',
-        "What's driving the change in these financial metrics?",
+        "Can you break down these financial trends by quarter?",
+        "How reliable are these financial projections?",
+        "What's driving the change in these financial metrics?"
       ];
     }
 
     // If we have contextual prompts, use those, otherwise use a mix of base prompts
     const promptOptions = contextualPrompts.length > 0 ? contextualPrompts : basePrompts;
-
+    
     // Shuffle array and take the first 3
     return promptOptions.sort(() => 0.5 - Math.random()).slice(0, 3);
   };
@@ -1204,7 +1196,7 @@ const EVAAssistantChat: React.FC<EVAAssistantChatProps> = ({
                   </svg>
                 </button>
               </div>
-
+              
               {/* Suggested prompts section */}
               {suggestedPrompts.length > 0 && !isProcessing && (
                 <div className="mt-3">

@@ -38,7 +38,7 @@ const Dashboard = loadable(() => import('../../pages/Dashboard'), {
   fallback: <LoadingSpinner pageName="Dashboard" />,
   resolveComponent: components => components.default,
   cacheKey: props => 'dashboard',
-  chunkName: 'dashboard',
+  chunkName: 'dashboard'
 });
 
 const CreditApplication = loadable(() => import('../../pages/CreditApplication'), {
@@ -283,7 +283,10 @@ const LoadableRouter: React.FC = () => {
           </PageLayout>
         }
       />
-      <Route path="/post-closing" element={<PostClosingCustomers />} />
+      <Route
+        path="/post-closing"
+        element={<PostClosingCustomers />}
+      />
       <Route
         path="/deal-structuring"
         element={
@@ -356,16 +359,34 @@ const LoadableRouter: React.FC = () => {
           </PageLayout>
         }
       />
-      <Route path="/customer-retention/customers" element={<CustomerRetentionCustomers />} />
-      <Route path="/customer-retention/contacts" element={<CustomerRetentionContacts />} />
-      <Route path="/customer-retention/commitments" element={<CustomerRetentionCommitments />} />
+      <Route
+        path="/customer-retention/customers"
+        element={<CustomerRetentionCustomers />}
+      />
+      <Route
+        path="/customer-retention/contacts"
+        element={<CustomerRetentionContacts />}
+      />
+      <Route
+        path="/customer-retention/commitments"
+        element={<CustomerRetentionCommitments />}
+      />
       <Route
         path="/customer-retention/calendar/:provider"
         element={<CustomerRetentionCalendar />}
       />
-      <Route path="/customer-retention/calendar" element={<CustomerRetentionCalendar />} />
-      <Route path="/contacts" element={<Contacts />} />
-      <Route path="/commitments" element={<Commitments />} />
+      <Route
+        path="/customer-retention/calendar"
+        element={<CustomerRetentionCalendar />}
+      />
+      <Route
+        path="/contacts"
+        element={<Contacts />}
+      />
+      <Route
+        path="/commitments"
+        element={<Commitments />}
+      />
       <Route
         path="/forms"
         element={

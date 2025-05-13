@@ -557,7 +557,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
           collateralValue: financialProfile.collateralValue,
         },
         sourcedFromMatch: true,
-        matchScore: selectedMatch?.matchScore || 0,
+        matchScore: selectedMatch?.matchScore || 0
       },
     });
   };
@@ -634,9 +634,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
                 onClick={() => setActiveTab('analytics')}
               >
                 Match Analytics
-                <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">
-                  Coming Soon
-                </span>
+                <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">Coming Soon</span>
               </button>
             </div>
           </div>
@@ -841,13 +839,13 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
               </button>
               <button
                 onClick={() => {
-                  navigate('/risk-map', {
-                    state: {
-                      fromMatch: true,
+                  navigate('/risk-map', { 
+                    state: { 
+                      fromMatch: true, 
                       matchId: match.id,
                       matchName: match.name,
-                      matchScore: match.matchScore,
-                    },
+                      matchScore: match.matchScore
+                    } 
                   });
                 }}
                 className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
@@ -1129,9 +1127,7 @@ const SmartMatchTool: React.FC<SmartMatchToolProps> = ({
             onClick={() => setActiveTab('analytics')}
           >
             Match Analytics
-            <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">
-              Coming Soon
-            </span>
+            <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">Coming Soon</span>
           </button>
         </div>
       </div>

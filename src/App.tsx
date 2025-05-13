@@ -88,10 +88,10 @@ const AppContent: React.FC = () => {
     const handleResize = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
-
+      
       setWindowWidth(width);
       setWindowHeight(height);
-
+      
       // Determine device type
       if (width < 640) {
         setDeviceType('mobile');
@@ -100,14 +100,14 @@ const AppContent: React.FC = () => {
       } else {
         setDeviceType('desktop');
       }
-
+      
       // Determine orientation
       setOrientation(width > height ? 'landscape' : 'portrait');
     };
-
+    
     window.addEventListener('resize', handleResize);
     handleResize(); // Initial call
-
+    
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -129,8 +129,7 @@ const AppContent: React.FC = () => {
   const setShowAILifecycleAssistant = userContext?.setShowAILifecycleAssistant;
 
   // Determine if the UI should be in compact mode for smaller screens
-  const isCompactMode =
-    deviceType === 'mobile' || (deviceType === 'tablet' && orientation === 'portrait');
+  const isCompactMode = deviceType === 'mobile' || (deviceType === 'tablet' && orientation === 'portrait');
 
   // Calculate sidebar and content widths based on device type
   const getSidebarWidth = () => {
@@ -172,11 +171,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div
-      className={`app ${theme} text-sm`}
-      data-device-type={deviceType}
-      data-orientation={orientation}
-    >
+    <div className={`app ${theme} text-sm`} data-device-type={deviceType} data-orientation={orientation}>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
         <div className="flex h-screen overflow-hidden">
           <SideNavigation />
@@ -221,19 +216,8 @@ const AppContent: React.FC = () => {
               {deviceType === 'mobile' && (
                 <div className="fixed bottom-4 right-4 z-40">
                   <button className="bg-blue-600 text-white p-3 rounded-full shadow-lg">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                      />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                     </svg>
                   </button>
                 </div>
@@ -241,7 +225,7 @@ const AppContent: React.FC = () => {
 
               {/* PWA Install Prompt */}
               <PWAInstallPrompt />
-
+              
               {/* Responsive Testing Panel */}
               <ResponsiveTestingPanel />
             </main>

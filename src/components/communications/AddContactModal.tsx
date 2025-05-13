@@ -3,12 +3,7 @@ import { z } from 'zod';
 import Modal from '../common/Modal/Modal';
 import { validateForm, emailSchema, phoneSchema } from '../../utils/formValidation';
 import { ApiErrorHandler } from '../../utils/apiErrorHandler';
-import {
-  sanitizeInput,
-  sanitizeEmail,
-  sanitizePhone,
-  sanitizeFormData,
-} from '../../utils/inputSanitizer';
+import { sanitizeInput, sanitizeEmail, sanitizePhone, sanitizeFormData } from '../../utils/inputSanitizer';
 
 // Business interface to match Supabase schema
 interface Business {
@@ -26,8 +21,8 @@ export interface Contact {
   id: string;
   name: string;
   email: string;
-  phone: string; // Make this required to match CustomerRetentionContacts
-  title: string; // Make this required to match CustomerRetentionContacts
+  phone: string;  // Make this required to match CustomerRetentionContacts
+  title: string;  // Make this required to match CustomerRetentionContacts
   company: string;
   business_id?: string;
   business?: Business;
@@ -43,7 +38,7 @@ interface AddContactModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddContact: (contact: Omit<Contact, 'id'>) => void;
-  businesses?: Business[]; // List of businesses from your database
+  businesses?: Business[];  // List of businesses from your database
   onAddBusiness?: (business: Omit<Business, 'id'>) => void;
 }
 
@@ -77,7 +72,7 @@ const mockBusinesses: Business[] = [
   { id: 'b2', name: 'Global Equities Inc', industry: 'Investment' },
   { id: 'b3', name: 'Capital Resources LLC', industry: 'Consulting' },
   { id: 'b4', name: 'Premier Funding Group', industry: 'Lending' },
-  { id: 'b5', name: 'Innovative Equipment Solutions', industry: 'Manufacturing' },
+  { id: 'b5', name: 'Innovative Equipment Solutions', industry: 'Manufacturing' }
 ];
 
 // Contact type options
@@ -88,18 +83,22 @@ const contactTypeOptions = [
   'Service Provider',
   'Lender',
   'Partner',
-  'Other',
+  'Other'
 ];
 
 // Contact status options
-const contactStatusOptions = ['Active', 'Inactive', 'Follow-up Required'];
+const contactStatusOptions = [
+  'Active',
+  'Inactive',
+  'Follow-up Required'
+];
 
-const AddContactModal: React.FC<AddContactModalProps> = ({
-  isOpen,
-  onClose,
+const AddContactModal: React.FC<AddContactModalProps> = ({ 
+  isOpen, 
+  onClose, 
   onAddContact,
-  businesses = mockBusinesses,
-  onAddBusiness,
+  businesses = mockBusinesses, 
+  onAddBusiness 
 }) => {
   // Contact form state
   const [name, setName] = useState('');
@@ -110,7 +109,7 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
   const [contactType, setContactType] = useState<string>('Business Owner');
   const [contactStatus, setContactStatus] = useState<string>('Active');
   const [notes, setNotes] = useState<string>('');
-
+  
   // Business creation state
   const [showAddBusiness, setShowAddBusiness] = useState(false);
   const [newBusinessName, setNewBusinessName] = useState('');
@@ -118,7 +117,7 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
   const [newBusinessSize, setNewBusinessSize] = useState('');
   const [newBusinessType, setNewBusinessType] = useState('');
   const [newBusinessWebsite, setNewBusinessWebsite] = useState('');
-
+  
   // Form validation state
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -140,19 +139,19 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(sanitizeInput(e.target.value));
   };
-
+  
   const handleBusinessChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setBusinessId(e.target.value);
   };
-
+  
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setContactType(e.target.value);
   };
-
+  
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setContactStatus(e.target.value);
   };
-
+  
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNotes(sanitizeInput(e.target.value));
   };
@@ -161,19 +160,19 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
   const handleNewBusinessNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewBusinessName(sanitizeInput(e.target.value));
   };
-
+  
   const handleNewBusinessIndustryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewBusinessIndustry(sanitizeInput(e.target.value));
   };
-
+  
   const handleNewBusinessSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setNewBusinessSize(e.target.value);
   };
-
+  
   const handleNewBusinessTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewBusinessType(sanitizeInput(e.target.value));
   };
-
+  
   const handleNewBusinessWebsiteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewBusinessWebsite(sanitizeInput(e.target.value));
   };
@@ -182,7 +181,7 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
   const handleAddBusiness = () => {
     setIsAddingBusiness(true);
     setErrors({});
-
+    
     try {
       // Prepare business data
       const businessData: BusinessFormData = {
@@ -190,28 +189,28 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
         industry: newBusinessIndustry || undefined,
         size: newBusinessSize || undefined,
         type: newBusinessType || undefined,
-        website: newBusinessWebsite || undefined,
+        website: newBusinessWebsite || undefined
       };
-
+      
       // Validate form data
       const result = validateForm(businessData, businessSchema);
-
+      
       if (!result.success) {
         setErrors(result.errors);
         setIsAddingBusiness(false);
         return;
       }
-
+      
       // Call onAddBusiness if provided, otherwise simulate
       if (onAddBusiness) {
         onAddBusiness(result.data);
-
+        
         // In a real implementation, you would get the new business ID from the response
         // For now, simulate by generating a temporary ID
         const tempId = `b${Date.now()}`;
         setBusinessId(tempId);
       }
-
+      
       // Reset form and close business form
       setNewBusinessName('');
       setNewBusinessIndustry('');
@@ -220,8 +219,9 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
       setNewBusinessWebsite('');
       setShowAddBusiness(false);
       setIsAddingBusiness(false);
+      
     } catch (error) {
-      ApiErrorHandler.handleError(error, undefined, message => {
+      ApiErrorHandler.handleError(error, undefined, (message) => {
         setErrors({ _businessForm: message });
       });
       setIsAddingBusiness(false);
@@ -243,12 +243,12 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
         business_id: businessId || undefined,
         type: contactType,
         status: contactStatus,
-        notes: notes || undefined,
+        notes: notes || undefined
       };
 
       // Sanitize all form data as an extra layer of protection
       const sanitizedData = sanitizeFormData(formData);
-
+      
       // Validate form data using Zod schema
       const result = validateForm(sanitizedData, contactSchema);
 
@@ -267,7 +267,7 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
         status: result.data.status || 'Active',
         lastContacted: new Date().toISOString(),
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       onAddContact(newContact);
@@ -286,7 +286,7 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
       onClose();
     } catch (error) {
       // Handle unexpected errors
-      ApiErrorHandler.handleError(error, undefined, message => {
+      ApiErrorHandler.handleError(error, undefined, (message) => {
         setErrors({ _form: message });
       });
       setIsSubmitting(false);
@@ -300,7 +300,7 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
         {errors._form && (
           <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm">{errors._form}</div>
         )}
-
+      
         <div>
           <label htmlFor="contact-name" className="block text-sm font-medium text-gray-700">
             Name*
@@ -309,8 +309,8 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
             type="text"
             id="contact-name"
             className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary-500 ${
-              errors.name
-                ? 'border-red-300 focus:border-red-500'
+              errors.name 
+                ? 'border-red-300 focus:border-red-500' 
                 : 'border-gray-300 focus:border-primary-500'
             }`}
             value={name}
@@ -335,8 +335,8 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
             type="email"
             id="contact-email"
             className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary-500 ${
-              errors.email
-                ? 'border-red-300 focus:border-red-500'
+              errors.email 
+                ? 'border-red-300 focus:border-red-500' 
                 : 'border-gray-300 focus:border-primary-500'
             }`}
             value={email}
@@ -361,8 +361,8 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
             type="tel"
             id="contact-phone"
             className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary-500 ${
-              errors.phone
-                ? 'border-red-300 focus:border-red-500'
+              errors.phone 
+                ? 'border-red-300 focus:border-red-500' 
                 : 'border-gray-300 focus:border-primary-500'
             }`}
             value={phone}
@@ -386,8 +386,8 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
             type="text"
             id="contact-title"
             className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary-500 ${
-              errors.title
-                ? 'border-red-300 focus:border-red-500'
+              errors.title 
+                ? 'border-red-300 focus:border-red-500' 
                 : 'border-gray-300 focus:border-primary-500'
             }`}
             value={title}
@@ -402,14 +402,14 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
             </p>
           )}
         </div>
-
+        
         {/* Business selection with create option */}
         <div>
           <div className="flex justify-between items-center">
             <label htmlFor="contact-business" className="block text-sm font-medium text-gray-700">
               Associated Business
             </label>
-
+            
             {!showAddBusiness && (
               <button
                 type="button"
@@ -420,13 +420,13 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
               </button>
             )}
           </div>
-
+          
           {!showAddBusiness ? (
             <select
               id="contact-business"
               className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary-500 ${
-                errors.business_id
-                  ? 'border-red-300 focus:border-red-500'
+                errors.business_id 
+                  ? 'border-red-300 focus:border-red-500' 
                   : 'border-gray-300 focus:border-primary-500'
               }`}
               value={businessId}
@@ -451,27 +451,24 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
                   ×
                 </button>
               </div>
-
+              
               {errors._businessForm && (
                 <div className="p-2 mb-3 bg-red-50 text-red-700 rounded-md text-sm">
                   {errors._businessForm}
                 </div>
               )}
-
+              
               <div className="space-y-3">
                 <div>
-                  <label
-                    htmlFor="business-name"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label htmlFor="business-name" className="block text-sm font-medium text-gray-700">
                     Business Name*
                   </label>
                   <input
                     type="text"
                     id="business-name"
                     className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary-500 ${
-                      errors['business.name']
-                        ? 'border-red-300 focus:border-red-500'
+                      errors['business.name'] 
+                        ? 'border-red-300 focus:border-red-500' 
                         : 'border-gray-300 focus:border-primary-500'
                     }`}
                     value={newBusinessName}
@@ -480,15 +477,14 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
                     required
                   />
                   {errors['business.name'] && (
-                    <p className="mt-1 text-sm text-red-600">{errors['business.name']}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors['business.name']}
+                    </p>
                   )}
                 </div>
-
+                
                 <div>
-                  <label
-                    htmlFor="business-industry"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label htmlFor="business-industry" className="block text-sm font-medium text-gray-700">
                     Industry
                   </label>
                   <input
@@ -500,12 +496,9 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
                     placeholder="Enter industry"
                   />
                 </div>
-
+                
                 <div>
-                  <label
-                    htmlFor="business-size"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label htmlFor="business-size" className="block text-sm font-medium text-gray-700">
                     Company Size
                   </label>
                   <select
@@ -522,12 +515,9 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
                     <option value="501+">501+ employees</option>
                   </select>
                 </div>
-
+                
                 <div>
-                  <label
-                    htmlFor="business-type"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label htmlFor="business-type" className="block text-sm font-medium text-gray-700">
                     Business Type
                   </label>
                   <input
@@ -539,12 +529,9 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
                     placeholder="Enter business type"
                   />
                 </div>
-
+                
                 <div>
-                  <label
-                    htmlFor="business-website"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label htmlFor="business-website" className="block text-sm font-medium text-gray-700">
                     Website
                   </label>
                   <input
@@ -556,7 +543,7 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
                     placeholder="Enter website URL"
                   />
                 </div>
-
+                
                 <div className="pt-2">
                   <button
                     type="button"
@@ -569,33 +556,23 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
                     {isAddingBusiness ? (
                       <>
                         <svg className="w-4 h-4 mr-2 animate-spin" viewBox="0 0 24 24">
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="none"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                         Adding...
                       </>
-                    ) : (
-                      'Add Business'
-                    )}
+                    ) : 'Add Business'}
                   </button>
                 </div>
               </div>
             </div>
           )}
-
-          {errors.business_id && <p className="mt-1 text-sm text-red-600">{errors.business_id}</p>}
+          
+          {errors.business_id && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.business_id}
+            </p>
+          )}
         </div>
 
         <div>
@@ -605,8 +582,8 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
           <select
             id="contact-type"
             className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary-500 ${
-              errors.type
-                ? 'border-red-300 focus:border-red-500'
+              errors.type 
+                ? 'border-red-300 focus:border-red-500' 
                 : 'border-gray-300 focus:border-primary-500'
             }`}
             value={contactType}
@@ -614,14 +591,16 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
             required
           >
             {contactTypeOptions.map(type => (
-              <option key={type} value={type}>
-                {type}
-              </option>
+              <option key={type} value={type}>{type}</option>
             ))}
           </select>
-          {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type}</p>}
+          {errors.type && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.type}
+            </p>
+          )}
         </div>
-
+        
         <div>
           <label htmlFor="contact-status" className="block text-sm font-medium text-gray-700">
             Status
@@ -633,13 +612,11 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
             onChange={handleStatusChange}
           >
             {contactStatusOptions.map(status => (
-              <option key={status} value={status}>
-                {status}
-              </option>
+              <option key={status} value={status}>{status}</option>
             ))}
           </select>
         </div>
-
+        
         <div>
           <label htmlFor="contact-notes" className="block text-sm font-medium text-gray-700">
             Notes
@@ -672,20 +649,8 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
             {isSubmitting ? (
               <>
                 <svg className="w-4 h-4 mr-2 animate-spin" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 Saving...
               </>

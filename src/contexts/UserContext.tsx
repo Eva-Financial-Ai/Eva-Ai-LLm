@@ -129,20 +129,20 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [showAILifecycleAssistant, setShowAILifecycleAssistant] = useState(false);
   const [isEvaChatOpen, setIsEvaChatOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
+  
   // Enhanced theme management
   const [theme, setTheme] = useState(() => {
     // Get theme from localStorage or default to 'light'
     const savedTheme = localStorage.getItem('theme');
     return savedTheme || 'light';
   });
-
+  
   const [colorScheme, setColorScheme] = useState<ColorScheme>(() => {
     // Get color scheme from localStorage or default to 'light'
     const savedScheme = localStorage.getItem('colorScheme') as ColorScheme;
     return savedScheme || 'light';
   });
-
+  
   const [highContrast, setHighContrast] = useState(() => {
     // Get high contrast setting from localStorage or default to false
     return localStorage.getItem('highContrast') === 'true';
@@ -187,17 +187,17 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (storedTheme) {
       setTheme(storedTheme);
     }
-
+    
     // Apply color scheme
     if (storedColorScheme) {
       setColorScheme(storedColorScheme as ColorScheme);
     }
-
+    
     // Apply high contrast
     if (storedHighContrast) {
       setHighContrast(storedHighContrast === 'true');
     }
-
+    
     // Check for system color scheme preference
     if (colorScheme === 'system') {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -222,7 +222,7 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('light');
     }
-
+    
     if (isHighContrast) {
       document.documentElement.classList.add('high-contrast');
     } else {
@@ -235,19 +235,19 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (colorScheme === 'system') {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       applyThemeToDocument(prefersDark ? 'dark' : 'light', highContrast);
-
+      
       // Listen for system theme changes
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handler = (e: MediaQueryListEvent) => {
         applyThemeToDocument(e.matches ? 'dark' : 'light', highContrast);
       };
-
+      
       mediaQuery.addEventListener('change', handler);
       return () => mediaQuery.removeEventListener('change', handler);
     } else {
       applyThemeToDocument(colorScheme, highContrast);
     }
-
+    
     localStorage.setItem('theme', theme);
     localStorage.setItem('colorScheme', colorScheme);
     localStorage.setItem('highContrast', highContrast.toString());

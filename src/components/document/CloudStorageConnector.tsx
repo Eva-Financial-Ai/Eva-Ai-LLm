@@ -206,21 +206,19 @@ const CloudStorageConnector: React.FC<CloudStorageConnectorProps> = ({
 
       // Dispatch successful import event to parent components
       const event = new CustomEvent('filelock-import-success', {
-        detail: { files: fileItems, provider: selectedProvider },
+        detail: { files: fileItems, provider: selectedProvider }
       });
       window.dispatchEvent(event);
-
+      
       onFileImport(fileItems);
       setIsLoading(false);
       onClose();
-
+      
       // Show success toast (in a real implementation, you'd use a toast notification system)
       alert(`Successfully imported ${fileItems.length} files from ${selectedProvider}`);
     } catch (err) {
       console.error('Import error:', err);
-      setError(
-        'Failed to import files. Please try again or contact support if the issue persists.'
-      );
+      setError('Failed to import files. Please try again or contact support if the issue persists.');
       setIsLoading(false);
     }
   };

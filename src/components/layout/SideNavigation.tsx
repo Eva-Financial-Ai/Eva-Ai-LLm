@@ -147,11 +147,8 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
 
   // Close sidebar when clicking a link on mobile
   const handleNavItemClick = (onClick?: () => void) => {
-    console.log(
-      'handleNavItemClick called with:',
-      onClick ? 'onClick function provided' : 'no onClick'
-    );
-
+    console.log('handleNavItemClick called with:', onClick ? 'onClick function provided' : 'no onClick');
+    
     if (onClick) {
       console.log('Executing onClick function');
       try {
@@ -973,25 +970,18 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
     try {
       // Log the current state before navigation
       console.log('Current path before navigation:', location.pathname + location.search);
-      console.log(
-        'Current navigate function:',
-        typeof navigate === 'function' ? 'Function' : 'Not a function'
-      );
-
+      console.log('Current navigate function:', typeof navigate === 'function' ? 'Function' : 'Not a function');
+      
       // Actually perform the navigation
       navigate(path);
       console.log(`%cNavigation called for: ${path}`, 'color: green; font-weight: bold');
-
+      
       // Check the result after a short delay
       setTimeout(() => {
         console.log(`%cCurrent location after navigate: ${window.location.href}`, 'color: purple');
-        console.log(
-          'Did location change?',
-          location.pathname + location.search === path
-            ? 'Yes'
-            : 'No - still at ' + location.pathname + location.search
-        );
-
+        console.log('Did location change?', 
+          location.pathname + location.search === path ? 'Yes' : 'No - still at ' + location.pathname + location.search);
+        
         // Add a warning if we seem to be at the dashboard still
         if (location.pathname === '/' || location.pathname === '/dashboard') {
           console.warn('⚠️ Navigation appears to have been redirected to dashboard ⚠️');
@@ -1004,10 +994,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
 
   // Test navigation on mount
   useEffect(() => {
-    console.log(
-      'SideNavigation mounted, navigate function:',
-      typeof navigate === 'function' ? 'Available' : 'Not available'
-    );
+    console.log('SideNavigation mounted, navigate function:', typeof navigate === 'function' ? 'Available' : 'Not available');
     console.log('Current location:', location.pathname + location.search);
   }, []);
 
@@ -1043,7 +1030,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             // If onClick is provided, use a button instead of a Link
             <button
               className={styleClasses}
-              onClick={e => {
+              onClick={(e) => {
                 e.preventDefault(); // Prevent any default behavior
                 console.log(`Clicked item: ${itemName}`);
                 handleNavItemClick(item.onClick);
@@ -1071,7 +1058,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             <Link
               to={itemPath}
               className={styleClasses}
-              onClick={e => {
+              onClick={(e) => {
                 if (itemPath === '#') e.preventDefault();
                 console.log(`Link clicked: ${itemName} to path: ${itemPath}`);
               }}
@@ -1163,7 +1150,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                 <li key={subItemName} className="mt-1">
                   {subItem.onClick ? (
                     <button
-                      onClick={e => {
+                      onClick={(e) => {
                         e.preventDefault(); // Prevent default button behavior
                         console.log(`Sub-item clicked: ${subItemName} with path: ${subItemPath}`);
                         handleNavItemClick(subItem.onClick);
@@ -1195,11 +1182,9 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                     <Link
                       to={subItemPath}
                       className={subStyleClasses}
-                      onClick={e => {
+                      onClick={(e) => {
                         if (subItemPath === '#') e.preventDefault();
-                        console.log(
-                          `Sub-item Link clicked: ${subItemName} to path: ${subItemPath}`
-                        );
+                        console.log(`Sub-item Link clicked: ${subItemName} to path: ${subItemPath}`);
                       }}
                       title={sidebarCollapsed ? subItemName : undefined}
                     >
@@ -1310,7 +1295,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                   />
                 )}
               </div>
-
+              
               <nav className="flex-1 px-2 bg-white space-y-0">
                 {/* Render navigation items */}
                 <ul className="space-y-3">{navigationItems.map(item => renderNavItem(item))}</ul>

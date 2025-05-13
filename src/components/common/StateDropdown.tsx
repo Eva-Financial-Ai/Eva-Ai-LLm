@@ -52,7 +52,7 @@ export const US_STATES = [
   { value: 'WA', label: 'Washington' },
   { value: 'WV', label: 'West Virginia' },
   { value: 'WI', label: 'Wisconsin' },
-  { value: 'WY', label: 'Wyoming' },
+  { value: 'WY', label: 'Wyoming' }
 ];
 
 export interface StateDropdownProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
@@ -77,14 +77,11 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
   return (
     <div className={`${containerClassName}`}>
       {label && (
-        <label
-          htmlFor={props.id || props.name}
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
+        <label htmlFor={props.id || props.name} className="block text-sm font-medium text-gray-700 mb-1">
           {label}
         </label>
       )}
-
+      
       <select
         className={`block w-full px-3 py-2 border ${
           error ? 'border-red-500' : 'border-gray-300'
@@ -98,10 +95,10 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
           </option>
         ))}
       </select>
-
+      
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 };
 
-export default StateDropdown;
+export default StateDropdown; 
