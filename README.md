@@ -267,3 +267,82 @@ Proprietary software - All rights reserved.
 
 © 2023-2024 EVA Financial Technologies, Inc.
 
+## Design System and Component Library
+
+The EVA Platform uses a standardized design system to ensure consistency across all UI components. The design system defines spacing, typography, colors, and component styles to create a cohesive user experience.
+
+### Design System Documentation
+
+See the full design system documentation in `src/design-system/DesignSystem.md`.
+
+### Core Components
+
+The platform includes the following reusable components:
+
+- **Button**: Standard button with multiple variants (primary, secondary, danger, success, outline) and sizes
+- **Card**: Container component for grouping content with various styling options
+- **Input**: Form input fields with consistent styling, error states, and accessibility features
+- **Modal**: Dialog component with standardized header, content, and action areas
+- **FormWrapper**: Wrapper for form content with consistent layout and styling
+
+### Using Components
+
+```jsx
+import Button from './components/common/Button';
+import Card from './components/common/Card';
+import Input from './components/common/Input';
+import Modal from './components/common/Modal/Modal';
+import { FormWrapper } from './components/common/Form';
+
+// Example usage
+function MyComponent() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  return (
+    <div>
+      <Button 
+        variant="primary" 
+        onClick={() => setIsModalOpen(true)}
+      >
+        Open Form
+      </Button>
+      
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="My Form"
+      >
+        <FormWrapper
+          onSubmit={handleSubmit}
+          onCancel={() => setIsModalOpen(false)}
+          submitText="Save"
+        >
+          <Input
+            label="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          
+          {/* Additional form fields */}
+        </FormWrapper>
+      </Modal>
+    </div>
+  );
+}
+```
+
+### Design Principles
+
+1. **Consistency**: Use the same component for the same purpose throughout the application
+2. **Responsiveness**: All components are designed to work across various screen sizes
+3. **Accessibility**: Components include proper ARIA attributes and keyboard navigation
+4. **Reusability**: Components accept props for customization while maintaining consistent styling
+
+### Styling Guidelines
+
+- Use the Tailwind utility classes defined in our design system
+- Maintain consistent spacing using the 8px grid (4px, 8px, 16px, 24px, 32px, etc.)
+- Follow the color palette defined in `tailwind.config.js`
+- Use proper heading hierarchy (h1, h2, h3) for semantic HTML
+

@@ -60,12 +60,12 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
   const isPortrait = orientation === 'portrait';
   const isSmallScreen = isMobile || (isTablet && isPortrait);
 
-  // Auto-collapse sidebar on small screens
+  // Auto-collapse sidebar on small screens - RESTORE collapse functionality
   useEffect(() => {
     if (isSmallScreen) {
       setSidebarCollapsed(true);
     }
-  }, [isSmallScreen, deviceType, orientation]);
+  }, [isSmallScreen, deviceType, orientation, setSidebarCollapsed]);
 
   // Handle window resize
   useEffect(() => {
@@ -984,7 +984,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
       location.pathname.startsWith(itemPath + '/');
 
     // Style classes
-    const linkBaseClasses = 'flex items-center px-3 py-2.5 text-base font-medium rounded-md';
+    const linkBaseClasses = 'flex items-center px-3 py-3 text-base font-medium rounded-md';
     const activeClasses = 'text-primary-600 bg-primary-50 hover:bg-primary-100';
     const inactiveClasses = 'text-gray-600 hover:bg-gray-50 hover:text-gray-900';
     const styleClasses = `${linkBaseClasses} ${isActive ? activeClasses : inactiveClasses}`;
@@ -998,7 +998,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             className={styleClasses}
             onClick={() => handleNavItemClick(item.onClick)}
           >
-            <span className="mr-3">{itemIcon}</span>
+            <span className="mr-3 min-w-[20px] min-h-[20px]">{itemIcon}</span>
             <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{itemName}</span>
             {item.badge && !sidebarCollapsed && (
               <span
@@ -1029,7 +1029,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
           className={`w-full ${styleClasses} flex items-center justify-between`}
         >
           <div className="flex items-center">
-            <span className="mr-3">{itemIcon}</span>
+            <span className="mr-3 min-w-[20px] min-h-[20px]">{itemIcon}</span>
             <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>{itemName}</span>
             {item.badge && !sidebarCollapsed && (
               <span
@@ -1046,7 +1046,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             )}
           </div>
           <svg
-            className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
+            className={`ml-2 h-5 w-5 transform transition-transform duration-200 ${
               isExpanded ? 'rotate-90' : ''
             }`}
             xmlns="http://www.w3.org/2000/svg"
@@ -1073,7 +1073,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                   : subItem.icon;
               const isSelected = subItem.current || subItem.selected;
 
-              const subStyleClasses = `flex items-center px-3 py-2.5 text-base font-medium rounded-md ${
+              const subStyleClasses = `flex items-center px-3 py-3 text-base font-medium rounded-md ${
                 isSelected ? activeClasses : inactiveClasses
               }`;
 
@@ -1084,7 +1084,9 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                       onClick={() => handleNavItemClick(subItem.onClick)}
                       className={subStyleClasses}
                     >
-                      {subItemIcon && <span className="mr-3">{subItemIcon}</span>}
+                      {subItemIcon && (
+                        <span className="mr-3 min-w-[20px] min-h-[20px]">{subItemIcon}</span>
+                      )}
                       <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
                         {subItemName}
                       </span>
@@ -1108,7 +1110,9 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                       className={subStyleClasses}
                       onClick={() => handleNavItemClick()}
                     >
-                      {subItemIcon && <span className="mr-3">{subItemIcon}</span>}
+                      {subItemIcon && (
+                        <span className="mr-3 min-w-[20px] min-h-[20px]">{subItemIcon}</span>
+                      )}
                       <span className={sidebarCollapsed ? 'sr-only' : 'truncate'}>
                         {subItemName}
                       </span>
@@ -1136,16 +1140,16 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
     );
   };
 
-  // Mobile-optimized sidebar toggle button
+  // Mobile-optimized sidebar toggle button - RESTORE toggle button
   const renderSidebarToggle = () => (
     <button
       onClick={toggleSidebar}
-      className={`${isMobile ? 'absolute right-4 top-4 z-50' : 'absolute -right-3 top-12'} bg-white border border-gray-200 rounded-full p-1 shadow-md z-10 hover:shadow-lg transition-all`}
+      className={`${isMobile ? 'absolute right-4 top-4 z-50' : 'absolute -right-4 top-12'} bg-white border border-gray-200 rounded-full p-2 shadow-md z-10 hover:shadow-lg transition-all`}
       aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
     >
       {sidebarCollapsed ? (
         <svg
-          className="h-4 w-4 text-gray-700"
+          className="h-5 w-5 text-gray-700"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
@@ -1158,7 +1162,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
         </svg>
       ) : (
         <svg
-          className="h-4 w-4 text-gray-700"
+          className="h-5 w-5 text-gray-700"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
@@ -1175,18 +1179,21 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
 
   // Determines sidebar widths for different screen sizes
   const getSidebarWidth = () => {
-    if (sidebarCollapsed) return 'w-20'; // Wider collapsed sidebar (was w-14)
-    if (isMobile) return 'w-72'; // Wider for mobile sidebar (was w-64)
-    if (isTablet) return 'w-64'; // Wider for tablet (was w-56)
-    return 'w-72'; // Wider for desktop (was w-64)
+    if (sidebarCollapsed) return 'w-16'; // Narrower collapsed sidebar
+    if (isMobile) return 'w-full max-w-xs'; // Full width with max for mobile
+    if (isTablet) return 'w-72'; // Wider for tablet
+    return 'w-80'; // Even wider for desktop
   };
 
   return (
     <>
       <nav
-        className={`fixed h-full bg-white dark:bg-gray-900 z-20 overflow-y-auto transition-all duration-300 border-r border-gray-200 dark:border-gray-800 ${getSidebarWidth()} ${isMobile && !sidebarCollapsed ? 'left-0' : sidebarCollapsed && isMobile ? '-left-20' : ''}`}
+        className={`fixed h-full bg-white dark:bg-gray-900 z-20 overflow-y-auto transition-all duration-300 border-r border-gray-200 dark:border-gray-800 ${getSidebarWidth()} ${isMobile && !sidebarCollapsed ? 'left-0' : sidebarCollapsed ? '-left-0' : 'left-0'}`}
         style={{
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          transform: sidebarCollapsed ? 'translateX(0)' : 'translateX(0)',
+          width: sidebarCollapsed ? '64px' : undefined,
+          marginLeft: sidebarCollapsed ? 0 : undefined,
         }}
       >
         <div className="flex flex-col h-full">
@@ -1197,14 +1204,22 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                 className={`flex items-center flex-shrink-0 px-4 mb-5 ${sidebarCollapsed ? 'justify-center' : ''}`}
               >
                 {sidebarCollapsed ? (
-                  <img className="h-8 w-8" src="/eva-favicon.svg" alt="EVA Platform" />
+                  <img
+                    className="h-8 w-8"
+                    src={`${process.env.PUBLIC_URL}/eva-favicon.png`}
+                    alt="EVA Platform"
+                  />
                 ) : (
-                  <img className="h-8 w-auto" src="/eva-logo.svg" alt="EVA Platform Logo" />
+                  <img
+                    className="h-10 w-auto max-w-[200px]"
+                    src={`${process.env.PUBLIC_URL}/eva-logo.png`}
+                    alt="EVA Platform Logo"
+                  />
                 )}
               </div>
               <nav className="flex-1 px-2 bg-white space-y-0">
                 {/* Render navigation items */}
-                <ul className="space-y-1">{navigationItems.map(item => renderNavItem(item))}</ul>
+                <ul className="space-y-3">{navigationItems.map(item => renderNavItem(item))}</ul>
               </nav>
             </div>
           </div>
