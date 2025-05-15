@@ -11,6 +11,7 @@ import {
   CalendarIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
+import { useModal, ModalType } from '../../contexts/ModalContext';
 
 interface NavigationItem {
   id?: string;
@@ -44,6 +45,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
   const { userType } = useUserType();
   const { t } = useTranslation();
   const { setIsEvaChatOpen, sidebarCollapsed, setSidebarCollapsed } = useContext(UserContext);
+  const { openModal } = useModal();
 
   // Initialize with no items expanded by default
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
@@ -431,6 +433,30 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             </svg>
           ),
           current: location.pathname === '/auto-originations',
+        },
+        {
+          name: 'New Origination',
+          href: '#new-origination',
+          onClick: () => {
+            openModal(ModalType.APPLICATION_TYPE);
+          },
+          icon: active => (
+            <svg
+              className={`h-5 w-5 ${active ? 'text-primary-600' : 'text-gray-600'}`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+          ),
+          current: false,
         },
       ],
     },

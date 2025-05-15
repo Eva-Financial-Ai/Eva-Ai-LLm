@@ -2156,26 +2156,12 @@ const Dashboard: React.FC = () => {
 
   // Function to handle creating a new transaction based on user type
   const handleCreateNewTransaction = () => {
-    switch (currentUserType) {
-      case UserType.BUSINESS:
-        // Borrowers create credit applications
-        navigate('/credit-application');
-        break;
-      case UserType.VENDOR:
-        // Vendors now go directly to credit application instead of showing dialog
-        navigate('/credit-application');
-        break;
-      case UserType.BROKERAGE:
-        // Show dialog with options to pre-fill for a borrower or create new deal structure
-        showNewDealDialog('broker');
-        break;
-      case UserType.LENDER:
-        // Show dialog with options to pre-fill for a borrower or create funding opportunity
-        showNewDealDialog('lender');
-        break;
-      default:
-        navigate('/credit-application');
-    }
+    navigate('/credit-application');
+  };
+
+  // Add view transaction handler
+  const handleViewTransaction = (transactionId: string) => {
+    navigate(`/transaction/${transactionId}`);
   };
 
   // New function to show a dialog with options based on user type

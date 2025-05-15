@@ -1,171 +1,307 @@
-import type { Metric } from 'web-vitals';
+/**
+ * Performance monitoring utilities for the EVA platform
+ * These utilities help track and analyze performance metrics across the application
+ */
 
-// Performance monitoring for transactions loading and other critical operations
+// Performance data store
+interface PerformanceMetric {
+  name: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  category: 'render' | 'api' | 'computation' | 'interaction' | 'load';
+  metadata?: Record<string, any>;
+}
+
 class PerformanceMonitor {
-  private eventTimings: Map<
-    string,
-    {
-      startTime: number;
-      endTime?: number;
-      duration?: number;
-      success: boolean;
-      error?: string;
+  private metrics: PerformanceMetric[] = [];
+  private activeMetrics: Record<string, PerformanceMetric> = {};
+  private listeners: Array<(metrics: PerformanceMetric[]) => void> = [];
+  private isEnabled: boolean = true;
+  
+  constructor() {
+    // Initialize performance observer if available
+    if (typeof PerformanceObserver !== 'undefined') {
+      this.setupPerformanceObservers();
     }
-  > = new Map();
-
-  private slowThreshold = 2000; // 2 seconds
-  private verySlowThreshold = 5000; // 5 seconds
-
-  // Track when an operation starts
-  startTracking(operationId: string): void {
-    console.log(`[Performance] Starting operation: ${operationId}`);
-    this.eventTimings.set(operationId, {
+    
+    // Check if performance monitoring should be disabled
+    const disableMonitoring = localStorage.getItem('disablePerformanceMonitoring');
+    if (disableMonitoring === 'true') {
+      this.isEnabled = false;
+    }
+  }
+  
+  /**
+   * Set up performance observers to track browser metrics
+   */
+  private setupPerformanceObservers() {
+    try {
+      // Long task observer
+      const longTaskObserver = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          this.addMetric({
+            name: 'long-task',
+            startTime: entry.startTime,
+            endTime: entry.startTime + entry.duration,
+            duration: entry.duration,
+            category: 'computation',
+            metadata: { 
+              entryType: entry.entryType,
+              attribution: (entry as any).attribution
+            }
+          });
+        });
+      });
+      longTaskObserver.observe({ entryTypes: ['longtask'] });
+      
+      // Resource timing observer
+      const resourceObserver = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          // Only track resource loads that take longer than 500ms
+          if (entry.duration > 500) {
+            this.addMetric({
+              name: `resource-${entry.name.split('/').pop()}`,
+              startTime: entry.startTime,
+              endTime: entry.startTime + entry.duration,
+              duration: entry.duration,
+              category: 'load',
+              metadata: { 
+                resourceType: entry.initiatorType,
+                url: entry.name
+              }
+            });
+          }
+        });
+      });
+      resourceObserver.observe({ entryTypes: ['resource'] });
+      
+      // Navigation timing observer
+      const navigationObserver = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          this.addMetric({
+            name: 'page-load',
+            startTime: 0,
+            endTime: (entry as PerformanceNavigationTiming).loadEventEnd,
+            duration: (entry as PerformanceNavigationTiming).loadEventEnd,
+            category: 'load',
+            metadata: {
+              domInteractive: (entry as PerformanceNavigationTiming).domInteractive,
+              domContentLoaded: (entry as PerformanceNavigationTiming).domContentLoadedEventEnd,
+              loadEvent: (entry as PerformanceNavigationTiming).loadEventEnd
+            }
+          });
+        });
+      });
+      navigationObserver.observe({ entryTypes: ['navigation'] });
+    } catch (error) {
+      console.warn('Performance observer setup failed:', error);
+    }
+  }
+  
+  /**
+   * Start timing a performance metric
+   * @param name Name of the metric to track
+   * @param category Category of the metric
+   * @param metadata Additional metadata to store with the metric
+   * @returns Unique ID for the started metric
+   */
+  startMetric(name: string, category: PerformanceMetric['category'], metadata?: Record<string, any>): string {
+    if (!this.isEnabled) return name;
+    
+    const metric: PerformanceMetric = {
+      name,
       startTime: performance.now(),
-      success: false,
-    });
+      category,
+      metadata
+    };
+    
+    this.activeMetrics[name] = metric;
+    return name;
   }
-
-  // Track when an operation ends successfully
-  endTracking(operationId: string): void {
-    const timing = this.eventTimings.get(operationId);
-    if (!timing) {
-      console.warn(`[Performance] Trying to end tracking for unknown operation: ${operationId}`);
+  
+  /**
+   * End timing a performance metric and save the results
+   * @param id ID of the metric to end (returned from startMetric)
+   * @param additionalMetadata Additional metadata to add to the metric
+   * @returns Duration of the metric in milliseconds
+   */
+  endMetric(id: string, additionalMetadata?: Record<string, any>): number | undefined {
+    if (!this.isEnabled) return;
+    
+    const metric = this.activeMetrics[id];
+    if (!metric) {
+      console.warn(`No active metric found with id: ${id}`);
       return;
     }
-
-    const endTime = performance.now();
-    const duration = endTime - timing.startTime;
-
-    this.eventTimings.set(operationId, {
-      ...timing,
-      endTime,
-      duration,
-      success: true,
-    });
-
-    // Log performance information
-    if (duration > this.verySlowThreshold) {
-      console.warn(
-        `[Performance] Operation ${operationId} was VERY SLOW: ${duration.toFixed(2)}ms`
-      );
-    } else if (duration > this.slowThreshold) {
-      console.warn(`[Performance] Operation ${operationId} was SLOW: ${duration.toFixed(2)}ms`);
-    } else {
-      console.log(`[Performance] Operation ${operationId} completed in ${duration.toFixed(2)}ms`);
-    }
-  }
-
-  // Track when an operation fails
-  trackError(operationId: string, error: Error | string): void {
-    const timing = this.eventTimings.get(operationId);
-    if (!timing) {
-      console.warn(`[Performance] Trying to track error for unknown operation: ${operationId}`);
-      return;
-    }
-
-    const endTime = performance.now();
-    const duration = endTime - timing.startTime;
-    const errorMessage = error instanceof Error ? error.message : error;
-
-    this.eventTimings.set(operationId, {
-      ...timing,
-      endTime,
-      duration,
-      success: false,
-      error: errorMessage,
-    });
-
-    console.error(
-      `[Performance] Operation ${operationId} FAILED after ${duration.toFixed(2)}ms: ${errorMessage}`
-    );
-  }
-
-  // Get performance report for all operations
-  getReport(): Record<string, any> {
-    const report: Record<string, any> = {};
-    this.eventTimings.forEach((timing, operationId) => {
-      report[operationId] = {
-        duration: timing.duration ? `${timing.duration.toFixed(2)}ms` : 'ongoing',
-        success: timing.success,
-        error: timing.error || undefined,
+    
+    metric.endTime = performance.now();
+    metric.duration = metric.endTime - metric.startTime;
+    
+    if (additionalMetadata) {
+      metric.metadata = {
+        ...metric.metadata,
+        ...additionalMetadata
       };
-    });
-    return report;
+    }
+    
+    this.addMetric(metric);
+    delete this.activeMetrics[id];
+    
+    return metric.duration;
   }
-
-  // Get timing for a specific operation
-  getOperationTiming(operationId: string): number | undefined {
-    return this.eventTimings.get(operationId)?.duration;
+  
+  /**
+   * Add a completed metric to the metrics store
+   * @param metric The metric to add
+   */
+  private addMetric(metric: PerformanceMetric) {
+    this.metrics.push(metric);
+    this.notifyListeners();
+    
+    // Log slow operations to console in development
+    if (process.env.NODE_ENV === 'development' && metric.duration && metric.duration > 100) {
+      console.warn(`Slow operation detected: ${metric.name} (${metric.duration.toFixed(2)}ms)`, metric.metadata);
+    }
+    
+    // Keep only the last 1000 metrics to prevent memory issues
+    if (this.metrics.length > 1000) {
+      this.metrics = this.metrics.slice(-1000);
+    }
   }
-
-  // Clear all timing data
-  clear(): void {
-    this.eventTimings.clear();
+  
+  /**
+   * Measure the execution time of a function
+   * @param fn Function to measure
+   * @param name Name of the metric
+   * @param category Category of the metric
+   * @param metadata Additional metadata
+   * @returns The result of the function
+   */
+  measure<T>(
+    fn: () => T,
+    name: string,
+    category: PerformanceMetric['category'],
+    metadata?: Record<string, any>
+  ): T {
+    if (!this.isEnabled) return fn();
+    
+    const metricId = this.startMetric(name, category, metadata);
+    try {
+      const result = fn();
+      this.endMetric(metricId);
+      return result;
+    } catch (error) {
+      this.endMetric(metricId, { error: error instanceof Error ? error.message : String(error) });
+      throw error;
+    }
   }
-
-  // Check for any ongoing operations that might be hung
-  checkForHungOperations(): string[] {
-    const hungOperations: string[] = [];
-    const now = performance.now();
-
-    this.eventTimings.forEach((timing, operationId) => {
-      if (!timing.endTime && now - timing.startTime > this.verySlowThreshold) {
-        hungOperations.push(operationId);
-        console.warn(
-          `[Performance] Potential hung operation: ${operationId} (${((now - timing.startTime) / 1000).toFixed(1)}s and still running)`
-        );
+  
+  /**
+   * Measure the execution time of an async function
+   * @param fn Async function to measure
+   * @param name Name of the metric
+   * @param category Category of the metric
+   * @param metadata Additional metadata
+   * @returns Promise resolving to the result of the function
+   */
+  async measureAsync<T>(
+    fn: () => Promise<T>,
+    name: string,
+    category: PerformanceMetric['category'],
+    metadata?: Record<string, any>
+  ): Promise<T> {
+    if (!this.isEnabled) return fn();
+    
+    const metricId = this.startMetric(name, category, metadata);
+    try {
+      const result = await fn();
+      this.endMetric(metricId);
+      return result;
+    } catch (error) {
+      this.endMetric(metricId, { error: error instanceof Error ? error.message : String(error) });
+      throw error;
+    }
+  }
+  
+  /**
+   * Get all stored metrics
+   * @returns Array of all performance metrics
+   */
+  getMetrics(): PerformanceMetric[] {
+    return [...this.metrics];
+  }
+  
+  /**
+   * Get metrics filtered by category
+   * @param category Category to filter by
+   * @returns Filtered metrics
+   */
+  getMetricsByCategory(category: PerformanceMetric['category']): PerformanceMetric[] {
+    return this.metrics.filter(metric => metric.category === category);
+  }
+  
+  /**
+   * Get metrics filtered by name
+   * @param name Name to filter by
+   * @returns Filtered metrics
+   */
+  getMetricsByName(name: string): PerformanceMetric[] {
+    return this.metrics.filter(metric => metric.name === name);
+  }
+  
+  /**
+   * Clear all stored metrics
+   */
+  clearMetrics(): void {
+    this.metrics = [];
+    this.notifyListeners();
+  }
+  
+  /**
+   * Subscribe to metric updates
+   * @param listener Function to call when metrics are updated
+   * @returns Unsubscribe function
+   */
+  subscribe(listener: (metrics: PerformanceMetric[]) => void): () => void {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
+  }
+  
+  /**
+   * Notify all listeners of metric updates
+   */
+  private notifyListeners(): void {
+    this.listeners.forEach(listener => {
+      try {
+        listener([...this.metrics]);
+      } catch (error) {
+        console.error('Error in performance listener:', error);
       }
     });
-
-    return hungOperations;
   }
-
-  // Diagnostic utilities for specific transaction issues
-
-  // Specifically monitor transaction loading operations
-  monitorTransactionLoading(): () => void {
-    const operationId = `transaction_load_${Date.now()}`;
-    this.startTracking(operationId);
-
-    return () => {
-      this.endTracking(operationId);
-    };
+  
+  /**
+   * Enable or disable performance monitoring
+   * @param enabled Whether monitoring should be enabled
+   */
+  setEnabled(enabled: boolean): void {
+    this.isEnabled = enabled;
+    localStorage.setItem('disablePerformanceMonitoring', enabled ? 'false' : 'true');
   }
-
-  // Track API calls with payload size measurement
-  trackApiCall(url: string, payload: any): () => void {
-    const operationId = `api_${url}_${Date.now()}`;
-
-    try {
-      // Estimate payload size
-      const payloadSize = payload ? JSON.stringify(payload).length : 0;
-      console.log(
-        `[Performance] API call to ${url} with payload size: ${(payloadSize / 1024).toFixed(2)} KB`
-      );
-    } catch (e) {
-      console.warn(`[Performance] Could not measure payload size for ${url}: ${e}`);
-    }
-
-    this.startTracking(operationId);
-
-    return () => {
-      this.endTracking(operationId);
-    };
-  }
-
-  // Report web vitals metrics using the updated API
-  reportWebVitals(onPerfEntry?: (metric: Metric) => void): void {
-    if (onPerfEntry && typeof onPerfEntry === 'function') {
-      import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB }) => {
-        onCLS(onPerfEntry);
-        onFID(onPerfEntry);
-        onFCP(onPerfEntry);
-        onLCP(onPerfEntry);
-        onTTFB(onPerfEntry);
-      });
-    }
+  
+  /**
+   * Check if performance monitoring is enabled
+   * @returns Whether monitoring is enabled
+   */
+  isMonitoringEnabled(): boolean {
+    return this.isEnabled;
   }
 }
 
-export const performanceMonitor = new PerformanceMonitor();
+// Create a singleton instance
+const performanceMonitor = new PerformanceMonitor();
+
 export default performanceMonitor;

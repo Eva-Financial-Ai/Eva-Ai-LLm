@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useWorkflow } from '../../contexts/WorkflowContext';
 
 interface RiskFactor {
@@ -33,6 +33,129 @@ interface ScenarioParameters {
   costIncrease: number;
   cashflowReduction: number;
 }
+
+// Memoized Risk Factor component
+const RiskFactorItem = memo(({ 
+  factor, 
+  getImpactBadge, 
+  getRiskColor 
+}: {
+  factor: RiskFactor;
+  getImpactBadge: (impact: string) => React.ReactNode;
+  getRiskColor: (score: number) => string;
+}) => {
+  return (
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+        <div className="mb-3 sm:mb-0">
+          <h4 className="text-base font-medium text-gray-900 mb-1">{factor.name}</h4>
+          <p className="text-sm text-gray-500">{factor.description}</p>
+        </div>
+        <div className="flex items-center sm:ml-4">
+          {getImpactBadge(factor.impact)}
+          <div className={`ml-3 text-xl font-bold ${getRiskColor(factor.score)}`}>
+            {factor.score}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// Memoized Cash Flow Metric Row component
+const CashFlowMetricRow = memo(({ 
+  metric, 
+  getCashFlowStatusColor 
+}: { 
+  metric: CashFlowMetric;
+  getCashFlowStatusColor: (status: string) => string;
+}) => {
+  return (
+    <tr>
+      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+        {metric.name}
+      </td>
+      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {metric.value.toFixed(2)}
+      </td>
+      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {metric.benchmark.toFixed(2)}
+      </td>
+      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+        <span
+          className={`text-sm font-medium ${getCashFlowStatusColor(metric.status)}`}
+        >
+          {metric.status.charAt(0).toUpperCase() + metric.status.slice(1)}
+        </span>
+      </td>
+    </tr>
+  );
+});
+
+// Extract Tool Nav Button as a memoized component
+const ToolNavButton = memo(({ 
+  toolName, 
+  label, 
+  activeTool, 
+  onClick 
+}: {
+  toolName: RiskTool;
+  label: string;
+  activeTool: RiskTool;
+  onClick: (tool: RiskTool) => void;
+}) => {
+  return (
+    <button
+      onClick={() => onClick(toolName)}
+      className={`flex-none px-3 sm:px-6 py-3 text-sm font-medium border-b-2 ${
+        activeTool === toolName
+          ? 'border-primary-500 text-primary-600'
+          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+      }`}
+    >
+      {label}
+    </button>
+  );
+});
+
+// Scenario analysis parameter slider component
+const ParameterSlider = memo(({ 
+  label, 
+  value, 
+  min, 
+  max, 
+  step, 
+  onChange 
+}: {
+  label: string;
+  value: number;
+  min: string;
+  max: string;
+  step: string;
+  onChange: (value: number) => void;
+}) => {
+  return (
+    <div>
+      <div className="flex justify-between">
+        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        <span className="text-sm text-gray-500">{value}%</span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={e => onChange(parseFloat(e.target.value))}
+        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2"
+      />
+      <div className="flex justify-between text-xs text-gray-500 mt-1">
+        <span>{min}%</span>
+        <span>{max}%</span>
+      </div>
+    </div>
+  );
+});
 
 const RiskAssessment = () => {
   const { currentTransaction } = useWorkflow();
@@ -70,7 +193,8 @@ const RiskAssessment = () => {
     }
   }, [currentTransaction]); // Simplified dependency
 
-  const generateMockRiskData = () => {
+  // Memoize data generation to prevent unnecessary re-renders
+  const generateMockRiskData = useCallback(() => {
     // Ensure we can still generate data even without a current transaction
     const transactionType = currentTransaction?.type || 'Finance Lease';
     const transactionAmount = currentTransaction?.amount || 250000;
@@ -164,16 +288,16 @@ const RiskAssessment = () => {
     ];
 
     setCashFlowMetrics(mockCashFlowMetrics);
-  };
+  }, [currentTransaction]);
 
-  const handleParameterChange = (param: string, value: number) => {
+  const handleParameterChange = useCallback((param: string, value: number) => {
     setParameters(prev => ({
       ...prev,
       [param]: value,
     }));
-  };
+  }, []);
 
-  const runScenarioAnalysis = () => {
+  const runScenarioAnalysis = useCallback(() => {
     setRunningScenario(true);
     setScenarioResults(null);
 
@@ -209,16 +333,17 @@ const RiskAssessment = () => {
       setScenarioResults(results);
       setRunningScenario(false);
     }, 2000);
-  };
+  }, []);
 
-  const getRiskColor = (score: number) => {
+  // Memoize helper functions
+  const getRiskColor = useCallback((score: number) => {
     if (score >= 80) return 'text-green-600';
     if (score >= 65) return 'text-yellow-600';
     if (score >= 50) return 'text-orange-500';
     return 'text-red-600';
-  };
+  }, []);
 
-  const getCashFlowStatusColor = (status: string) => {
+  const getCashFlowStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'good':
         return 'text-green-600';
@@ -229,9 +354,9 @@ const RiskAssessment = () => {
       default:
         return 'text-gray-600';
     }
-  };
+  }, []);
 
-  const getImpactBadge = (impact: string) => {
+  const getImpactBadge = useCallback((impact: string) => {
     switch (impact) {
       case 'low':
         return (
@@ -254,47 +379,24 @@ const RiskAssessment = () => {
       default:
         return null;
     }
-  };
+  }, []);
 
-  // Render different tools based on active tool
-  const renderActiveTool = () => {
-    switch (activeTool) {
-      case 'risk_assessment':
-        return renderRiskAssessment();
-      case 'scenario_analysis':
-        return renderScenarioAnalysis();
-      case 'fraud_detection':
-        return (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Fraud Detection</h3>
-            <p className="text-gray-500">
-              Advanced fraud detection and prevention tools will appear here.
-            </p>
-          </div>
-        );
-      case 'compliance_check':
-        return (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Compliance Check</h3>
-            <p className="text-gray-500">
-              Regulatory compliance verification tools will appear here.
-            </p>
-          </div>
-        );
-      case 'credit_scoring':
-        return (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Credit Scoring</h3>
-            <p className="text-gray-500">Advanced AI credit scoring models will appear here.</p>
-          </div>
-        );
-      default:
-        return renderRiskAssessment();
-    }
-  };
+  // Memoize the tool selection handler
+  const handleToolSelect = useCallback((tool: RiskTool) => {
+    setActiveTool(tool);
+  }, []);
 
   // Scenario Analysis tool render function that uses state from the component
-  const renderScenarioAnalysis = () => {
+  const renderScenarioAnalysis = useCallback(() => {
+    // Memo scenario parameter types for consistent reference
+    const scenarioTypeButtons = useMemo(() => {
+      return [
+        { type: 'economic' as const, label: 'Economic Downturn' },
+        { type: 'industry' as const, label: 'Industry Specific' },
+        { type: 'custom' as const, label: 'Custom Scenario' }
+      ];
+    }, []);
+    
     return (
       <div className="space-y-6">
         {/* Scenario Type Selection */}
@@ -312,36 +414,19 @@ const RiskAssessment = () => {
                 Select Scenario Type
               </label>
               <div className="flex space-x-4">
-                <button
-                  onClick={() => setScenarioType('economic')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium ${
-                    scenarioType === 'economic'
-                      ? 'bg-primary-100 text-primary-700 border border-primary-300'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Economic Downturn
-                </button>
-                <button
-                  onClick={() => setScenarioType('industry')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium ${
-                    scenarioType === 'industry'
-                      ? 'bg-primary-100 text-primary-700 border border-primary-300'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Industry Specific
-                </button>
-                <button
-                  onClick={() => setScenarioType('custom')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium ${
-                    scenarioType === 'custom'
-                      ? 'bg-primary-100 text-primary-700 border border-primary-300'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Custom Scenario
-                </button>
+                {scenarioTypeButtons.map(button => (
+                  <button
+                    key={button.type}
+                    onClick={() => setScenarioType(button.type)}
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${
+                      scenarioType === button.type
+                        ? 'bg-primary-100 text-primary-700 border border-primary-300'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {button.label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -349,192 +434,75 @@ const RiskAssessment = () => {
               <h4 className="text-base font-medium text-gray-800 mb-3">Scenario Parameters</h4>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                {/* Interest Rate Change */}
-                <div>
-                  <div className="flex justify-between">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Interest Rate Change
-                    </label>
-                    <span className="text-sm text-gray-500">{parameters.interestRateChange}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10"
-                    step="0.5"
-                    value={parameters.interestRateChange}
-                    onChange={e =>
-                      handleParameterChange('interestRateChange', parseFloat(e.target.value))
-                    }
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>0%</span>
-                    <span>10%</span>
-                  </div>
-                </div>
-
-                {/* Recession Impact */}
-                <div>
-                  <div className="flex justify-between">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Recession Impact
-                    </label>
-                    <span className="text-sm text-gray-500">{parameters.recessionImpact}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="30"
-                    step="1"
-                    value={parameters.recessionImpact}
-                    onChange={e =>
-                      handleParameterChange('recessionImpact', parseFloat(e.target.value))
-                    }
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>0%</span>
-                    <span>30%</span>
-                  </div>
-                </div>
-
-                {/* Industry Downturn */}
-                <div>
-                  <div className="flex justify-between">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Industry Downturn
-                    </label>
-                    <span className="text-sm text-gray-500">{parameters.industryDownturn}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="25"
-                    step="1"
-                    value={parameters.industryDownturn}
-                    onChange={e =>
-                      handleParameterChange('industryDownturn', parseFloat(e.target.value))
-                    }
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>0%</span>
-                    <span>25%</span>
-                  </div>
-                </div>
-
-                {/* Revenue Decrease */}
-                <div>
-                  <div className="flex justify-between">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Revenue Decrease
-                    </label>
-                    <span className="text-sm text-gray-500">{parameters.revenueDecrease}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="50"
-                    step="5"
-                    value={parameters.revenueDecrease}
-                    onChange={e =>
-                      handleParameterChange('revenueDecrease', parseFloat(e.target.value))
-                    }
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>0%</span>
-                    <span>50%</span>
-                  </div>
-                </div>
-
-                {/* Cost Increase */}
-                <div>
-                  <div className="flex justify-between">
-                    <label className="block text-sm font-medium text-gray-700">Cost Increase</label>
-                    <span className="text-sm text-gray-500">{parameters.costIncrease}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="30"
-                    step="1"
-                    value={parameters.costIncrease}
-                    onChange={e =>
-                      handleParameterChange('costIncrease', parseFloat(e.target.value))
-                    }
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>0%</span>
-                    <span>30%</span>
-                  </div>
-                </div>
-
-                {/* Cash Flow Reduction */}
-                <div>
-                  <div className="flex justify-between">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Cash Flow Reduction
-                    </label>
-                    <span className="text-sm text-gray-500">{parameters.cashflowReduction}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="50"
-                    step="5"
-                    value={parameters.cashflowReduction}
-                    onChange={e =>
-                      handleParameterChange('cashflowReduction', parseFloat(e.target.value))
-                    }
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>0%</span>
-                    <span>50%</span>
-                  </div>
-                </div>
+                {/* Use memoized ParameterSlider component for each parameter */}
+                <ParameterSlider
+                  label="Interest Rate Change"
+                  value={parameters.interestRateChange}
+                  min="0"
+                  max="10"
+                  step="0.5"
+                  onChange={(val) => handleParameterChange('interestRateChange', val)}
+                />
+                
+                <ParameterSlider
+                  label="Recession Impact"
+                  value={parameters.recessionImpact}
+                  min="0"
+                  max="30"
+                  step="1"
+                  onChange={(val) => handleParameterChange('recessionImpact', val)}
+                />
+                
+                <ParameterSlider
+                  label="Industry Downturn"
+                  value={parameters.industryDownturn}
+                  min="0"
+                  max="25"
+                  step="1"
+                  onChange={(val) => handleParameterChange('industryDownturn', val)}
+                />
+                
+                <ParameterSlider
+                  label="Revenue Decrease"
+                  value={parameters.revenueDecrease}
+                  min="0"
+                  max="50"
+                  step="5"
+                  onChange={(val) => handleParameterChange('revenueDecrease', val)}
+                />
+                
+                <ParameterSlider
+                  label="Cost Increase"
+                  value={parameters.costIncrease}
+                  min="0"
+                  max="30"
+                  step="1"
+                  onChange={(val) => handleParameterChange('costIncrease', val)}
+                />
+                
+                <ParameterSlider
+                  label="Cash Flow Reduction"
+                  value={parameters.cashflowReduction}
+                  min="0"
+                  max="50"
+                  step="5"
+                  onChange={(val) => handleParameterChange('cashflowReduction', val)}
+                />
               </div>
+            </div>
 
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={runScenarioAnalysis}
-                  disabled={runningScenario}
-                  className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
-                    runningScenario ? 'bg-primary-400' : 'bg-primary-600 hover:bg-primary-700'
-                  }`}
-                >
-                  {runningScenario ? (
-                    <span className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Running Analysis...
-                    </span>
-                  ) : (
-                    'Run Scenario Analysis'
-                  )}
-                </button>
-              </div>
+            <div className="mt-8 text-right">
+              <button
+                onClick={runScenarioAnalysis}
+                disabled={runningScenario}
+                className={`px-4 py-2 rounded font-medium text-white ${
+                  runningScenario
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-primary-600 hover:bg-primary-700'
+                }`}
+              >
+                {runningScenario ? 'Running Analysis...' : 'Run Scenario Analysis'}
+              </button>
             </div>
           </div>
         </div>
@@ -542,122 +510,83 @@ const RiskAssessment = () => {
         {/* Scenario Results */}
         {scenarioResults && (
           <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div className="px-6 py-4 border-b border-gray-200 bg-primary-50">
               <h3 className="text-lg font-medium text-gray-900">Scenario Analysis Results</h3>
             </div>
 
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">Impact Score</h4>
-                  <div className="flex items-end">
-                    <span className="text-2xl font-bold text-gray-900">
-                      {scenarioResults.impactScore}
-                    </span>
-                    <span
-                      className={`ml-2 text-xs ${scenarioResults.impactScore > 50 ? 'text-red-600' : 'text-orange-600'}`}
-                    >
-                      Moderate-High
-                    </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-gray-50 p-4 rounded border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Impact Score</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {scenarioResults.impactScore}
+                    <span className="text-sm text-gray-500 font-normal ml-1">/ 100</span>
                   </div>
                 </div>
 
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">DSCR Under Stress</h4>
-                  <div className="flex items-end">
-                    <span className="text-2xl font-bold text-gray-900">
-                      {scenarioResults.debtServiceCoverageRatio}x
-                    </span>
-                    <span
-                      className={`ml-2 text-xs ${parseFloat(scenarioResults.debtServiceCoverageRatio) < 1.0 ? 'text-red-600' : 'text-yellow-600'}`}
-                    >
-                      {parseFloat(scenarioResults.debtServiceCoverageRatio) < 1.0
-                        ? 'Below Threshold'
-                        : 'Near Threshold'}
-                    </span>
+                <div className="bg-gray-50 p-4 rounded border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Probability of Default</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {scenarioResults.probabilityOfDefault}
                   </div>
                 </div>
 
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">Probability of Default</h4>
-                  <div className="flex items-end">
-                    <span className="text-2xl font-bold text-gray-900">
-                      {scenarioResults.probabilityOfDefault}
-                    </span>
-                    <span className="ml-2 text-xs text-red-600">Increased</span>
+                <div className="bg-gray-50 p-4 rounded border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Debt Service Coverage Ratio</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {scenarioResults.debtServiceCoverageRatio}x
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Solvency Risk</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {scenarioResults.solvencyRisk}
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="text-base font-medium text-gray-800 mb-3">Stress Test Results</h4>
-
-                  {/* This would be a chart in a real implementation */}
-                  <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <p className="text-gray-500">Stress test chart would appear here</p>
-                  </div>
-
-                  <div className="mt-4 text-center">
-                    <div
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        scenarioResults.solvencyRisk === 'High'
-                          ? 'bg-red-100 text-red-800'
-                          : scenarioResults.solvencyRisk === 'Medium'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-green-100 text-green-800'
-                      }`}
-                    >
-                      {scenarioResults.solvencyRisk} Solvency Risk
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="text-base font-medium text-gray-800 mb-3">Recommended Actions</h4>
-
-                  <ul className="space-y-2">
-                    {scenarioResults.recommendedActions.map((action: string, i: number) => (
-                      <li key={i} className="flex items-start">
-                        <div className="flex-shrink-0 h-5 w-5 text-primary-600">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
-                        <p className="ml-2 text-sm text-gray-700">{action}</p>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              <div className="mb-6">
+                <h4 className="text-lg font-medium text-gray-900 mb-3">Recommended Actions</h4>
+                <ul className="list-disc list-inside space-y-1 text-gray-600">
+                  {scenarioResults.recommendedActions.map((action: string, index: number) => (
+                    <li key={index}>{action}</li>
+                  ))}
+                </ul>
               </div>
 
-              <div className="mt-6 flex justify-end">
-                <button className="px-4 py-2 rounded-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700">
-                  Export Scenario Report
-                </button>
+              <div>
+                <h4 className="text-lg font-medium text-gray-900 mb-3">Stress Test Visualization</h4>
+                <div className="h-64 bg-gray-100 rounded flex items-center justify-center border border-gray-200">
+                  <p className="text-gray-500">Chart visualization would appear here</p>
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
     );
-  };
+  }, [
+    scenarioType,
+    parameters,
+    runningScenario,
+    scenarioResults,
+    handleParameterChange,
+    runScenarioAnalysis
+  ]);
 
-  // Original risk assessment content
-  const renderRiskAssessment = () => {
+  // Original risk assessment content - use memoization for expensive calculations
+  const renderRiskAssessment = useCallback(() => {
     // Handle debt service coverage ratio comparison safely
     const dscrMetric = cashFlowMetrics.find(m => m.name === 'Debt Service Coverage Ratio');
     const dscrValue = dscrMetric?.value || 0;
     const dscrBenchmark = dscrMetric?.benchmark || 0;
     const exceedsBenchmark = dscrValue > dscrBenchmark;
+    
+    // Memoize expensive sort operation
+    const lowestScoreRiskFactor = useMemo(() => {
+      return [...riskFactors].sort((a, b) => a.score - b.score)[0]?.name?.toLowerCase() || '';
+    }, [riskFactors]);
 
     return (
       <div className="space-y-6">
@@ -742,20 +671,12 @@ const RiskAssessment = () => {
                     </div>
                   ))
               : riskFactors.map(factor => (
-                  <div key={factor.id} className="p-4 sm:p-6">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
-                      <div className="mb-3 sm:mb-0">
-                        <h4 className="text-base font-medium text-gray-900 mb-1">{factor.name}</h4>
-                        <p className="text-sm text-gray-500">{factor.description}</p>
-                      </div>
-                      <div className="flex items-center sm:ml-4">
-                        {getImpactBadge(factor.impact)}
-                        <div className={`ml-3 text-xl font-bold ${getRiskColor(factor.score)}`}>
-                          {factor.score}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <RiskFactorItem 
+                    key={factor.id} 
+                    factor={factor} 
+                    getImpactBadge={getImpactBadge}
+                    getRiskColor={getRiskColor}
+                  />
                 ))}
           </div>
         </div>
@@ -805,24 +726,11 @@ const RiskAssessment = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {cashFlowMetrics.map((metric, index) => (
-                      <tr key={index}>
-                        <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {metric.name}
-                        </td>
-                        <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {metric.value.toFixed(2)}
-                        </td>
-                        <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {metric.benchmark.toFixed(2)}
-                        </td>
-                        <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`text-sm font-medium ${getCashFlowStatusColor(metric.status)}`}
-                          >
-                            {metric.status.charAt(0).toUpperCase() + metric.status.slice(1)}
-                          </span>
-                        </td>
-                      </tr>
+                      <CashFlowMetricRow 
+                        key={index} 
+                        metric={metric} 
+                        getCashFlowStatusColor={getCashFlowStatusColor} 
+                      />
                     ))}
                   </tbody>
                 </table>
@@ -876,7 +784,7 @@ const RiskAssessment = () => {
                 </p>
 
                 <p>
-                  The {riskFactors.sort((a, b) => a.score - b.score)[0].name.toLowerCase()} is the
+                  The {lowestScoreRiskFactor} is the
                   most concerning factor, with potential implications for long-term repayment
                   ability. We recommend additional verification of{' '}
                   {Math.random() > 0.5 ? 'cash flow projections' : 'collateral valuation'}
@@ -897,7 +805,53 @@ const RiskAssessment = () => {
         </div>
       </div>
     );
-  };
+  }, [cashFlowMetrics, getRiskColor, getImpactBadge, loading, overallScore, riskFactors, getCashFlowStatusColor]);
+
+  // Render different tools based on active tool
+  const renderActiveTool = useCallback(() => {
+    switch (activeTool) {
+      case 'risk_assessment':
+        return renderRiskAssessment();
+      case 'scenario_analysis':
+        return renderScenarioAnalysis();
+      case 'fraud_detection':
+        return (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Fraud Detection</h3>
+            <p className="text-gray-500">
+              Advanced fraud detection and prevention tools will appear here.
+            </p>
+          </div>
+        );
+      case 'compliance_check':
+        return (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Compliance Check</h3>
+            <p className="text-gray-500">
+              Regulatory compliance verification tools will appear here.
+            </p>
+          </div>
+        );
+      case 'credit_scoring':
+        return (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Credit Scoring</h3>
+            <p className="text-gray-500">Advanced AI credit scoring models will appear here.</p>
+          </div>
+        );
+      default:
+        return renderRiskAssessment();
+    }
+  }, [activeTool, renderRiskAssessment, renderScenarioAnalysis]);
+
+  // Memoize navigation tools array
+  const navTools = useMemo(() => [
+    { name: 'risk_assessment' as const, label: 'Risk Assessment' },
+    { name: 'scenario_analysis' as const, label: 'Scenario Analysis' },
+    { name: 'fraud_detection' as const, label: 'Fraud Detection' },
+    { name: 'compliance_check' as const, label: 'Compliance Check' },
+    { name: 'credit_scoring' as const, label: 'Credit Scoring' },
+  ], []);
 
   if (!currentTransaction) {
     return (
@@ -917,56 +871,15 @@ const RiskAssessment = () => {
         </div>
 
         <div className="flex overflow-x-auto hide-scrollbar border-b border-gray-200">
-          <button
-            onClick={() => setActiveTool('risk_assessment')}
-            className={`flex-none px-3 sm:px-6 py-3 text-sm font-medium border-b-2 ${
-              activeTool === 'risk_assessment'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Risk Assessment
-          </button>
-          <button
-            onClick={() => setActiveTool('scenario_analysis')}
-            className={`flex-none px-3 sm:px-6 py-3 text-sm font-medium border-b-2 ${
-              activeTool === 'scenario_analysis'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Scenario Analysis
-          </button>
-          <button
-            onClick={() => setActiveTool('fraud_detection')}
-            className={`flex-none px-3 sm:px-6 py-3 text-sm font-medium border-b-2 ${
-              activeTool === 'fraud_detection'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Fraud Detection
-          </button>
-          <button
-            onClick={() => setActiveTool('compliance_check')}
-            className={`flex-none px-3 sm:px-6 py-3 text-sm font-medium border-b-2 ${
-              activeTool === 'compliance_check'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Compliance Check
-          </button>
-          <button
-            onClick={() => setActiveTool('credit_scoring')}
-            className={`flex-none px-3 sm:px-6 py-3 text-sm font-medium border-b-2 ${
-              activeTool === 'credit_scoring'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Credit Scoring
-          </button>
+          {navTools.map(tool => (
+            <ToolNavButton
+              key={tool.name}
+              toolName={tool.name}
+              label={tool.label}
+              activeTool={activeTool}
+              onClick={handleToolSelect}
+            />
+          ))}
         </div>
       </div>
 
@@ -976,4 +889,4 @@ const RiskAssessment = () => {
   );
 };
 
-export default RiskAssessment;
+export default memo(RiskAssessment);

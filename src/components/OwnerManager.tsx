@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Owner } from './OwnerComponent';
 import OwnerComponent from './OwnerComponent';
-import { UserContext, AppUserRole } from '../contexts/UserContext';
+import { UserContext } from '../contexts/UserContext';
+import { UserRoleType } from '../components/layout/TopNavbar';
 
 interface OwnerManagerProps {
   initialOwners: Owner[];
   onChange: (owners: Owner[]) => void;
   includeCredit?: boolean;
   requireMobile?: boolean;
-  userRole?: AppUserRole;
+  userRole?: UserRoleType;
   onSendSignatureRequest?: (ownerId: string) => void;
 }
 

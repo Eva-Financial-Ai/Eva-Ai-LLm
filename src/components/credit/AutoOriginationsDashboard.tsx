@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useContext, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../contexts/UserContext';
+import { useUserType } from '../../contexts/UserTypeContext';
+import RoleBasedDashboard from './RoleBasedDashboard';
+import { UserRole } from './RoleBasedHeader';
+import TopNavbar, { UserRoleType, UserSpecificRoleType, DemoContextType } from '../layout/TopNavbar';
+import TeamMembersPanel, { TeamMember } from '../TeamMembersPanel';
 
 // Import recharts components directly with ignore comment to bypass TypeScript error
 // @ts-ignore
@@ -261,32 +266,97 @@ const SAMPLE_APPLICATIONS = [
 const VENDOR_EQUIPMENT = [
   {
     id: 'equip-1',
-    equipmentName: 'Industrial CNC Machine',
+    equipmentName: 'Industrial CNC Machine XL-5000',
     model: 'CNC-5000',
+    manufacturer: 'TechMach Industries',
     price: 85000,
     inStock: true,
+    category: 'Manufacturing',
     financingRequests: 3,
     approvedRequests: 2,
+    pendingApprovals: 1,
+    avgApprovalTime: '3 days',
+    popularFinancingTerm: '60 months'
   },
   {
     id: 'equip-2',
     equipmentName: 'Commercial Refrigeration System',
     model: 'CRS-X450',
+    manufacturer: 'ColdTech Solutions',
     price: 42000,
     inStock: true,
-    financingRequests: 1,
-    approvedRequests: 1,
+    category: 'Food Service',
+    financingRequests: 5,
+    approvedRequests: 4,
+    pendingApprovals: 1,
+    avgApprovalTime: '2 days',
+    popularFinancingTerm: '48 months'
   },
   {
     id: 'equip-3',
     equipmentName: 'Heavy Duty Tractor',
     model: 'HDT-8900',
+    manufacturer: 'AgriMech Corp',
     price: 120000,
     inStock: false,
+    category: 'Agriculture',
     financingRequests: 2,
     approvedRequests: 0,
+    pendingApprovals: 2,
+    avgApprovalTime: 'Pending',
+    popularFinancingTerm: '72 months'
   },
+  {
+    id: 'equip-4',
+    equipmentName: 'Solar Panel Installation Kit',
+    model: 'SPK-2000',
+    manufacturer: 'GreenEnergy Solutions',
+    price: 28500,
+    inStock: true,
+    category: 'Renewable Energy',
+    financingRequests: 8,
+    approvedRequests: 6,
+    pendingApprovals: 2,
+    avgApprovalTime: '4 days',
+    popularFinancingTerm: '36 months'
+  },
+  {
+    id: 'equip-5',
+    equipmentName: 'Medical Imaging System',
+    model: 'MIS-Ultra',
+    manufacturer: 'MedTech Innovations',
+    price: 195000,
+    inStock: true,
+    category: 'Healthcare',
+    financingRequests: 1,
+    approvedRequests: 1,
+    pendingApprovals: 0,
+    avgApprovalTime: '5 days',
+    popularFinancingTerm: '84 months'
+  }
 ];
+
+// Add vendor financing metrics data
+const VENDOR_FINANCING_METRICS = {
+  totalFinancingVolume: 1250000,
+  approvalRate: 78,
+  averageTransactionSize: 62500,
+  topFinancedCategories: [
+    { name: 'Manufacturing', amount: 450000 },
+    { name: 'Healthcare', amount: 320000 },
+    { name: 'Agriculture', amount: 230000 },
+    { name: 'Food Service', amount: 150000 },
+    { name: 'Renewable Energy', amount: 100000 }
+  ],
+  monthlyTrends: [
+    { month: 'Jan', amount: 85000 },
+    { month: 'Feb', amount: 92000 },
+    { month: 'Mar', amount: 78000 },
+    { month: 'Apr', amount: 105000 },
+    { month: 'May', amount: 125000 },
+    { month: 'Jun', amount: 165000 }
+  ]
+};
 
 // Sample broker commissions (for broker view)
 const BROKER_COMMISSIONS = [
@@ -295,31 +365,66 @@ const BROKER_COMMISSIONS = [
     applicationId: 'app-2',
     borrowerName: 'Global Manufacturing Co',
     loanAmount: 250000,
+    loanType: 'Commercial Real Estate',
     commissionRate: 1.5,
     commissionAmount: 3750,
     status: 'Pending',
     expectedPaymentDate: '2023-09-14',
+    lender: 'Capital Express',
+    closingDate: '2023-08-30'
   },
   {
     id: 'comm-2',
     applicationId: 'app-3',
     borrowerName: 'Quantum Technologies',
     loanAmount: 75000,
+    loanType: 'Working Capital',
     commissionRate: 2.0,
     commissionAmount: 1500,
     status: 'Paid',
     paymentDate: '2023-08-20',
+    lender: 'First National Bank',
+    closingDate: '2023-08-15'
   },
   {
     id: 'comm-3',
     applicationId: 'app-6',
     borrowerName: 'Mountain View Construction',
     loanAmount: 320000,
+    loanType: 'Commercial Real Estate',
     commissionRate: 1.25,
     commissionAmount: 4000,
     status: 'Pending',
     expectedPaymentDate: '2023-09-20',
+    lender: 'Midwest Funding Partners',
+    closingDate: '2023-09-05'
   },
+  {
+    id: 'comm-4',
+    applicationId: 'app-9',
+    borrowerName: 'Sunrise Healthcare Solutions',
+    loanAmount: 180000,
+    loanType: 'Equipment Finance',
+    commissionRate: 1.75,
+    commissionAmount: 3150,
+    status: 'Paid',
+    paymentDate: '2023-08-25',
+    lender: 'Healthcare Capital Group',
+    closingDate: '2023-08-20'
+  },
+  {
+    id: 'comm-5',
+    applicationId: 'app-10',
+    borrowerName: 'Fresh Harvest Organics',
+    loanAmount: 95000,
+    loanType: 'SBA Loan',
+    commissionRate: 2.25,
+    commissionAmount: 2138,
+    status: 'Processing',
+    expectedPaymentDate: '2023-10-05',
+    lender: 'Community First Bank',
+    closingDate: 'Pending'
+  }
 ];
 
 // Sample borrower loans (for borrower view)
@@ -430,13 +535,13 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className="bg-white p-4 mb-4 rounded-lg shadow border border-gray-200 hover:shadow-md transition-shadow duration-200"
-          style={{ ...provided.draggableProps.style, minHeight: '280px' }} // Increased card height by ~33%
+          className="bg-white p-5 mb-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200"
+          style={{ ...provided.draggableProps.style, minHeight: '300px' }} // Increased card height for better consistency
         >
-          <div className="flex justify-between items-start mb-2">
+          <div className="flex justify-between items-start mb-3">
             <div className="font-bold text-lg">{application.borrowerName}</div>
             <div
-              className={`text-xs font-semibold px-2 py-1 rounded-full ${
+              className={`text-xs font-semibold px-2.5 py-1.5 rounded-full ${
                 application.status === 'approved'
                   ? 'bg-green-100 text-green-800'
                   : application.status === 'rejected'
@@ -454,25 +559,25 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
             </div>
           </div>
 
-          <div className="text-sm text-gray-600 mb-3">
+          <div className="text-sm text-gray-600 mb-4">
             ID: {application.borrowerId || application.id}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="grid grid-cols-2 gap-3 mb-4">
             <div>
-              <div className="text-xs font-medium text-gray-500">BUSINESS</div>
-              <div className="text-sm">{application.businessName}</div>
+              <div className="text-xs font-medium text-gray-500 mb-1">BUSINESS</div>
+              <div className="text-sm font-medium">{application.businessName}</div>
             </div>
             <div>
-              <div className="text-xs font-medium text-gray-500">AMOUNT</div>
+              <div className="text-xs font-medium text-gray-500 mb-1">AMOUNT</div>
               <div className="text-sm font-semibold">${application.amount.toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-xs font-medium text-gray-500">TYPE</div>
-              <div className="text-sm">{application.type}</div>
+              <div className="text-xs font-medium text-gray-500 mb-1">TYPE</div>
+              <div className="text-sm font-medium">{application.type}</div>
             </div>
             <div>
-              <div className="text-xs font-medium text-gray-500">PRIORITY</div>
+              <div className="text-xs font-medium text-gray-500 mb-1">PRIORITY</div>
               <div className={`text-sm font-medium ${getPriorityColor(application.priority)}`}>
                 {typeof application.priority === 'string'
                   ? application.priority.charAt(0).toUpperCase() + application.priority.slice(1)
@@ -482,9 +587,9 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
           </div>
 
           {/* New fields for better decision making */}
-          <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="grid grid-cols-2 gap-3 mb-4">
             <div>
-              <div className="text-xs font-medium text-gray-500">CREDIT SCORE</div>
+              <div className="text-xs font-medium text-gray-500 mb-1">CREDIT SCORE</div>
               <div
                 className={`text-sm font-semibold ${
                   (application.creditScore || 0) > 700
@@ -498,11 +603,11 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
               </div>
             </div>
             <div>
-              <div className="text-xs font-medium text-gray-500">TIME IN BUSINESS</div>
-              <div className="text-sm">{application.timeInBusiness || 'N/A'}</div>
+              <div className="text-xs font-medium text-gray-500 mb-1">TIME IN BUSINESS</div>
+              <div className="text-sm font-medium">{application.timeInBusiness || 'N/A'}</div>
             </div>
             <div>
-              <div className="text-xs font-medium text-gray-500">RISK SCORE</div>
+              <div className="text-xs font-medium text-gray-500 mb-1">RISK SCORE</div>
               <div
                 className={`text-sm font-semibold ${
                   (application.risk_score || 0) > 80
@@ -516,7 +621,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
               </div>
             </div>
             <div>
-              <div className="text-xs font-medium text-gray-500">EVA REC</div>
+              <div className="text-xs font-medium text-gray-500 mb-1">EVA REC</div>
               <div
                 className={`text-sm font-medium ${
                   application.eva_recommendation === 'Approve'
@@ -533,17 +638,17 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
 
           {/* Application Stage */}
           <div className="mb-3">
-            <div className="text-xs font-medium text-gray-500">CURRENT STAGE</div>
+            <div className="text-xs font-medium text-gray-500 mb-1">CURRENT STAGE</div>
             <div className="text-sm font-medium text-blue-600">{applicationStage}</div>
           </div>
 
           {/* Outstanding Actions */}
           {outstandingActions.length > 0 && (
             <div className="mb-3">
-              <div className="text-xs font-medium text-gray-500">OUTSTANDING ACTIONS</div>
+              <div className="text-xs font-medium text-gray-500 mb-1">OUTSTANDING ACTIONS</div>
               <ul className="text-xs text-gray-600 list-disc pl-4 mt-1">
                 {outstandingActions.slice(0, 2).map((action, idx) => (
-                  <li key={idx}>{action}</li>
+                  <li key={idx} className="mb-1">{action}</li>
                 ))}
                 {outstandingActions.length > 2 && (
                   <li className="text-blue-500">+{outstandingActions.length - 2} more actions</li>
@@ -552,7 +657,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
             </div>
           )}
 
-          <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
+          <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-100">
             <div className="text-xs text-gray-500">
               {application.assignedTo ? `Assigned: ${application.assignedTo}` : 'Unassigned'}
             </div>
@@ -569,17 +674,19 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, index })
 // Equipment Card for Vendor View
 const EquipmentCard: React.FC<{ equipment: any }> = ({ equipment }) => {
   return (
-    <div className="p-4 mb-3 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+    <div className="p-5 mb-4 bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-medium text-gray-900">{equipment.equipmentName}</h3>
-          <p className="text-sm text-gray-600">Model: {equipment.model}</p>
-          <div className="mt-2">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <h3 className="text-lg font-medium text-gray-900 mb-1">{equipment.equipmentName}</h3>
+          <p className="text-sm text-gray-600 mb-1">Model: {equipment.model}</p>
+          <p className="text-sm text-gray-600 mb-1">Manufacturer: {equipment.manufacturer || 'N/A'}</p>
+          <p className="text-sm text-gray-600 mb-2">Category: {equipment.category || 'N/A'}</p>
+          <div className="mt-3">
+            <span className="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
               ${equipment.price.toLocaleString()}
             </span>
             <span
-              className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              className={`ml-2 inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium ${
                 equipment.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}
             >
@@ -588,10 +695,13 @@ const EquipmentCard: React.FC<{ equipment: any }> = ({ equipment }) => {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-sm font-medium text-gray-700">
+          <p className="text-sm font-medium text-gray-700 mb-1">
             Financing Requests: {equipment.financingRequests}
           </p>
-          <p className="text-sm text-gray-600">Approved: {equipment.approvedRequests}</p>
+          <p className="text-sm text-gray-600 mb-1">Approved: {equipment.approvedRequests}</p>
+          <p className="text-sm text-gray-600 mb-1">Pending: {equipment.pendingApprovals}</p>
+          <p className="text-sm text-gray-600 mb-1">Avg. Approval: {equipment.avgApprovalTime}</p>
+          <p className="text-sm text-gray-600">Popular Term: {equipment.popularFinancingTerm}</p>
         </div>
       </div>
     </div>
@@ -601,34 +711,42 @@ const EquipmentCard: React.FC<{ equipment: any }> = ({ equipment }) => {
 // Commission Card for Broker View
 const CommissionCard: React.FC<{ commission: any }> = ({ commission }) => {
   return (
-    <div className="p-4 mb-3 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+    <div className="p-5 mb-4 bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-medium text-gray-900">{commission.borrowerName}</h3>
-          <p className="text-sm text-gray-600">App ID: {commission.applicationId}</p>
-          <div className="mt-2">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          <h3 className="text-lg font-medium text-gray-900 mb-1">{commission.borrowerName}</h3>
+          <p className="text-sm text-gray-600 mb-1">App ID: {commission.applicationId}</p>
+          <p className="text-sm text-gray-600 mb-2">Lender: {commission.lender}</p>
+          <div className="mt-3">
+            <span className="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              {commission.loanType}
+            </span>
+            <span className="ml-2 inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
               Loan: ${commission.loanAmount.toLocaleString()}
             </span>
-            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              Commission: ${commission.commissionAmount.toLocaleString()}
+            <span className="ml-2 inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              Rate: {commission.commissionRate}%
             </span>
           </div>
         </div>
         <div className="text-right">
-          <p
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              commission.status === 'Paid'
-                ? 'bg-green-100 text-green-800'
-                : 'bg-yellow-100 text-yellow-800'
-            }`}
-          >
+          <p className={`inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium ${
+            commission.status === 'Paid' ? 'bg-green-100 text-green-800' : 
+            commission.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+            'bg-blue-100 text-blue-800'
+          }`}>
             {commission.status}
           </p>
+          <p className="text-sm mt-2 font-bold text-green-600">
+            ${commission.commissionAmount.toLocaleString()}
+          </p>
           <p className="text-sm mt-1 text-gray-600">
-            {commission.status === 'Paid'
-              ? `Paid: ${commission.paymentDate}`
-              : `Expected: ${commission.expectedPaymentDate}`}
+            {commission.status === 'Paid' ? `Paid: ${commission.paymentDate}` : 
+             commission.status === 'Pending' ? `Expected: ${commission.expectedPaymentDate}` : 
+             'Processing'}
+          </p>
+          <p className="text-sm text-gray-600 mt-1">
+            Closing: {commission.closingDate}
           </p>
         </div>
       </div>
@@ -639,28 +757,28 @@ const CommissionCard: React.FC<{ commission: any }> = ({ commission }) => {
 // Loan Card for Borrower View
 const LoanCard: React.FC<{ loan: any }> = ({ loan }) => {
   return (
-    <div className="p-4 mb-3 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+    <div className="p-5 mb-4 bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-medium text-gray-900">{loan.type}</h3>
-          <p className="text-sm text-gray-600">Lender: {loan.lender}</p>
-          <div className="mt-2">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          <h3 className="text-lg font-medium text-gray-900 mb-1">{loan.type}</h3>
+          <p className="text-sm text-gray-600 mb-2">Lender: {loan.lender}</p>
+          <div className="mt-3">
+            <span className="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
               ${loan.loanAmount.toLocaleString()}
             </span>
-            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <span className="ml-2 inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
               {loan.status}
             </span>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-sm font-medium text-gray-700">Rate: {loan.interestRate}%</p>
-          <p className="text-sm text-gray-600">Term: {loan.term} months</p>
-          <p className="text-sm text-gray-600 mt-1">Next Payment: {loan.nextPaymentDue}</p>
+          <p className="text-sm font-medium text-gray-700 mb-1">Rate: {loan.interestRate}%</p>
+          <p className="text-sm text-gray-600 mb-1">Term: {loan.term} months</p>
+          <p className="text-sm text-gray-600 mt-2">Next Payment: {loan.nextPaymentDue}</p>
         </div>
       </div>
-      <div className="mt-3">
-        <p className="text-sm text-gray-600">
+      <div className="mt-4 pt-3 border-t border-gray-100">
+        <p className="text-sm text-gray-600 mb-1">
           <span className="font-medium">Monthly Payment:</span> ${loan.monthlyPayment}
         </p>
         <p className="text-sm text-gray-600">
@@ -859,11 +977,656 @@ const AGENT_TYPES: AgentType[] = [
   },
 ];
 
-const AutoOriginationsDashboard: React.FC = () => {
+// Create some mock team members
+// Add mock team data for each user type
+const MOCK_LENDER_TEAM: TeamMember[] = [
+  {
+    id: 'member-1',
+    name: 'John Smith',
+    email: 'john.smith@lendercompany.com',
+    role: 'lender',
+    specificRole: 'default_role',
+    dateAdded: '2023-06-15',
+    addedBy: 'Admin User',
+    permissions: ['view', 'edit', 'approve_loans'],
+    status: 'active'
+  },
+  {
+    id: 'member-2',
+    name: 'Sarah Johnson',
+    email: 'sarah.j@lendercompany.com',
+    role: 'lender',
+    specificRole: 'default_role',
+    dateAdded: '2023-07-22',
+    addedBy: 'Admin User',
+    permissions: ['view', 'edit', 'approve_loans', 'view_financials'],
+    status: 'active'
+  },
+  {
+    id: 'member-3',
+    name: 'Michael Chen',
+    email: 'm.chen@lendercompany.com',
+    role: 'lender',
+    specificRole: 'cpa_bookkeeper',
+    dateAdded: '2023-08-10',
+    addedBy: 'Admin User',
+    permissions: ['view', 'view_financials'],
+    status: 'active'
+  },
+  {
+    id: 'member-4',
+    name: 'Jessica Rodriguez',
+    email: 'j.rodriguez@lendercompany.com',
+    role: 'lender',
+    specificRole: 'default_role',
+    dateAdded: '2023-08-05',
+    addedBy: 'John Smith',
+    permissions: ['view', 'edit', 'approve_loans', 'portfolio_management'],
+    status: 'active'
+  },
+  {
+    id: 'member-5',
+    name: 'Robert Taylor',
+    email: 'r.taylor@lendercompany.com',
+    role: 'lender',
+    specificRole: 'default_role',
+    dateAdded: '2023-07-30',
+    addedBy: 'Admin User',
+    permissions: ['view', 'edit', 'risk_assessment', 'underwriting'],
+    status: 'active'
+  }
+];
+
+const MOCK_BROKER_TEAM: TeamMember[] = [
+  {
+    id: 'member-1',
+    name: 'Lisa Rodriguez',
+    email: 'lisa@brokeragefirm.com',
+    role: 'broker',
+    specificRole: 'default_role',
+    dateAdded: '2023-05-20',
+    addedBy: 'Admin User',
+    permissions: ['view', 'edit', 'submit_applications', 'client_communication'],
+    status: 'active'
+  },
+  {
+    id: 'member-2',
+    name: 'David Wilson',
+    email: 'david@brokeragefirm.com',
+    role: 'broker',
+    specificRole: 'default_role',
+    dateAdded: '2023-07-12',
+    addedBy: 'Admin User',
+    permissions: ['view', 'edit', 'submit_applications'],
+    status: 'active'
+  },
+  {
+    id: 'member-3',
+    name: 'Emily Chen',
+    email: 'emily@brokeragefirm.com',
+    role: 'broker',
+    specificRole: 'cpa_bookkeeper',
+    dateAdded: '2023-06-30',
+    addedBy: 'Lisa Rodriguez',
+    permissions: ['view', 'view_financials', 'document_preparation'],
+    status: 'active'
+  },
+  {
+    id: 'member-4',
+    name: 'Marcus Johnson',
+    email: 'marcus@brokeragefirm.com',
+    role: 'broker',
+    specificRole: 'default_role',
+    dateAdded: '2023-08-15',
+    addedBy: 'Lisa Rodriguez',
+    permissions: ['view', 'edit', 'submit_applications', 'client_communication'],
+    status: 'active'
+  },
+  {
+    id: 'member-5',
+    name: 'Sophia Williams',
+    email: 'sophia@brokeragefirm.com',
+    role: 'broker',
+    specificRole: 'default_role',
+    dateAdded: '2023-07-25',
+    addedBy: 'Admin User',
+    permissions: ['view', 'edit', 'submit_applications', 'client_communication'],
+    status: 'pending'
+  }
+];
+
+const MOCK_BORROWER_TEAM: TeamMember[] = [
+  {
+    id: 'member-1',
+    name: 'Jennifer Lewis',
+    email: 'jennifer@acmeindustries.com',
+    role: 'borrower',
+    specificRole: 'owners',
+    dateAdded: '2023-08-01',
+    addedBy: 'System Admin',
+    permissions: ['view', 'edit', 'sign_documents', 'payment_access', 'document_upload'],
+    status: 'active'
+  },
+  {
+    id: 'member-2',
+    name: 'Robert Brown',
+    email: 'robert@acmeindustries.com',
+    role: 'borrower',
+    specificRole: 'authorized_proxy',
+    dateAdded: '2023-08-05',
+    addedBy: 'Jennifer Lewis',
+    permissions: ['view', 'document_upload'],
+    status: 'active'
+  },
+  {
+    id: 'member-3',
+    name: 'Amanda Parker',
+    email: 'accounting@acmeindustries.com',
+    role: 'borrower',
+    specificRole: 'cpa_bookkeeper',
+    dateAdded: '2023-08-12',
+    addedBy: 'Jennifer Lewis',
+    permissions: ['view', 'document_upload'],
+    status: 'pending'
+  }
+];
+
+const MOCK_VENDOR_TEAM: TeamMember[] = [
+  {
+    id: 'member-1',
+    name: 'Carlos Mendez',
+    email: 'carlos@equipmentvendor.com',
+    role: 'vendor',
+    specificRole: 'business_owner',
+    dateAdded: '2023-07-05',
+    addedBy: 'System Admin',
+    permissions: ['view', 'edit', 'manage_inventory', 'view_financing_status', 'quote_generation', 'manage_team', 'approval_authority'],
+    status: 'active'
+  },
+  {
+    id: 'member-2',
+    name: 'Maria Garcia',
+    email: 'maria@equipmentvendor.com',
+    role: 'vendor',
+    specificRole: 'sales_department',
+    dateAdded: '2023-07-15',
+    addedBy: 'Carlos Mendez',
+    permissions: ['view', 'edit', 'quote_generation', 'view_financing_status', 'customer_communication'],
+    status: 'active'
+  },
+  {
+    id: 'member-3',
+    name: 'James Wilson',
+    email: 'james@equipmentvendor.com',
+    role: 'vendor',
+    specificRole: 'finance_department',
+    dateAdded: '2023-07-28',
+    addedBy: 'Carlos Mendez',
+    permissions: ['view', 'edit', 'view_financing_status', 'financial_reporting', 'payment_tracking'],
+    status: 'active'
+  },
+  {
+    id: 'member-4',
+    name: 'Sarah Johnson',
+    email: 'sarah@equipmentvendor.com',
+    role: 'vendor',
+    specificRole: 'marketing',
+    dateAdded: '2023-08-10',
+    addedBy: 'Carlos Mendez',
+    permissions: ['view', 'edit', 'marketing_campaigns', 'customer_communication'],
+    status: 'active'
+  },
+  {
+    id: 'member-5',
+    name: 'Robert Chen',
+    email: 'robert@equipmentvendor.com',
+    role: 'vendor',
+    specificRole: 'maintenance_service',
+    dateAdded: '2023-08-15',
+    addedBy: 'Carlos Mendez',
+    permissions: ['view', 'service_scheduling', 'inventory_visibility'],
+    status: 'active'
+  }
+];
+
+// Sample broker clients (for broker view)
+const BROKER_CLIENTS = [
+  {
+    id: 'client-1',
+    name: 'Global Manufacturing Co',
+    contactName: 'Robert Chen',
+    contactEmail: 'robert@globalmfg.com',
+    contactPhone: '(555) 123-4567',
+    industry: 'Manufacturing',
+    activeApplications: 1,
+    completedDeals: 2,
+    totalFunding: 450000,
+    lastActivity: '2023-08-30',
+    status: 'Active'
+  },
+  {
+    id: 'client-2',
+    name: 'Quantum Technologies',
+    contactName: 'Sarah Johnson',
+    contactEmail: 'sarah@quantumtech.com',
+    contactPhone: '(555) 234-5678',
+    industry: 'Technology',
+    activeApplications: 0,
+    completedDeals: 1,
+    totalFunding: 75000,
+    lastActivity: '2023-08-15',
+    status: 'Active'
+  },
+  {
+    id: 'client-3',
+    name: 'Mountain View Construction',
+    contactName: 'Michael Brown',
+    contactEmail: 'michael@mountainviewconst.com',
+    contactPhone: '(555) 345-6789',
+    industry: 'Construction',
+    activeApplications: 1,
+    completedDeals: 1,
+    totalFunding: 320000,
+    lastActivity: '2023-09-01',
+    status: 'Active'
+  },
+  {
+    id: 'client-4',
+    name: 'Sunrise Healthcare Solutions',
+    contactName: 'Jennifer Lee',
+    contactEmail: 'jennifer@sunrisehealthcare.com',
+    contactPhone: '(555) 456-7890',
+    industry: 'Healthcare',
+    activeApplications: 0,
+    completedDeals: 1,
+    totalFunding: 180000,
+    lastActivity: '2023-08-20',
+    status: 'Active'
+  },
+  {
+    id: 'client-5',
+    name: 'Fresh Harvest Organics',
+    contactName: 'David Wilson',
+    contactEmail: 'david@freshharvest.com',
+    contactPhone: '(555) 567-8901',
+    industry: 'Agriculture',
+    activeApplications: 1,
+    completedDeals: 0,
+    totalFunding: 0,
+    lastActivity: '2023-09-02',
+    status: 'New'
+  }
+];
+
+// Sample lender portfolio data
+const LENDER_PORTFOLIO = [
+  {
+    id: 'loan-portfolio-1',
+    category: 'Commercial Real Estate',
+    activeLoans: 24,
+    totalValue: 8750000,
+    averageLoanSize: 364583,
+    avgInterestRate: 5.8,
+    delinquencyRate: 1.2,
+    riskScore: 'Low'
+  },
+  {
+    id: 'loan-portfolio-2',
+    category: 'Equipment Finance',
+    activeLoans: 35,
+    totalValue: 5250000,
+    averageLoanSize: 150000,
+    avgInterestRate: 6.2,
+    delinquencyRate: 1.5,
+    riskScore: 'Low'
+  },
+  {
+    id: 'loan-portfolio-3',
+    category: 'Working Capital',
+    activeLoans: 42,
+    totalValue: 3150000,
+    averageLoanSize: 75000,
+    avgInterestRate: 7.5,
+    delinquencyRate: 2.1,
+    riskScore: 'Medium'
+  },
+  {
+    id: 'loan-portfolio-4',
+    category: 'SBA Loans',
+    activeLoans: 18,
+    totalValue: 4500000,
+    averageLoanSize: 250000,
+    avgInterestRate: 5.2,
+    delinquencyRate: 0.8,
+    riskScore: 'Low'
+  },
+  {
+    id: 'loan-portfolio-5',
+    category: 'Bridge Financing',
+    activeLoans: 12,
+    totalValue: 6200000,
+    averageLoanSize: 516667,
+    avgInterestRate: 8.1,
+    delinquencyRate: 1.9,
+    riskScore: 'Medium'
+  }
+];
+
+// Create broker metrics
+const BROKER_METRICS = {
+  totalCommissions: 14538,
+  pendingCommissions: 9888,
+  conversionRate: 68,
+  avgDealSize: 184000,
+  topLenders: [
+    { name: 'Capital Express', deals: 12, volume: 2850000 },
+    { name: 'First National Bank', deals: 8, volume: 1200000 },
+    { name: 'Midwest Funding Partners', deals: 6, volume: 1800000 },
+    { name: 'Healthcare Capital Group', deals: 5, volume: 950000 },
+    { name: 'Community First Bank', deals: 4, volume: 720000 }
+  ],
+  monthlyTrends: [
+    { month: 'Apr', applications: 12, approvals: 7, commissions: 8250 },
+    { month: 'May', applications: 15, approvals: 10, commissions: 10500 },
+    { month: 'Jun', applications: 18, approvals: 12, commissions: 12800 },
+    { month: 'Jul', applications: 14, approvals: 9, commissions: 9750 },
+    { month: 'Aug', applications: 22, approvals: 15, commissions: 16200 },
+    { month: 'Sep', applications: 20, approvals: 14, commissions: 14538 }
+  ]
+};
+
+// Lender metrics
+const LENDER_METRICS = {
+  totalPortfolioValue: 27850000,
+  activeLoans: 131,
+  newApplicationsThisMonth: 24,
+  fundedLoansThisMonth: 18,
+  portfolioHealth: {
+    healthy: 92.5,
+    watchList: 5.8,
+    delinquent: 1.7
+  },
+  loanPerformance: [
+    { month: 'Apr', funded: 14, value: 3200000 },
+    { month: 'May', funded: 17, value: 3850000 },
+    { month: 'Jun', funded: 15, value: 4100000 },
+    { month: 'Jul', funded: 16, value: 3750000 },
+    { month: 'Aug', funded: 18, value: 4500000 },
+    { month: 'Sep', funded: 12, value: 2950000 }
+  ]
+};
+
+// Client card for broker view
+const ClientCard: React.FC<{ client: any }> = ({ client }) => {
+  return (
+    <div className="p-5 mb-4 bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200">
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">{client.name}</h3>
+          <p className="text-sm text-gray-600 mb-1">Contact: {client.contactName}</p>
+          <p className="text-sm text-gray-600 mb-2">Industry: {client.industry}</p>
+          <div className="mt-3">
+            <span className={`inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium ${
+              client.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+            }`}>
+              {client.status}
+            </span>
+            {client.activeApplications > 0 && (
+              <span className="ml-2 inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                {client.activeApplications} Active {client.activeApplications === 1 ? 'Application' : 'Applications'}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-medium text-gray-700 mb-1">Completed Deals: {client.completedDeals}</p>
+          <p className="text-sm text-gray-600 mb-1">Total Funding: ${client.totalFunding.toLocaleString()}</p>
+          <p className="text-sm text-gray-600 mt-2">Last Activity: {client.lastActivity}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Portfolio card for lender view
+const PortfolioCard: React.FC<{ portfolio: any }> = ({ portfolio }) => {
+  return (
+    <div className="p-5 mb-4 bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200">
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">{portfolio.category}</h3>
+          <p className="text-sm text-gray-600 mb-1">Active Loans: {portfolio.activeLoans}</p>
+          <p className="text-sm text-gray-600 mb-2">Avg. Loan Size: ${portfolio.averageLoanSize.toLocaleString()}</p>
+          <div className="mt-3">
+            <span className={`inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium ${
+              portfolio.riskScore === 'Low' ? 'bg-green-100 text-green-800' : 
+              portfolio.riskScore === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 
+              'bg-red-100 text-red-800'
+            }`}>
+              {portfolio.riskScore} Risk
+            </span>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-medium text-gray-700 mb-1">Total Value: ${portfolio.totalValue.toLocaleString()}</p>
+          <p className="text-sm text-gray-600 mb-1">Avg. Interest Rate: {portfolio.avgInterestRate}%</p>
+          <p className="text-sm text-gray-600 mt-1">Delinquency Rate: {portfolio.delinquencyRate}%</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Add enhanced role hierarchy definition
+// Define role hierarchy for permissions - higher number means higher permissions
+const ROLE_HIERARCHY = {
+  'sales_manager': 1, // Sales & Relation Managers & Business Development Managers
+  'loan_processor': 2, // Loan Processor
+  'credit_underwriter': 3, // Credit Underwriter & Analysis
+  'credit_committee': 4, // Credit Committee
+  'portfolio_manager': 5, // Portfolio Manager
+  'portfolio_servicer': 6, // Portfolio Navigator Servicer
+  'portfolio_monitor': 7, // Portfolio Navigator Monitoring
+  'developer': 8, // Developer for Integrations and Monitoring
+  'admin': 9, // System Root Admin
+};
+
+// Define role display names with proper capitalization
+const ROLE_DISPLAY_NAMES = {
+  'sales_manager': 'Sales & Relation Manager',
+  'loan_processor': 'Loan Processor',
+  'credit_underwriter': 'Credit Underwriter & Analyst',
+  'credit_committee': 'Credit Committee Member',
+  'portfolio_manager': 'Portfolio Manager',
+  'portfolio_servicer': 'Portfolio Navigator - Servicer',
+  'portfolio_monitor': 'Portfolio Navigator - Monitoring',
+  'developer': 'Developer & Integration Specialist',
+  'admin': 'System Root Administrator',
+  'lender': 'Lender',
+  'broker': 'Commercial Broker',
+  'borrower': 'Borrower',
+  'vendor': 'Equipment Vendor'
+};
+
+// Define view types for each role
+const ROLE_VIEW_TYPES = {
+  'sales_manager': ['macro', 'micro'],
+  'loan_processor': ['macro', 'micro'],
+  'credit_underwriter': ['macro', 'micro'],
+  'credit_committee': ['macro', 'micro'],
+  'portfolio_manager': ['macro', 'micro'],
+  'portfolio_servicer': ['macro', 'micro'],
+  'portfolio_monitor': ['macro', 'micro'],
+  'developer': ['system', 'logs', 'integration'],
+  'admin': ['system', 'users', 'permissions', 'audit']
+};
+
+// Add role-specific KPI definitions
+const ROLE_KPIS = {
+  'sales_manager': [
+    { name: 'New Applications', value: 65, change: 12.5, trend: 'up' },
+    { name: 'Conversion Rate', value: '32%', change: 5.2, trend: 'up' },
+    { name: 'Total Pipeline', value: '$3.65M', change: 15.3, trend: 'up' },
+    { name: 'Avg. Response Time', value: '4h 32m', change: -12.1, trend: 'up' }
+  ],
+  'loan_processor': [
+    { name: 'Documents Pending', value: 24, change: 3.2, trend: 'down' },
+    { name: 'Processing Efficiency', value: '87%', change: 4.3, trend: 'up' },
+    { name: 'Avg. Process Time', value: '2d 8h', change: -8.7, trend: 'up' },
+    { name: 'Error Rate', value: '1.2%', change: -15.5, trend: 'up' }
+  ],
+  'credit_underwriter': [
+    { name: 'Under Review', value: 18, change: 5.5, trend: 'up' },
+    { name: 'Risk Assessment Score', value: '84/100', change: 3.2, trend: 'up' },
+    { name: 'Approval Rate', value: '72%', change: 2.1, trend: 'up' },
+    { name: 'Avg. Analysis Time', value: '3d 4h', change: -12.3, trend: 'up' }
+  ],
+  'credit_committee': [
+    { name: 'Pending Approvals', value: 12, change: -5.8, trend: 'down' },
+    { name: 'Approved MTD', value: 28, change: 15.4, trend: 'up' },
+    { name: 'Escalation Rate', value: '8.3%', change: -2.1, trend: 'up' },
+    { name: 'Avg. Decision Time', value: '1d 6h', change: -15.0, trend: 'up' }
+  ],
+  'portfolio_manager': [
+    { name: 'Active Portfolios', value: 42, change: 7.5, trend: 'up' },
+    { name: 'AUM', value: '$28.5M', change: 12.3, trend: 'up' },
+    { name: 'Delinquency Rate', value: '1.7%', change: -0.5, trend: 'up' },
+    { name: 'Yield', value: '6.2%', change: 0.3, trend: 'up' }
+  ],
+  'portfolio_servicer': [
+    { name: 'Accounts Serviced', value: 156, change: 8.3, trend: 'up' },
+    { name: 'Payment Success Rate', value: '96.8%', change: 1.2, trend: 'up' },
+    { name: 'Payment Processing Time', value: '0d 6h', change: -25.0, trend: 'up' },
+    { name: 'Customer Satisfaction', value: '4.7/5', change: 6.8, trend: 'up' }
+  ],
+  'portfolio_monitor': [
+    { name: 'Accounts Monitored', value: 178, change: 5.3, trend: 'up' },
+    { name: 'Early Warning Flags', value: 8, change: -12.5, trend: 'up' },
+    { name: 'Compliance Score', value: '96%', change: 2.1, trend: 'up' },
+    { name: 'Monitoring Coverage', value: '99.8%', change: 0.5, trend: 'up' }
+  ],
+  'developer': [
+    { name: 'System Uptime', value: '99.96%', change: 0.02, trend: 'up' },
+    { name: 'API Requests (24h)', value: '854K', change: 12.3, trend: 'up' },
+    { name: 'Avg. Response Time', value: '128ms', change: -15.2, trend: 'up' },
+    { name: 'Active Integrations', value: 24, change: 4.3, trend: 'up' }
+  ],
+  'admin': [
+    { name: 'Active Users', value: 182, change: 8.3, trend: 'up' },
+    { name: 'System Health', value: '98%', change: 2.1, trend: 'up' },
+    { name: 'Security Events (24h)', value: 5, change: -25.0, trend: 'up' },
+    { name: 'Resource Utilization', value: '42%', change: -5.5, trend: 'up' }
+  ]
+};
+
+// Enhanced KPI card component with visual indicators
+const KpiCard: React.FC<{ kpi: any, className?: string }> = ({ kpi, className = '' }) => {
+  return (
+    <div className={`bg-white rounded-lg shadow-md border border-gray-200 p-5 ${className}`}>
+      <h3 className="text-sm font-medium text-gray-500 mb-1">{kpi.name}</h3>
+      <p className="text-2xl font-bold text-gray-900 mb-2">{kpi.value}</p>
+      <div className={`mt-2 text-sm flex items-center ${
+        kpi.trend === 'up' 
+          ? (kpi.change > 0 ? 'text-green-600' : 'text-red-600') 
+          : (kpi.change > 0 ? 'text-red-600' : 'text-green-600')
+      }`}>
+        {kpi.change > 0 ? '↑' : '↓'} {Math.abs(kpi.change)}% from last month
+        <div className="ml-2 w-16 h-4 bg-gray-100 rounded overflow-hidden">
+          <div 
+            className={`h-full ${kpi.trend === 'up' 
+              ? (kpi.change > 0 ? 'bg-green-500' : 'bg-red-500') 
+              : (kpi.change > 0 ? 'bg-red-500' : 'bg-green-500')}`}
+            style={{ width: `${Math.min(Math.abs(kpi.change) * 3, 100)}%` }}
+          ></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Create a role selection component
+const RoleSelector: React.FC<{ 
+  currentRole: UserRole, 
+  roles: string[], 
+  onChange: (role: UserRole) => void 
+}> = ({ currentRole, roles, onChange }) => {
+  return (
+    <div className="mb-6 bg-white p-4 rounded-lg shadow">
+      <h3 className="text-lg font-medium text-gray-900 mb-3">Switch View</h3>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        {roles.map(role => (
+          <button
+            key={role}
+            onClick={() => onChange(role as UserRole)}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-150 ${
+              currentRole === role
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {ROLE_DISPLAY_NAMES[role] || role}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Create a view mode selector component (Macro/Micro)
+const ViewModeSelector: React.FC<{
+  currentViewMode: string,
+  availableViewModes: string[],
+  onChange: (mode: string) => void
+}> = ({ currentViewMode, availableViewModes, onChange }) => {
+  return (
+    <div className="flex border border-gray-300 rounded-md overflow-hidden mb-6 w-fit">
+      {availableViewModes.map(mode => (
+        <button
+          key={mode}
+          onClick={() => onChange(mode)}
+          className={`px-4 py-2 text-sm font-medium ${
+            currentViewMode === mode
+              ? 'bg-primary-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          {mode.charAt(0).toUpperCase() + mode.slice(1)} View
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const AutoOriginationsDashboard = () => {
   const navigate = useNavigate();
-  const { userRole } = useContext(UserContext);
+  
+  // Use UserContext and UserTypeContext to get role information
+  const userContext = useContext(UserContext);
+  const userTypeContext = useUserType();
+  
+  // Set state based on context values
+  const [currentUserType, setCurrentUserType] = useState<UserRoleType>(
+    localStorage.getItem('userRole') as UserRoleType || 'lender'
+  );
+  const [currentSpecificRole, setCurrentSpecificRole] = useState<UserSpecificRoleType>(
+    localStorage.getItem('specificRole') as UserSpecificRoleType || 'default_role'
+  );
+  const [currentDemoContext, setCurrentDemoContext] = useState<DemoContextType>('all');
+  
+  // Add new state for employee role and view mode
+  const [currentEmployeeRole, setCurrentEmployeeRole] = useState<UserRole>('sales_manager');
+  const [currentViewMode, setCurrentViewMode] = useState('macro');
+  
+  // Add state for the selected role from the tabs at the top
+  const [selectedRoleTab, setSelectedRoleTab] = useState<string>('sales_manager');
+  const [showRoleDashboard, setShowRoleDashboard] = useState<boolean>(true);
+  
+  // State for portfolio-related views (these will be handled elsewhere)
+  const [isPortfolioView, setIsPortfolioView] = useState(false);
+  const [portfolioViewType, setPortfolioViewType] = useState<'manager'|'monitoring'|'servicer'>('manager');
+  
   const [searchTerm, setSearchTerm] = useState('');
-  const [view, setView] = useState('lender'); // Default view is lender
+  const [view, setView] = useState(currentUserType); // Set view based on current user type
   const [isOpen, setIsOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [applications, setApplications] = useState<Application[]>(SAMPLE_APPLICATIONS);
@@ -874,539 +1637,69 @@ const AutoOriginationsDashboard: React.FC = () => {
   const [selectedPersona, setSelectedPersona] = useState<UserPersona | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<AgentType | null>(null);
   const [showAgentSelector, setShowAgentSelector] = useState(false);
+  const [useEnhancedDashboard, setUseEnhancedDashboard] = useState(true);
+  const [currentTransaction, setCurrentTransaction] = useState('TX-123');
+  const [displayMode, setDisplayMode] = useState<'kanban' | 'list'>('kanban'); // Default display mode is kanban
 
-  // Modified columns to match application features/sections rather than just status
-  const [columns, setColumns] = useState<Column[]>([
-    {
-      id: 'application_form',
-      title: 'Application Form',
-      applications: [],
-    },
-    {
-      id: 'credit_application',
-      title: 'Credit Application',
-      applications: [],
-    },
-    {
-      id: 'risk_map_navigator',
-      title: 'Risk Map Navigator',
-      applications: [],
-    },
-    {
-      id: 'deal_structuring',
-      title: 'Deal Structuring',
-      applications: [],
-    },
-    {
-      id: 'transaction_execution',
-      title: 'Transaction Execution',
-      applications: [],
-    },
-    {
-      id: 'post_closing',
-      title: 'Post-Closing',
-      applications: [],
-    },
-  ]);
-
-  // Sample dashboard metrics data
-  const dashboardMetrics: DashboardMetrics = {
-    weeklyApplications: [
-      { name: 'Mon', count: 4 },
-      { name: 'Tue', count: 7 },
-      { name: 'Wed', count: 5 },
-      { name: 'Thu', count: 9 },
-      { name: 'Fri', count: 6 },
-      { name: 'Sat', count: 2 },
-      { name: 'Sun', count: 1 },
-    ],
-    statusDistribution: [
-      { name: 'New Application', value: 15 },
-      { name: 'Documents Pending', value: 25 },
-      { name: 'Under Review', value: 30 },
-      { name: 'Approved', value: 20 },
-      { name: 'Funded', value: 8 },
-      { name: 'Rejected', value: 2 },
-    ],
-    amountByIndustry: [
-      { name: 'Manufacturing', amount: 450000 },
-      { name: 'Retail', amount: 320000 },
-      { name: 'Technology', amount: 280000 },
-      { name: 'Healthcare', amount: 180000 },
-      { name: 'Construction', amount: 370000 },
-      { name: 'Food Service', amount: 130000 },
-    ],
-    conversionRates: [
-      { name: 'Application to Review', rate: 82 },
-      { name: 'Review to Approval', rate: 64 },
-      { name: 'Approval to Funding', rate: 78 },
-    ],
-    approvalTrend: [
-      { date: 'Jan', applications: 45, approvals: 32 },
-      { date: 'Feb', applications: 52, approvals: 35 },
-      { date: 'Mar', applications: 49, approvals: 30 },
-      { date: 'Apr', applications: 60, approvals: 45 },
-      { date: 'May', applications: 55, approvals: 38 },
-      { date: 'Jun', applications: 70, approvals: 53 },
-    ],
-  };
-
-  // Colors for charts
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
-
-  // Function to place applications in the appropriate column based on their stage
-  const organizeApplicationsByStage = () => {
-    const newColumns = [...columns].map(column => ({
-      ...column,
-      applications: [] as Application[],
-    }));
-
-    applications.forEach(application => {
-      // Determine which column this application belongs to based on its stage
-      let columnId = 'application_form';
-
-      if (application.status === 'funded') {
-        columnId = 'post_closing';
-      } else if (application.completedSteps.includes('review')) {
-        columnId = 'transaction_execution';
-      } else if (
-        application.completedSteps.includes('risk_map') ||
-        (application.completedSteps.includes('documents') && application.status === 'under_review')
-      ) {
-        columnId = 'deal_structuring';
-      } else if (
-        application.completedSteps.includes('basic_info') &&
-        (application.status === 'documents_pending' || application.documentStatus === 'Pending')
-      ) {
-        columnId = 'risk_map_navigator';
-      } else if (
-        application.completedSteps.includes('application') &&
-        !application.completedSteps.includes('risk_map')
-      ) {
-        columnId = 'credit_application';
-      }
-
-      // Find the column and add the application to it
-      const column = newColumns.find(col => col.id === columnId);
-      if (column) {
-        column.applications.push(application);
-      }
-    });
-
-    return newColumns;
-  };
-
-  // Initialize columns with applications on component mount and when applications change
-  useEffect(() => {
-    setColumns(organizeApplicationsByStage());
-  }, [applications]);
-
-  // Handle drag and drop
-  const onDragEnd = (result: any) => {
-    const { destination, source, draggableId } = result;
-
-    // If there's no destination, or if dragged to the same place, do nothing
-    if (!destination) return;
-    if (destination.droppableId === source.droppableId && destination.index === source.index) {
-      return;
+  // Get available roles based on user type
+  const getAvailableRoles = () => {
+    if (['lender', 'admin'].includes(currentUserType)) {
+      // Removed portfolio-related roles - these will be handled separately
+      return ['sales_manager', 'loan_processor', 'credit_underwriter', 'credit_committee'];
+    } else if (currentUserType === 'broker') {
+      return ['sales_manager', 'loan_processor'];
+    } else if (currentUserType === 'borrower') {
+      return [];
+    } else if (currentUserType === 'vendor') {
+      return ['sales_manager'];
+    } else {
+      return [currentUserType];
     }
-
-    // Find the source and destination columns
-    const sourceColumn = columns.find(col => col.id === source.droppableId);
-    const destColumn = columns.find(col => col.id === destination.droppableId);
-    if (!sourceColumn || !destColumn) return;
-
-    // Find the application being dragged
-    const application = sourceColumn.applications.find(app => app.id === draggableId);
-    if (!application) return;
-
-    // Create new columns array
-    const newColumns = [...columns];
-    // Find the source and destination columns in the new array
-    const newSourceColumn = newColumns.find(col => col.id === source.droppableId);
-    const newDestColumn = newColumns.find(col => col.id === destination.droppableId);
-    if (!newSourceColumn || !newDestColumn) return;
-
-    // Update application status and completedSteps based on the destination column
-    const updatedApplication = { ...application };
-
-    // Update application status based on destination column
-    switch (destination.droppableId) {
-      case 'application_form':
-        updatedApplication.status = 'new_application';
-        break;
-      case 'credit_application':
-        updatedApplication.status = 'documents_pending';
-        if (!updatedApplication.completedSteps.includes('application')) {
-          updatedApplication.completedSteps.push('application');
-        }
-        break;
-      case 'risk_map_navigator':
-        updatedApplication.status = 'documents_pending';
-        if (!updatedApplication.completedSteps.includes('basic_info')) {
-          updatedApplication.completedSteps.push('basic_info');
-        }
-        break;
-      case 'deal_structuring':
-        updatedApplication.status = 'under_review';
-        if (!updatedApplication.completedSteps.includes('risk_map')) {
-          updatedApplication.completedSteps.push('risk_map');
-        }
-        break;
-      case 'transaction_execution':
-        updatedApplication.status = 'approved';
-        if (!updatedApplication.completedSteps.includes('review')) {
-          updatedApplication.completedSteps.push('review');
-        }
-        break;
-      case 'post_closing':
-        updatedApplication.status = 'funded';
-        if (!updatedApplication.completedSteps.includes('funding')) {
-          updatedApplication.completedSteps.push('funding');
-        }
-        break;
-    }
-
-    // Remove application from source column
-    newSourceColumn.applications = newSourceColumn.applications.filter(
-      app => app.id !== draggableId
-    );
-
-    // Insert application at destination
-    newDestColumn.applications = [
-      ...newDestColumn.applications.slice(0, destination.index),
-      updatedApplication,
-      ...newDestColumn.applications.slice(destination.index),
-    ];
-
-    // Update state
-    setColumns(newColumns);
-
-    // Update the application in the main applications array
-    setApplications(
-      applications.map(app => (app.id === updatedApplication.id ? updatedApplication : app))
-    );
   };
 
-  // Get assignees for filter
-  const assignees = [
-    'all',
-    ...Array.from(
-      new Set(applications.filter(app => app.assignedTo).map(app => app.assignedTo as string))
-    ),
+  // Define role tabs that exclude portfolio-related views
+  const roleTabs = [
+    { id: 'sales_manager', name: 'Sales & Relation Manager' },
+    { id: 'loan_processor', name: 'Loan Processor' },
+    { id: 'credit_underwriter', name: 'Credit Underwriter & Analyst' },
+    { id: 'credit_committee', name: 'Credit Committee Member' },
+    { id: 'system_admin', name: 'System Root Administrator' }
   ];
 
-  // Function to get priority badge color
-  const getPriorityBadgeColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'low':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  // Get available view modes for current role
+  const getAvailableViewModes = () => {
+    return ROLE_VIEW_TYPES[currentEmployeeRole] || ['macro'];
+  };
+
+  // Handle employee role change
+  const handleEmployeeRoleChange = (role: UserRole) => {
+    setCurrentEmployeeRole(role);
+    setSelectedRoleTab(role);
+    setShowRoleDashboard(true);
+    
+    // Reset view mode to a valid one for this role
+    const availableViewModes = ROLE_VIEW_TYPES[role] || ['macro'];
+    if (!availableViewModes.includes(currentViewMode)) {
+      setCurrentViewMode(availableViewModes[0]);
     }
   };
 
-  // Function to filter applications in each column
-  const filterColumnApplications = (applications: Application[]) => {
-    return applications.filter(app => {
-      const matchesSearch =
-        app.borrowerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        app.businessName.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesPriority = priorityFilter === 'all' || app.priority === priorityFilter;
-      const matchesAssignee = assigneeFilter === 'all' || app.assignedTo === assigneeFilter;
-
-      return matchesSearch && matchesPriority && matchesAssignee;
-    });
+  // Handle view mode change
+  const handleViewModeChange = (mode: string) => {
+    setCurrentViewMode(mode);
   };
 
-  // View application details
-  const viewApplicationDetails = (applicationId: string) => {
-    navigate(`/credit-application/${applicationId}`);
-  };
-
-  // Group applications by status
-  const getApplicationsByStatus = (status: string) => {
-    return applications.filter(app => app.status === status);
-  };
-
-  // Statistics for the dashboard
-  const totalApplications = applications.length;
-  const pendingDocuments = applications.filter(app => app.documentStatus !== 'Complete').length;
-  const approvedApplications = applications.filter(app => app.status === STATUSES.APPROVED).length;
-  const totalValue = applications.reduce((sum, app) => sum + app.amount, 0);
-
-  // Function to render the metrics dashboard
-  const renderMetricsDashboard = () => {
-    switch (activeMetricTab) {
-      case 'overview':
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Weekly Application Volume</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={dashboardMetrics.weeklyApplications}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#4F46E5" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">
-                Application Status Distribution
-              </h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={dashboardMetrics.statusDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {dashboardMetrics.statusDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        );
-      case 'performance':
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">
-                Application to Approval Trend
-              </h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={dashboardMetrics.approvalTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="applications" stroke="#8884d8" />
-                  <Line type="monotone" dataKey="approvals" stroke="#82ca9d" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Pipeline Conversion Rates</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={dashboardMetrics.conversionRates} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" domain={[0, 100]} />
-                  <YAxis dataKey="name" type="category" width={150} />
-                  <Tooltip formatter={value => [`${value}%`, 'Conversion Rate']} />
-                  <Bar dataKey="rate" fill="#4F46E5" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        );
-      case 'financial':
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">
-                Origination Amount by Industry
-              </h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={dashboardMetrics.amountByIndustry}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip formatter={value => [`$${value.toLocaleString()}`, 'Amount']} />
-                  <Bar dataKey="amount" fill="#4F46E5" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">
-                Cumulative Origination Value
-              </h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={dashboardMetrics.approvalTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="applications"
-                    stackId="1"
-                    stroke="#8884d8"
-                    fill="#8884d8"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="approvals"
-                    stackId="1"
-                    stroke="#82ca9d"
-                    fill="#82ca9d"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        );
-      default:
-        return null;
+  // Handle role tab selection
+  const handleRoleTabClick = (role: string) => {
+    // If selecting a portfolio-related role, redirect to Portfolio Navigator
+    if (['portfolio_manager', 'portfolio_servicer', 'portfolio_monitor'].includes(role)) {
+      navigate('/portfolio-navigator');
+      return;
     }
-  };
-
-  // Render Kanban Board for Lender View
-  const renderLenderView = () => (
-    <div className="kanban-board w-full overflow-x-auto">
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex space-x-4 min-w-max">
-          {Object.values(STATUSES).map(status => (
-            <div key={status} className="w-80 flex-shrink-0">
-              <h2 className="text-lg font-medium text-gray-900 mb-3">{status}</h2>
-              <Droppable droppableId={status}>
-                {provided => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="bg-gray-50 p-3 rounded-lg min-h-[500px]"
-                  >
-                    {getApplicationsByStatus(status).length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        No applications in this stage
-                      </div>
-                    ) : (
-                      getApplicationsByStatus(status).map((app, index) => (
-                        <ApplicationCard key={app.id} application={app} index={index} />
-                      ))
-                    )}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </div>
-          ))}
-        </div>
-      </DragDropContext>
-    </div>
-  );
-
-  // Render Vendor View
-  const renderVendorView = () => (
-    <div>
-      <h2 className="text-xl font-medium text-gray-900 mb-4">Your Equipment Inventory</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {VENDOR_EQUIPMENT.map(equipment => (
-          <EquipmentCard key={equipment.id} equipment={equipment} />
-        ))}
-      </div>
-
-      <h2 className="text-xl font-medium text-gray-900 mt-8 mb-4">Financing Applications</h2>
-      <div className="bg-gray-50 p-4 rounded-lg">
-        {applications
-          .filter(app => app.type === 'Equipment Finance')
-          .map((app, index) => (
-            <ApplicationCard key={app.id} application={app} index={index} />
-          ))}
-      </div>
-    </div>
-  );
-
-  // Render Broker View
-  const renderBrokerView = () => (
-    <div>
-      <h2 className="text-xl font-medium text-gray-900 mb-4">Your Applications</h2>
-      <div className="kanban-board w-full overflow-x-auto mb-8">
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="flex space-x-4 min-w-max">
-            {Object.values(STATUSES).map(status => (
-              <div key={status} className="w-80 flex-shrink-0">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">{status}</h3>
-                <Droppable droppableId={status}>
-                  {provided => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className="bg-gray-50 p-3 rounded-lg min-h-[300px]"
-                    >
-                      {getApplicationsByStatus(status).length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                          No applications in this stage
-                        </div>
-                      ) : (
-                        getApplicationsByStatus(status).map((app, index) => (
-                          <ApplicationCard key={app.id} application={app} index={index} />
-                        ))
-                      )}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </div>
-            ))}
-          </div>
-        </DragDropContext>
-      </div>
-
-      <h2 className="text-xl font-medium text-gray-900 mb-4">Your Commissions</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {BROKER_COMMISSIONS.map(commission => (
-          <CommissionCard key={commission.id} commission={commission} />
-        ))}
-      </div>
-    </div>
-  );
-
-  // Render Borrower View
-  const renderBorrowerView = () => (
-    <div>
-      <h2 className="text-xl font-medium text-gray-900 mb-4">Your Loans</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        {BORROWER_LOANS.map(loan => (
-          <LoanCard key={loan.id} loan={loan} />
-        ))}
-      </div>
-
-      <h2 className="text-xl font-medium text-gray-900 mb-4">Your Applications</h2>
-      <div className="grid grid-cols-1 gap-4">
-        {applications
-          .filter(app => app.borrowerId === 'b-1001') // Filter to show just this borrower's apps
-          .map((app, index) => (
-            <ApplicationCard key={app.id} application={app} index={index} />
-          ))}
-      </div>
-    </div>
-  );
-
-  // Render the appropriate view based on user role
-  const renderDashboardByUserRole = () => {
-    switch (userRole) {
-      case 'lender':
-        return renderLenderView();
-      case 'vendor':
-        return renderVendorView();
-      case 'broker':
-        return renderBrokerView();
-      case 'borrower':
-        return renderBorrowerView();
-      default:
-        return renderLenderView(); // Default to lender view
-    }
+    
+    setSelectedRoleTab(role as UserRole);
+    setCurrentEmployeeRole(role as UserRole);
+    setShowRoleDashboard(true);
   };
 
   // Function to handle creating a new application
@@ -1414,113 +1707,18 @@ const AutoOriginationsDashboard: React.FC = () => {
     navigate('/credit-application');
   };
 
-  // Function to get the current user persona based on role
-  const getCurrentUserPersona = () => {
-    const persona = USER_PERSONAS.find(p => p.role === userRole);
-    return persona || USER_PERSONAS[0]; // Default to first persona if not found
+  // Map user role to our enhanced dashboard role
+  const mapToEnhancedRole = (role: UserRoleType): UserRole => {
+    switch (role) {
+      case 'lender': return 'credit_underwriter';
+      case 'broker': return 'sales_manager';
+      case 'vendor': return 'sales_manager'; // Changed from portfolio_manager to sales_manager
+      case 'borrower': return 'sales_manager';
+      default: return role as UserRole;
+    }
   };
 
-  // Function to get recommended agents for the current user
-  const getRecommendedAgents = () => {
-    const persona = getCurrentUserPersona();
-    return AGENT_TYPES.filter(agent => persona.preferredAgents.includes(agent.id));
-  };
-
-  // Function to open agent selector modal
-  const openAgentSelector = () => {
-    setSelectedPersona(getCurrentUserPersona());
-    setShowAgentSelector(true);
-  };
-
-  // Function to select an agent
-  const selectAgent = (agent: AgentType) => {
-    setSelectedAgent(agent);
-    setShowAgentSelector(false);
-    // Here you would typically start a conversation with this agent
-  };
-
-  // Function to render the agent selector modal
-  const renderAgentSelector = () => {
-    if (!showAgentSelector) return null;
-
-    const recommendedAgents = getRecommendedAgents();
-
-    return (
-      <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Select Conversation Agent</h2>
-              <button
-                onClick={() => setShowAgentSelector(false)}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <p className="mt-2 text-gray-600">
-              Select an agent that specializes in your current task
-            </p>
-          </div>
-
-          <div className="p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Recommended for You</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {recommendedAgents.map(agent => (
-                <button
-                  key={agent.id}
-                  onClick={() => selectAgent(agent)}
-                  className="flex items-start p-4 border rounded-lg hover:bg-gray-50 transition-colors duration-150"
-                  style={{ borderColor: agent.primaryColor }}
-                >
-                  <div
-                    className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-md text-2xl"
-                    style={{ backgroundColor: agent.primaryColor + '20' }}
-                  >
-                    {agent.icon}
-                  </div>
-                  <div className="ml-4 text-left">
-                    <h4 className="text-lg font-medium text-gray-900">{agent.name}</h4>
-                    <p className="mt-1 text-sm text-gray-500">{agent.description}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <h3 className="text-lg font-medium text-gray-900 mb-4">All Agents</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {AGENT_TYPES.map(agent => (
-                <button
-                  key={agent.id}
-                  onClick={() => selectAgent(agent)}
-                  className="flex items-start p-4 border rounded-lg hover:bg-gray-50 transition-colors duration-150"
-                >
-                  <div
-                    className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-md text-2xl"
-                    style={{ backgroundColor: agent.primaryColor + '20' }}
-                  >
-                    {agent.icon}
-                  </div>
-                  <div className="ml-4 text-left">
-                    <h4 className="text-lg font-medium text-gray-900">{agent.name}</h4>
-                    <p className="mt-1 text-sm text-gray-500">{agent.description}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
+  // Main component render
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
@@ -1530,248 +1728,102 @@ const AutoOriginationsDashboard: React.FC = () => {
     );
   }
 
+  // Portfolio views should redirect to Portfolio Navigator
+  if (isPortfolioView) {
+    navigate('/portfolio-navigator');
+    return null;
+  }
+
   return (
-    <div className="auto-originations-dashboard p-6">
-      {/* Dashboard Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Auto Originations Dashboard</h1>
-          <p className="text-gray-600 mt-1">
-            {userRole === 'lender'
-              ? 'Monitor and manage all loan originations in one place'
-              : userRole === 'broker'
-                ? 'Track your client applications and commissions'
-                : userRole === 'vendor'
-                  ? 'Manage your equipment financing requests'
-                  : 'View your active loans and applications'}
-          </p>
-        </div>
-        <div className="mt-4 md:mt-0 flex space-x-3">
-          <button
-            onClick={openAgentSelector}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-          >
-            <svg
-              className="-ml-1 mr-2 h-5 w-5 text-gray-500"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-              />
-            </svg>
-            Get AI Assistance
-          </button>
-          <button
-            onClick={handleNewOrigination}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-          >
-            <svg
-              className="-ml-1 mr-2 h-5 w-5"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
-            New Origination
-          </button>
-        </div>
-      </div>
-
-      {/* Render the agent selector modal */}
-      {renderAgentSelector()}
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-500">Total Applications</h3>
-          <p className="text-3xl font-bold text-gray-900">{totalApplications}</p>
-          <div className="mt-1 text-sm text-green-600">↑ 12.5% from last month</div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-500">Pending Documents</h3>
-          <p className="text-3xl font-bold text-gray-900">{pendingDocuments}</p>
-          <div className="mt-1 text-sm text-red-600">↑ 3.2% from last month</div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-500">Approved</h3>
-          <p className="text-3xl font-bold text-green-600">{approvedApplications}</p>
-          <div className="mt-1 text-sm text-green-600">↑ 7.8% from last month</div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-500">Total Value</h3>
-          <p className="text-3xl font-bold text-primary-600">${totalValue.toLocaleString()}</p>
-          <div className="mt-1 text-sm text-green-600">↑ 15.3% from last month</div>
-        </div>
-      </div>
-
-      {/* Data Visualization Section (Only for lender view) */}
-      {userRole === 'lender' && (
-        <div className="mb-8">
-          <div className="bg-white rounded-lg shadow mb-4">
-            <div className="border-b border-gray-200">
-              <nav className="flex -mb-px">
-                <button
-                  onClick={() => setActiveMetricTab('overview')}
-                  className={`py-4 px-6 text-sm font-medium ${
-                    activeMetricTab === 'overview'
-                      ? 'border-b-2 border-primary-500 text-primary-600'
-                      : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  Overview
-                </button>
-                <button
-                  onClick={() => setActiveMetricTab('performance')}
-                  className={`py-4 px-6 text-sm font-medium ${
-                    activeMetricTab === 'performance'
-                      ? 'border-b-2 border-primary-500 text-primary-600'
-                      : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  Performance Metrics
-                </button>
-                <button
-                  onClick={() => setActiveMetricTab('financial')}
-                  className={`py-4 px-6 text-sm font-medium ${
-                    activeMetricTab === 'financial'
-                      ? 'border-b-2 border-primary-500 text-primary-600'
-                      : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  Financial Analysis
-                </button>
-              </nav>
-            </div>
-            <div className="p-4">{renderMetricsDashboard()}</div>
-          </div>
-        </div>
-      )}
-
-      {/* Search and filters */}
-      <div className="mb-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-          {/* Only show search and filters for lender and broker views */}
-          {(userRole === 'lender' || userRole === 'broker') && (
-            <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search Applications"
-                  className="pl-10 pr-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                />
-                <svg
-                  className="w-5 h-5 text-gray-400 absolute left-3 top-2.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
+    <div>
+      <TopNavbar 
+        currentTransaction={currentTransaction}
+        demoContext={currentDemoContext}
+      />
+      <div className="bg-gray-100 min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          {/* Main horizontal tab navigation - simpler design */}
+          <div className="mb-8">
+            <div className="flex flex-wrap">
+              {/* Role selection tabs - horizontal with equal width */}
+              <div className="flex w-full border border-gray-200 bg-white rounded-md overflow-hidden mb-4">
+                {roleTabs.map(role => (
+                  <button 
+                    key={role.id}
+                    className={`flex-1 py-3 px-4 text-center font-medium text-sm transition-colors ${
+                      selectedRoleTab === role.id 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                    onClick={() => handleRoleTabClick(role.id)}
+                  >
+                    {role.name}
+                  </button>
+                ))}
               </div>
-              {userRole === 'lender' && (
-                <>
-                  <select
-                    value={priorityFilter}
-                    onChange={e => setPriorityFilter(e.target.value)}
-                    className="pl-3 pr-10 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    <option value="all">All Priorities</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                  </select>
-
-                  <select
-                    value={assigneeFilter}
-                    onChange={e => setAssigneeFilter(e.target.value)}
-                    className="pl-3 pr-10 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    {assignees.map(assignee => (
-                      <option key={assignee} value={assignee}>
-                        {assignee === 'all' ? 'All Assignees' : assignee}
-                      </option>
-                    ))}
-                  </select>
-                </>
-              )}
             </div>
-          )}
+          </div>
 
-          {/* View type selector */}
-          {userRole === 'lender' && (
-            <div className="mt-4 md:mt-0 flex">
+          {/* View Mode and Action buttons */}
+          <div className="flex justify-end mb-6">
+            <div className="flex space-x-2">
               <button
-                className={`inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-l-md ${
-                  view === 'kanban'
-                    ? 'bg-primary-100 text-primary-700 border-primary-300'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                  currentViewMode === 'macro'
+                    ? 'bg-red-500 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300'
                 }`}
-                onClick={() => setView('kanban')}
+                onClick={() => handleViewModeChange('macro')}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-                Kanban
+                Macro View
               </button>
               <button
-                className={`inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-r-md ${
-                  view === 'list'
-                    ? 'bg-primary-100 text-primary-700 border-primary-300'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                  currentViewMode === 'micro'
+                    ? 'bg-gray-200 text-gray-900'
+                    : 'bg-white text-gray-700 border border-gray-300'
                 }`}
-                onClick={() => setView('list')}
+                onClick={() => handleViewModeChange('micro')}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                List
+                Micro View
               </button>
+              <button
+                className="ml-2 px-4 py-2 bg-red-500 text-white rounded-md text-sm font-medium flex items-center"
+                onClick={handleNewOrigination}
+              >
+                <span className="mr-1">+</span>
+                New Origination
+              </button>
+            </div>
+          </div>
+
+          {/* Main dashboard content */}
+          {showRoleDashboard && (
+            <div>
+              {/* Portfolio Value Stats Card */}
+              <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-5 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200 border-l-4 border-indigo-500">
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Total Value</h3>
+                  <p className="text-2xl font-bold text-red-600 mb-1">$12,450,000</p>
+                  <p className="text-sm text-green-600">+18.2% from last month</p>
+                </div>
+                {/* Add more stat cards here */}
+              </div>
+
+              {/* Main dashboard by role */}
+              <RoleBasedDashboard 
+                initialRole={currentEmployeeRole} 
+                initialViewMode={currentViewMode as 'macro' | 'micro'}
+                useTopNavbar={false}
+                currentTransaction={currentTransaction}
+              />
             </div>
           )}
         </div>
       </div>
-
-      {/* Render the appropriate dashboard view based on user role */}
-      {renderDashboardByUserRole()}
     </div>
   );
 };
 
 export default AutoOriginationsDashboard;
+

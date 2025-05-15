@@ -4,9 +4,15 @@ import { FileItem } from './FilelockDriveApp';
 interface FileChatPanelProps {
   file: FileItem;
   onClose: () => void;
+  initialPrompt?: string;
+  documentData?: {
+    summary: string;
+    extractedData: Record<string, any>;
+    ocr: { isComplete: boolean; text: string };
+  };
 }
 
-const FileChatPanel: React.FC<FileChatPanelProps> = ({ file, onClose }) => {
+const FileChatPanel: React.FC<FileChatPanelProps> = ({ file, onClose, initialPrompt = '', documentData }) => {
   // Check if this is a cloud-imported file
   const isCloudImported = file.tags?.some(
     tag =>
@@ -49,7 +55,7 @@ const FileChatPanel: React.FC<FileChatPanelProps> = ({ file, onClose }) => {
     },
   ]);
 
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState(initialPrompt);
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -59,6 +65,21 @@ const FileChatPanel: React.FC<FileChatPanelProps> = ({ file, onClose }) => {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  // Add document summary as first message if available
+  useEffect(() => {
+    if (documentData?.summary) {
+      setMessages(prevMessages => [
+        ...prevMessages,
+        {
+          id: 'summary',
+          text: `Here's a summary of this document: ${documentData.summary}`,
+          sender: 'ai',
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    }
+  }, [documentData]);
 
   // Handle sending a new message
   const handleSendMessage = async () => {
@@ -75,39 +96,43 @@ const FileChatPanel: React.FC<FileChatPanelProps> = ({ file, onClose }) => {
     setInputValue('');
     setIsProcessing(true);
 
-    // Simulate AI response after a short delay
-    setTimeout(() => {
+    try {
       // In a real implementation, this would call an API to analyze the file
       const fileType = file.type;
       let aiResponse = '';
 
-      // Handle cloud-specific questions
-      if (
-        isCloudImported &&
-        (inputValue.toLowerCase().includes('cloud') ||
-          inputValue.toLowerCase().includes('import') ||
-          inputValue.toLowerCase().includes('source'))
-      ) {
-        aiResponse = `This file was imported from ${cloudSource}. I can analyze its contents just like any other file in your FileLock system. Is there something specific about the file you'd like to know?`;
-      } else if (
-        inputValue.toLowerCase().includes('summary') ||
-        inputValue.toLowerCase().includes('summarize')
-      ) {
-        aiResponse = `Here's a summary of "${file.name}"${
-          cloudSource ? ` (imported from ${cloudSource})` : ''
-        }: This document appears to contain information related to a loan application. It includes sections on terms and conditions, applicant information, and financial details.`;
-      } else if (
-        inputValue.toLowerCase().includes('key points') ||
-        inputValue.toLowerCase().includes('highlights')
-      ) {
-        aiResponse = `Key points from "${file.name}":\n1. Loan amount requested\n2. Applicant's financial history\n3. Terms of repayment\n4. Collateral information\n5. Signature requirements`;
-      } else if (
-        inputValue.toLowerCase().includes('extract') ||
-        inputValue.toLowerCase().includes('data')
-      ) {
-        aiResponse = `I've extracted the following data from "${file.name}":\n- Applicant: John Smith\n- Business: Smith Logistics LLC\n- Loan Amount: $250,000\n- Purpose: Equipment financing\n- Term: 60 months`;
+      // Use document data if available
+      if (documentData?.extractedData) {
+        const extractedData = documentData.extractedData;
+        
+        if (inputValue.toLowerCase().includes('summary') || inputValue.toLowerCase().includes('summarize')) {
+          aiResponse = documentData.summary || 'I\'ve analyzed this document and extracted key information.';
+        } else if (inputValue.toLowerCase().includes('date') || inputValue.toLowerCase().includes('when')) {
+          aiResponse = extractedData.date ? 
+            `The document date is ${extractedData.date}.` : 
+            'I couldn\'t find a specific date in this document.';
+        } else if (inputValue.toLowerCase().includes('amount') || inputValue.toLowerCase().includes('loan') || inputValue.toLowerCase().includes('money')) {
+          aiResponse = extractedData.loanAmount || extractedData.totalRevenue ? 
+            `The document mentions a financial amount of ${extractedData.loanAmount || extractedData.totalRevenue}.` : 
+            'I couldn\'t find specific financial amounts in this document.';
+        } else if (inputValue.toLowerCase().includes('parties') || inputValue.toLowerCase().includes('company') || inputValue.toLowerCase().includes('who')) {
+          aiResponse = extractedData.parties || extractedData.companyName ? 
+            `The parties involved in this document are ${extractedData.parties || extractedData.companyName}.` : 
+            'I couldn\'t identify specific parties in this document.';
+        } else {
+          aiResponse = `Based on my analysis of "${file.name}", I can see this is a ${extractedData.documentType || 'business document'}. ${
+            documentData.ocr.isComplete ? 'I\'ve processed the full text content. ' : 'I\'ve analyzed the document structure. '
+          }What specific information would you like me to extract?`;
+        }
       } else {
-        aiResponse = `I've analyzed "${file.name}" and can help answer specific questions about its content. You can ask me to summarize the document, extract key information, or explain specific sections.`;
+        // Default responses if no document data
+        if (inputValue.toLowerCase().includes('summary') || inputValue.toLowerCase().includes('summarize')) {
+          aiResponse = `This appears to be a ${fileType.toUpperCase()} document named "${file.name}". Would you like me to analyze specific sections?`;
+        } else if (inputValue.toLowerCase().includes('key points')) {
+          aiResponse = 'Without full document analysis, I can\'t extract specific key points. Would you like me to process the document in more detail?';
+        } else {
+          aiResponse = `I can help you understand "${file.name}". What specific aspects of this document are you interested in?`;
+        }
       }
 
       const aiMessageObj = {
@@ -118,8 +143,19 @@ const FileChatPanel: React.FC<FileChatPanelProps> = ({ file, onClose }) => {
       };
 
       setMessages(prev => [...prev, aiMessageObj]);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      
+      // Add error message
+      setMessages(prev => [...prev, {
+        id: 'error',
+        text: 'Sorry, I encountered an error analyzing this document. Please try again.',
+        sender: 'ai',
+        timestamp: new Date().toISOString(),
+      }]);
+    } finally {
       setIsProcessing(false);
-    }, 1500);
+    }
   };
 
   // Handle pressing Enter to send a message

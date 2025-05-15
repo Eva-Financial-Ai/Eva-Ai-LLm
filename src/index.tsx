@@ -4,6 +4,7 @@ import './styles/index.css';
 import './styles/accessibility.css';
 import './styles/high-contrast.css';
 import './styles/theme.css';
+import './styles/paywall.css'; // Import paywall styles
 import App from './App';
 import './i18n'; // Import i18n configuration
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';

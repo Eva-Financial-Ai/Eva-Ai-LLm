@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/extend-expect';
 import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
 import TopNavigation from '../components/layout/TopNavigation';
@@ -10,8 +12,10 @@ import { UserType } from '../types/UserTypes';
 
 // Mock context values
 const mockUserContextValue = {
-  userRole: 'lender' as 'lender', // Type assertion to AppUserRole
+  userRole: 'lender' as 'lender', // Type assertion to UserRoleType
   setUserRole: jest.fn(),
+  specificRole: 'default_role',
+  setSpecificRole: jest.fn(),
   showSmartMatching: false,
   setShowSmartMatching: jest.fn(),
   showDataOrchestrator: false,

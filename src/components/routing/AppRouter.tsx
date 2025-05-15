@@ -14,6 +14,8 @@ const LoadingFallback = () => (
 
 // Lazy load page components for code splitting
 const Dashboard = lazy(() => import('../../pages/Dashboard'));
+const AutoOriginationsDashboard = lazy(() => import('../../components/credit/AutoOriginationsDashboard'));
+const TransactionView = lazy(() => import('../../components/credit/TransactionView'));
 const PortfolioNavigatorPage = lazy(() =>
   import('../../pages/PortfolioNavigatorPage').then(module => ({
     default: module.PortfolioNavigatorPage,
@@ -55,6 +57,8 @@ const AppRouter: React.FC = () => {
         {/* Main routes */}
         <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/auto-originations" element={<AutoOriginationsDashboard />} />
+        <Route path="/transaction/:id" element={<TransactionView />} />
         <Route path="/portfolio-navigator" element={<PortfolioNavigatorPage />} />
         <Route path="/credit-application" element={<CreditApplication />} />
         {/* Temporarily commenting out DocumentCenter route until component is created */}

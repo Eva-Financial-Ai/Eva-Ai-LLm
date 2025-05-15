@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'reac
 import { useWorkflow } from '../../contexts/WorkflowContext';
 import ErrorBoundary from '../common/ErrorBoundary';
 import performanceMonitor from '../../utils/performance';
+import { RiskMapType } from './RiskMapNavigator';
+import { useRiskScores } from '../../hooks/useRiskCategoryData';
 
 // Custom loading fallback component
 const LoadingFallback = ({ message = 'Loading...' }: { message?: string }) => {
@@ -86,29 +88,54 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
 }) => {
   const { currentTransaction, fetchTransactions, loading: contextLoading } = useWorkflow();
   const [selectedCategory, setSelectedCategory] = useState<RiskCategory>(initialCategory);
+  const [riskMapType, setRiskMapType] = useState<RiskMapType>('unsecured');
   const [isLoading, setIsLoading] = useState(false);
-  const [categoryLoading, setCategoryLoading] = useState<Record<RiskCategory, boolean>>({
-    credit: false,
-    capacity: false,
-    collateral: false,
-    capital: false,
-    conditions: false,
-    character: false,
-    all: false,
-    customer_retention: false
-  });
-  const [loadedCategories, setLoadedCategories] = useState<Set<RiskCategory>>(new Set());
   const [error, setError] = useState<string | null>(null);
-  const [riskScores, setRiskScores] = useState<Record<RiskCategory, RiskScore>>({
-    credit: { value: 0, label: 'Credit', color: '#4F46E5' },
-    capacity: { value: 0, label: 'Capacity', color: '#10B981' },
-    collateral: { value: 0, label: 'Collateral', color: '#F59E0B' },
-    capital: { value: 0, label: 'Capital', color: '#3B82F6' },
-    conditions: { value: 0, label: 'Conditions', color: '#8B5CF6' },
-    character: { value: 0, label: 'Character', color: '#EC4899' },
-    all: { value: 0, label: 'Overall', color: '#6366F1' },
-    customer_retention: { value: 0, label: 'Customer Retention', color: '#059669' }
-  });
+  
+  // Use our new hook for fetching risk scores
+  const { loading: scoresLoading, error: scoresError, scores: apiScores } = useRiskScores(
+    transactionId || currentTransaction?.id
+  );
+  
+  // Define default colors for risk categories
+  const categoryColors: Record<RiskCategory, string> = {
+    credit: '#4F46E5',
+    capacity: '#10B981',
+    collateral: '#F59E0B',
+    capital: '#3B82F6',
+    conditions: '#8B5CF6',
+    character: '#EC4899',
+    all: '#6366F1',
+    customer_retention: '#059669'
+  };
+
+  // Convert API scores to RiskScore objects with labels and colors
+  const riskScores: Record<RiskCategory, RiskScore> = useMemo(() => {
+    const result: Record<string, RiskScore> = {} as any;
+    
+    // Get the categories we need to create scores for
+    const categories: RiskCategory[] = [
+      'credit', 
+      'capacity', 
+      'collateral', 
+      'capital', 
+      'conditions', 
+      'character', 
+      'all', 
+      'customer_retention'
+    ];
+    
+    // Create score objects for each category
+    categories.forEach(category => {
+      result[category] = {
+        value: apiScores?.[category] || 0,
+        label: category.charAt(0).toUpperCase() + category.slice(1),
+        color: categoryColors[category]
+      };
+    });
+    
+    return result;
+  }, [apiScores, categoryColors]);
 
   const isTxIdProvided = Boolean(transactionId);
   const effectiveTransactionId = transactionId || currentTransaction?.id;
@@ -121,136 +148,16 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
     return currentTransaction;
   }, [transactionId, currentTransaction]);
 
-  // Load risk data for a specific category with performance tracking
-  const loadCategoryData = useCallback(
-    async (category: RiskCategory) => {
-      if (!effectiveTransactionId) {
-        console.log('[RiskMapOptimized] No transaction ID available');
-        setError('No transaction selected. Please select a transaction to view risk data.');
-        return;
-      }
-
-      // If this category was already loaded, don't load it again
-      if (loadedCategories.has(category)) {
-        console.log(`[RiskMapOptimized] Category ${category} already loaded, skipping`);
-        return;
-      }
-
-      console.log(
-        `[RiskMapOptimized] Loading risk data for category ${category}, transaction ${effectiveTransactionId}`
-      );
-
-      // Set loading state only for this category
-      setCategoryLoading(prev => ({
-        ...prev,
-        [category]: true,
-      }));
-
-      setError(null);
-
-      // Track performance
-      const endTracking = performanceMonitor.monitorTransactionLoading();
-
-      try {
-        // In a real app, this would be an API call to get risk data
-        // For demo purposes, we'll generate random scores
-        const delay = category === 'all' ? 800 : 600; // Make certain categories load faster
-        await new Promise(resolve => setTimeout(resolve, delay));
-
-        // Generate consistent scores based on transaction ID
-        const idHash = effectiveTransactionId.split('').reduce((a, b) => {
-          return a + b.charCodeAt(0);
-        }, 0);
-
-        const generateScore = (base: number) => {
-          return Math.min(100, Math.max(0, Math.floor(base + Math.sin(idHash * base) * 15)));
-        };
-
-        // Only generate the score for this category (and "all" if needed)
-        const newScores = { ...riskScores };
-
-        if (category === 'all') {
-          // Update all scores if loading the overview
-          newScores.credit.value = generateScore(75);
-          newScores.capacity.value = generateScore(82);
-          newScores.collateral.value = generateScore(68);
-          newScores.capital.value = generateScore(73);
-          newScores.conditions.value = generateScore(88);
-          newScores.character.value = generateScore(80);
-
-          // Calculate overall score as average
-          const sum = Object.keys(newScores)
-            .filter(key => key !== 'all')
-            .reduce((total, key) => total + newScores[key as RiskCategory].value, 0);
-
-          const count = Object.keys(newScores).length - 1; // exclude 'all'
-          newScores.all.value = Math.round(sum / count);
-
-          // Mark all categories as loaded
-          const allCategories = new Set(loadedCategories);
-          Object.keys(newScores).forEach(key => {
-            allCategories.add(key as RiskCategory);
-          });
-          setLoadedCategories(allCategories);
-        } else {
-          // Just update the selected category
-          if (category !== ('all' as RiskCategory)) {
-            newScores[category].value = generateScore(
-              category === 'credit'
-                ? 75
-                : category === 'capacity'
-                  ? 82
-                  : category === 'collateral'
-                    ? 68
-                    : category === 'capital'
-                      ? 73
-                      : category === 'conditions'
-                        ? 88
-                        : 80
-            );
-          }
-
-          // Mark this category as loaded
-          setLoadedCategories(prev => new Set(prev).add(category));
-        }
-
-        setRiskScores(newScores);
-
-        // End performance tracking
-        endTracking();
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        console.error(`[RiskMapOptimized] Error loading risk data: ${errorMessage}`, err);
-        setError(`Failed to load risk data: ${errorMessage}`);
-
-        // Track error
-        performanceMonitor.trackError('risk_map_loading', errorMessage);
-      } finally {
-        // Clear loading state for this category
-        setCategoryLoading(prev => ({
-          ...prev,
-          [category]: false,
-        }));
-      }
-    },
-    [effectiveTransactionId, loadedCategories, riskScores]
-  );
-
   // Handle category selection with useCallback
   const handleCategorySelect = useCallback(
     (category: RiskCategory) => {
       console.log(`[RiskMapOptimized] Selecting category: ${category}`);
       setSelectedCategory(category);
-
-      // Load data for this category if it hasn't been loaded yet
-      if (!loadedCategories.has(category)) {
-        loadCategoryData(category);
-      }
     },
-    [loadCategoryData, loadedCategories]
+    []
   );
 
-  // Effect to load initial category data
+  // Effect to initialize data when component mounts
   useEffect(() => {
     console.log('[RiskMapOptimized] Component mounted, initializing...');
 
@@ -258,14 +165,14 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
       if (!effectiveTransactionId && !contextLoading) {
         try {
           console.log('[RiskMapOptimized] No transaction selected, fetching transactions...');
+          setIsLoading(true);
           await fetchTransactions();
+          setIsLoading(false);
         } catch (err) {
           console.error('[RiskMapOptimized] Error fetching transactions:', err);
           setError('Failed to fetch transactions. Please try again.');
+          setIsLoading(false);
         }
-      } else if (effectiveTransactionId) {
-        // Load the initial category only
-        loadCategoryData(initialCategory);
       }
     };
 
@@ -278,19 +185,15 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
   }, [
     effectiveTransactionId,
     fetchTransactions,
-    contextLoading,
-    loadCategoryData,
-    initialCategory,
+    contextLoading
   ]);
 
-  // Effect to reload data when transaction changes
+  // Handle errors from the scores hook
   useEffect(() => {
-    if (effectiveTransactionId && loadedCategories.size > 0) {
-      // Clear loaded categories and reload the current category when transaction changes
-      setLoadedCategories(new Set());
-      loadCategoryData(selectedCategory);
+    if (scoresError) {
+      setError(scoresError);
     }
-  }, [effectiveTransactionId, loadCategoryData, selectedCategory]);
+  }, [scoresError]);
 
   // Memoized category score
   const selectedCategoryScore = useMemo(() => {
@@ -308,8 +211,8 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
       }));
   }, [riskScores]);
 
-  // Check if the current category is loading
-  const isCurrentCategoryLoading = categoryLoading[selectedCategory] || contextLoading;
+  // Determine if we're in a loading state
+  const loading = isLoading || contextLoading || scoresLoading;
 
   // Render error state
   if (error) {
@@ -326,7 +229,6 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
             <button
               onClick={() => {
                 setError(null);
-                loadCategoryData(selectedCategory);
               }}
               className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
             >
@@ -348,51 +250,33 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
               <div className="md:col-span-1 bg-gray-50 p-4 rounded-lg">
                 <Suspense fallback={<SkeletonLoader rows={6} />}>
                   <RiskMapNavigator
-                    selectedCategory={selectedCategory}
+                    selectedCategory={selectedCategory as string}
                     onCategorySelect={handleCategorySelect}
+                    riskMapType={riskMapType}
+                    onRiskMapTypeChange={setRiskMapType}
+                    activeView="standard"
+                    onViewChange={() => {}}
                   />
                 </Suspense>
               </div>
 
               <div className="md:col-span-3">
                 <div className="bg-gray-50 p-6 rounded-lg">
-                  {isCurrentCategoryLoading ? (
-                    // Show loading state only for the current category
-                    <div className="animate-pulse">
-                      <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-                      <div className="h-64 bg-gray-200 rounded-lg"></div>
+                  <div className="flex justify-center items-center p-8">
+                    <div className="text-center">
+                      <p className="text-red-500 mb-4">
+                        {error}
+                      </p>
+                      <button
+                        onClick={() => {
+                          setError(null);
+                        }}
+                        className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+                      >
+                        Try Again
+                      </button>
                     </div>
-                  ) : (
-                    <>
-                      <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4 md:mb-0">
-                          {selectedCategory === 'all'
-                            ? 'Overall Risk Profile'
-                            : `${selectedCategoryScore.label} Assessment`}
-                        </h3>
-
-                        <ScoreDisplay score={selectedCategoryScore} />
-                      </div>
-
-                      <div className="mt-6">
-                        <Suspense fallback={<LoadingFallback message="Loading chart data..." />}>
-                          <RiskScoreChart data={chartData} selectedCategory={selectedCategory} />
-                        </Suspense>
-                      </div>
-
-                      {selectedCategory !== 'all' && (
-                        <div className="mt-8 border-t border-gray-200 pt-6">
-                          <Suspense fallback={<SkeletonLoader rows={8} className="mt-4" />}>
-                            <RiskCategoryDetail
-                              category={selectedCategory}
-                              score={selectedCategoryScore.value}
-                              transactionId={effectiveTransactionId}
-                            />
-                          </Suspense>
-                        </div>
-                      )}
-                    </>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -411,7 +295,6 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
           <button
             onClick={() => {
               setError(null);
-              loadCategoryData(selectedCategory);
             }}
             className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
           >
@@ -433,16 +316,19 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
             <div className="md:col-span-1 bg-gray-50 p-4 rounded-lg">
               <Suspense fallback={<SkeletonLoader rows={6} />}>
                 <RiskMapNavigator
-                  selectedCategory={selectedCategory}
+                  selectedCategory={selectedCategory as string}
                   onCategorySelect={handleCategorySelect}
+                  riskMapType={riskMapType}
+                  onRiskMapTypeChange={setRiskMapType}
+                  activeView="standard"
+                  onViewChange={() => {}}
                 />
               </Suspense>
             </div>
 
             <div className="md:col-span-3">
               <div className="bg-gray-50 p-6 rounded-lg">
-                {isCurrentCategoryLoading ? (
-                  // Show loading state only for the current category
+                {loading ? (
                   <div className="animate-pulse">
                     <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
                     <div className="h-64 bg-gray-200 rounded-lg"></div>
@@ -472,6 +358,7 @@ export const RiskMapOptimized: React.FC<RiskMapOptimizedProps> = ({
                             category={selectedCategory}
                             score={selectedCategoryScore.value}
                             transactionId={effectiveTransactionId}
+                            riskMapType={riskMapType}
                           />
                         </Suspense>
                       </div>

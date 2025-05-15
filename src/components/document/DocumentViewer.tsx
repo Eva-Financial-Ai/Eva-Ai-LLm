@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileItem } from './FilelockDriveApp';
+import FileChatPanel from './FileChatPanel';
+import { verifyDocument } from '../../api/documentVerificationApi';
 
 // Define additional types to fix missing properties
 interface FileVersion {
@@ -155,6 +157,123 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   );
   const [isCertifying, setIsCertifying] = useState(false);
   const [blockchainInfo, setBlockchainInfo] = useState<any>(null);
+  const [showChat, setShowChat] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(true);
+  const [documentSummary, setDocumentSummary] = useState<string>('');
+  const [extractedData, setExtractedData] = useState<Record<string, any>>({});
+  const [ocr, setOcr] = useState<{isComplete: boolean, text: string}>({
+    isComplete: false,
+    text: ''
+  });
+  const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>([
+    "Summarize the key points of this document",
+    "Extract financial data from this document",
+    "Identify important dates and deadlines",
+    "Explain any legal terms in simple language"
+  ]);
+  const [selectedPrompt, setSelectedPrompt] = useState<string>("");
+
+  useEffect(() => {
+    // Process the document on mount
+    processDocument();
+  }, [file]);
+
+  const processDocument = async () => {
+    setIsProcessing(true);
+    
+    try {
+      // Call the document verification API which includes OCR processing
+      const result = await verifyDocument(file);
+      
+      // Generate an executive summary
+      const summary = generateSummary(result, file);
+      setDocumentSummary(summary);
+      
+      // Store extracted data
+      setExtractedData(result.extractedData || {});
+      
+      // Set OCR text if available
+      setOcr({
+        isComplete: true,
+        text: result.extractedText || "Document content processed successfully"
+      });
+      
+      // Generate suggested prompts based on document content
+      generateSuggestedPrompts(result, file);
+    } catch (error) {
+      console.error("Error processing document:", error);
+      setDocumentSummary("Unable to generate summary for this document.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  
+  const generateSummary = (result: any, file: FileItem): string => {
+    // In a real implementation, this would use more sophisticated techniques
+    // based on the document content and structure
+    const documentType = result.documentType || getDocumentTypeFromExtension(file.type);
+    
+    if (result.extractedData) {
+      if (documentType === 'Financial Statement') {
+        return `This ${documentType} contains financial information with ${result.extractedData.recordCount || 'multiple'} records covering ${result.extractedData.dateRange || 'recent periods'}. Total revenue reported: ${result.extractedData.totalRevenue || 'Not specified'}.`;
+      } else if (documentType === 'Contract') {
+        return `This ${documentType} is a ${result.extractedData.contractType || 'legal agreement'} between ${result.extractedData.parties || 'multiple parties'}. Effective date: ${result.extractedData.effectiveDate || 'Not specified'}. Termination date: ${result.extractedData.terminationDate || 'Not specified'}.`;
+      } else if (documentType === 'Tax Document') {
+        return `This tax document contains information for tax period ${result.extractedData.taxPeriod || 'unspecified'}. Total tax amount: ${result.extractedData.totalTax || 'Not specified'}.`;
+      }
+    }
+    
+    const fileSizeInMB = file.size ? (file.size / 1024 / 1024).toFixed(2) : "unknown";
+    return `This ${documentType} was uploaded on ${new Date(file.createdAt).toLocaleDateString()} and is ${fileSizeInMB} MB in size. The document has been processed for quick analysis.`;
+  };
+  
+  const getDocumentTypeFromExtension = (fileType: string): string => {
+    switch(fileType) {
+      case 'pdf': return 'PDF Document';
+      case 'doc':
+      case 'docx': return 'Word Document';
+      case 'xls':
+      case 'xlsx': return 'Spreadsheet';
+      case 'ppt':
+      case 'pptx': return 'Presentation';
+      case 'txt': return 'Text Document';
+      case 'jpg':
+      case 'jpeg':
+      case 'png': return 'Image';
+      default: return 'Document';
+    }
+  };
+  
+  const generateSuggestedPrompts = (result: any, file: FileItem) => {
+    const documentType = result.documentType || getDocumentTypeFromExtension(file.type);
+    const prompts: string[] = [];
+    
+    // Base prompts that work for all documents
+    prompts.push("Summarize this document in bullet points");
+    prompts.push("What are the key takeaways from this document?");
+    
+    // Document-specific prompts
+    if (documentType.includes('Financial') || file.name.toLowerCase().includes('financial')) {
+      prompts.push("Extract all financial figures from this document");
+      prompts.push("Calculate key financial ratios based on this document");
+      prompts.push("Identify financial risk areas in this document");
+    } else if (documentType.includes('Contract') || file.name.toLowerCase().includes('agreement')) {
+      prompts.push("Highlight important clauses in this contract");
+      prompts.push("What are the termination conditions in this agreement?");
+      prompts.push("Explain the legal obligations in simple terms");
+    } else if (documentType.includes('Tax') || file.name.toLowerCase().includes('tax')) {
+      prompts.push("Extract tax deductions from this document");
+      prompts.push("Identify tax compliance issues in this document");
+      prompts.push("Summarize tax liabilities mentioned in this document");
+    }
+    
+    setSuggestedPrompts(prompts);
+  };
+  
+  const handlePromptClick = (prompt: string) => {
+    setSelectedPrompt(prompt);
+    setShowChat(true);
+  };
 
   // Format date
   const formatDate = (dateString: string): string => {
@@ -374,9 +493,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           </button>
 
           <div className="relative">
-            <button className="p-1.5 rounded-full hover:bg-gray-100">
+            <button
+              onClick={() => setShowChat(!showChat)}
+              className={`p-1.5 rounded-full hover:bg-gray-100 ${showChat ? 'bg-primary-600 text-white' : 'text-gray-600'}`}
+            >
               <svg
-                className="w-5 h-5 text-gray-600"
+                className={`w-5 h-5 ${showChat ? 'text-primary-500' : 'text-gray-600'}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -385,7 +507,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                 />
               </svg>
             </button>
@@ -396,7 +518,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       {/* Main content area - split between document and sidebar */}
       <div className="flex flex-1 overflow-hidden">
         {/* Document preview area */}
-        <div className="flex-1 overflow-auto relative">
+        <div className={`${showChat ? 'w-3/5' : 'w-full'} flex flex-col overflow-hidden`}>
           {/* Annotation toolbar (appears at top when annotation mode is active) */}
           {showDetails && (
             <div className="absolute top-0 left-0 right-0 bg-white shadow-md p-3 z-10 flex items-center justify-center space-x-4">
@@ -1083,6 +1205,22 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Chat panel */}
+      {showChat && (
+        <div className="w-2/5 border-l border-gray-200">
+          <FileChatPanel 
+            file={file} 
+            onClose={() => setShowChat(false)} 
+            initialPrompt={selectedPrompt}
+            documentData={{
+              summary: documentSummary,
+              extractedData: extractedData,
+              ocr: ocr
+            }}
+          />
         </div>
       )}
     </div>

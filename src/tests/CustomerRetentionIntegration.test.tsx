@@ -2,10 +2,11 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/extend-expect';
 
 // Import the components we want to test
-import Contacts from '../pages/Contacts';
-import CalendarIntegration from '../pages/CalendarIntegration';
+import CustomerRetentionContacts from '../pages/customerRetention/CustomerRetentionContacts';
+import CustomerRetentionCalendar from '../pages/customerRetention/CustomerRetentionCalendar';
 import CustomerRetentionCommitments from '../pages/customerRetention/CustomerRetentionCommitments';
 
 // Create test wrapper components to manage mocks and contexts
@@ -48,7 +49,7 @@ describe('Customer Retention Feature Integration Tests', () => {
     test('Contacts component renders basic elements', () => {
       render(
         <BrowserRouter>
-          <Contacts />
+          <CustomerRetentionContacts />
         </BrowserRouter>
       );
       
@@ -73,7 +74,7 @@ describe('Customer Retention Feature Integration Tests', () => {
     test('Calendar Integration component renders properly', () => {
       render(
         <BrowserRouter>
-          <CalendarIntegration />
+          <CustomerRetentionCalendar />
         </BrowserRouter>
       );
       
@@ -139,7 +140,7 @@ describe('Customer Retention Feature Integration Tests', () => {
       
       render(
         <BrowserRouter>
-          <Contacts />
+          <CustomerRetentionContacts />
         </BrowserRouter>
       );
       

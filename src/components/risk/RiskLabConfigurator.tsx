@@ -1,97 +1,277 @@
 import React, { useState, useEffect } from 'react';
-import { LoanType, RiskScoringCategory, ScoringOutcome } from './RiskScoringModel';
+import { useRiskConfig, RiskConfigType } from '../../contexts/RiskConfigContext';
+import RiskRangesConfigEditor, { RiskRange } from './RiskRangesConfigEditor';
+import { DEFAULT_RANGES } from './RiskRangesConfigEditor';
+import { mapLoanTypeToConfigType } from './RiskScoringModel';
+import { RiskMapType, mapLoanTypeToRiskMapType, mapRiskMapTypeToLoanType } from './RiskMapNavigator';
+
+// Type definitions
+export type LoanType = 'general' | 'equipment' | 'realestate';
+type RiskScoringCategory = 'creditworthiness' | 'financial' | 'cashflow' | 'legal' | 'equipment' | 'property' | 'guarantors';
+type ScoringOutcome = 'positive' | 'average' | 'negative';
+
+// Define a type for mock config when the real one isn't available
+interface RiskConfig {
+  categoryWeights?: Record<string, number>;
+  [key: string]: any;
+}
 
 interface ConfiguratorProps {
   loanType: LoanType;
   onLoanTypeChange?: (type: LoanType) => void;
+  expanded?: boolean; // Add prop to control expanded state
 }
 
 const RiskLabConfigurator: React.FC<ConfiguratorProps> = ({
   loanType = 'general',
-  onLoanTypeChange
+  onLoanTypeChange,
+  expanded = true // Default to expanded
 }) => {
+  // Get the context
+  const riskContext = useRiskConfig();
+  
   // State for configurator values
   const [activeCategory, setActiveCategory] = useState<RiskScoringCategory>('creditworthiness');
-  const [currentWeight, setCurrentWeight] = useState<number>(20);
-  const [recalculate, setRecalculate] = useState<boolean>(false);
+  const [recalculate, setRecalculate] = useState<boolean>(true);
+  const [activeSlider, setActiveSlider] = useState<string | null>(null);
+  const [showPaywall, setShowPaywall] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(expanded);
   
-  // Define the category weights based on loan type
-  const [categoryWeights, setCategoryWeights] = useState<Record<RiskScoringCategory, number>>({
+  // Update expanded state when prop changes
+  useEffect(() => {
+    setIsExpanded(expanded);
+  }, [expanded]);
+  
+  // State for credit score ranges
+  const [creditRanges, setCreditRanges] = useState({
+    positive: 850,
+    average: 719,
+    negative: 649
+  });
+
+  // State for payment history options
+  const [paymentOptions, setPaymentOptions] = useState({
+    positive: 'No Missed payment',
+    average: '1-2 Missed payment',
+    negative: '3+ Missed payment'
+  });
+  
+  // State for weight distribution
+  const [categoryWeights, setCategoryWeights] = useState({
     creditworthiness: 40,
     financial: 20,
-    cashflow: 10,
+    cashflow: 20,
     legal: 20,
     equipment: loanType === 'equipment' ? 20 : 0,
     property: loanType === 'realestate' ? 20 : 0,
-    guarantors: 10
+    guarantors: 0
   });
+  
+  // State for custom ranges configuration
+  const [customRanges, setCustomRanges] = useState<{[key: string]: RiskRange[]}>({
+    creditworthiness: [...DEFAULT_RANGES.creditworthiness.metrics],
+    financial: [...DEFAULT_RANGES.financial.metrics],
+    cashflow: [...DEFAULT_RANGES.cashflow.metrics],
+    legal: [...DEFAULT_RANGES.legal.metrics],
+    equipment: [...DEFAULT_RANGES.equipment.metrics],
+    property: [...DEFAULT_RANGES.property.metrics]
+  });
+
+  // Get title based on loan type
+  const getTitle = () => {
+    switch (loanType) {
+      case 'equipment': 
+        return 'For Equipment & Vehicles Credit App';
+      case 'realestate':
+        return 'For Real Estate Credit App';
+      default:
+        return 'General';
+    }
+  };
 
   // Update weights when loan type changes
   useEffect(() => {
-    setCategoryWeights(prev => ({
-      ...prev,
-      equipment: loanType === 'equipment' ? 20 : 0,
-      property: loanType === 'realestate' ? 20 : 0
-    }));
-  }, [loanType]);
+    console.log(`RiskLabConfigurator: Loan type changed to ${loanType}`);
+    
+    // For this demo, we'll implement a mock loader function
+    const getMockConfig = (type: LoanType): RiskConfig => {
+      // These are default values based on loan type
+      return {
+        categoryWeights: {
+          creditworthiness: type === 'general' ? 40 : 40,
+          financial: type === 'general' ? 20 : 15,
+          cashflow: type === 'general' ? 20 : 15,
+          legal: type === 'general' ? 20 : 10,
+          equipment: type === 'equipment' ? 20 : 0,
+          property: type === 'realestate' ? 20 : 0,
+          guarantors: 0
+        }
+      };
+    };
+    
+    // Get configuration from our mock (avoids type issues with the real context)
+    const config = getMockConfig(loanType);
+    
+    // Apply the config
+    if (config.categoryWeights) {
+      setCategoryWeights(prev => ({
+        ...prev,
+        ...config.categoryWeights
+      }));
+    }
+    
+    // Adjust weights based on loan type
+    setCategoryWeights(prev => {
+      const updatedWeights = { ...prev };
+      
+      // Reset specialized categories
+      updatedWeights.equipment = 0;
+      updatedWeights.property = 0;
+      
+      // Adjust based on loan type
+      if (loanType === 'equipment') {
+        // For equipment loans: reduce other categories to make room for equipment
+        const reductionPerCategory = 20 / 3; // 20% total reduction spread across 3 categories
+        updatedWeights.financial = Math.max(0, prev.financial - reductionPerCategory);
+        updatedWeights.cashflow = Math.max(0, prev.cashflow - reductionPerCategory);
+        updatedWeights.legal = Math.max(0, prev.legal - reductionPerCategory);
+        updatedWeights.equipment = 20;
+      } else if (loanType === 'realestate') {
+        // For real estate loans: reduce other categories to make room for property
+        const reductionPerCategory = 20 / 3; // 20% total reduction spread across 3 categories
+        updatedWeights.financial = Math.max(0, prev.financial - reductionPerCategory);
+        updatedWeights.cashflow = Math.max(0, prev.cashflow - reductionPerCategory);
+        updatedWeights.legal = Math.max(0, prev.legal - reductionPerCategory);
+        updatedWeights.property = 20;
+      } else {
+        // For general loans: distribute evenly among the 4 main categories
+        updatedWeights.creditworthiness = 40;
+        updatedWeights.financial = 20;
+        updatedWeights.cashflow = 20;
+        updatedWeights.legal = 20;
+      }
+      
+      return updatedWeights;
+    });
+    
+    // Set the active category to the most relevant one for the loan type
+    if (loanType === 'equipment') {
+      setActiveCategory('equipment');
+    } else if (loanType === 'realestate') {
+      setActiveCategory('property');
+    } else {
+      setActiveCategory('creditworthiness');
+    }
+    
+    // Update risk config context with the appropriate config type
+    const configType = mapLoanTypeToConfigType(loanType);
+    riskContext.loadConfigForType(configType as RiskConfigType);
+    
+  }, [loanType, riskContext]);
 
-  // Handle weight change
-  const handleWeightChange = (category: RiskScoringCategory, value: number) => {
-    setCurrentWeight(value);
-    setCategoryWeights(prev => ({
-      ...prev,
-      [category]: value
-    }));
-  }
+  // Function to check if total weights equal 100%
+  const checkTotalWeights = (): boolean => {
+    const total = Object.values(categoryWeights).reduce((sum, weight) => sum + weight, 0);
+    return total === 100;
+  };
 
-  // Handle category click
-  const handleCategoryClick = (category: RiskScoringCategory) => {
-    setActiveCategory(category);
-    setCurrentWeight(categoryWeights[category]);
-  }
+  // Handle weight slider changes
+  const handleWeightChange = (category: RiskScoringCategory, newValue: number) => {
+    setActiveSlider(category);
+    
+    // Calculate the difference to distribute
+    const difference = newValue - categoryWeights[category];
+    
+    setCategoryWeights(prev => {
+      const updated = { ...prev, [category]: newValue };
+      
+      // Get categories that can be adjusted (non-zero weights excluding the active one)
+      const adjustableCategories = Object.entries(prev)
+        .filter(([key, value]) => key !== category && value > 0)
+        .map(([key]) => key as RiskScoringCategory);
+      
+      if (adjustableCategories.length === 0) return updated;
+      
+      // Distribute the difference proportionally
+      const totalAdjustableWeight = adjustableCategories.reduce((sum, key) => sum + prev[key], 0);
+      
+      adjustableCategories.forEach(key => {
+        const proportion = prev[key] / totalAdjustableWeight;
+        updated[key] = Math.max(0, Math.round(prev[key] - (difference * proportion)));
+      });
+      
+      // Ensure the total is exactly 100%
+      const currentTotal = Object.values(updated).reduce((sum, val) => sum + val, 0);
+      if (currentTotal !== 100) {
+        // Find the largest category (excluding active) to adjust
+        const largestCategory = adjustableCategories.reduce(
+          (largest, key) => updated[key] > updated[largest] ? key : largest,
+          adjustableCategories[0]
+        );
+        updated[largestCategory] += (100 - currentTotal);
+      }
+      
+      return updated;
+    });
+  };
+
+  // Handle custom ranges changes
+  const handleRangesChange = (category: RiskScoringCategory, ranges: RiskRange[]) => {
+    setCustomRanges(prev => ({
+      ...prev,
+      [category]: ranges
+    }));
+  };
+
+  // Function to handle credit range changes
+  const handleCreditRangeChange = (type: 'positive' | 'average' | 'negative', value: number) => {
+    setCreditRanges(prev => ({
+      ...prev,
+      [type]: value
+    }));
+  };
+
+  // Function to handle payment option changes
+  const handlePaymentOptionChange = (type: 'positive' | 'average' | 'negative', value: string) => {
+    setPaymentOptions(prev => ({
+      ...prev,
+      [type]: value
+    }));
+  };
 
   // Handle loan type change
   const handleLoanTypeChange = (type: LoanType) => {
+    console.log(`Changing loan type to: ${type}`);
+    
+    // Provide visual feedback for the selection
+    const button = document.querySelector(`button[data-loan-type="${type}"]`);
+    if (button) {
+      button.classList.add('animate-pulse');
+      setTimeout(() => button.classList.remove('animate-pulse'), 500);
+    }
+    
     if (onLoanTypeChange) {
       onLoanTypeChange(type);
     }
-  }
+  };
 
   // Get the total weight
   const getTotalWeight = () => {
     return Object.values(categoryWeights).reduce((sum, weight) => sum + weight, 0);
-  }
+  };
 
   // Calculate if weights are valid (total 100%)
   const areWeightsValid = () => {
     return getTotalWeight() === 100;
-  }
+  };
 
-  // Save configuration
-  const handleSave = () => {
-    if (areWeightsValid()) {
-      // In a real app, this would save to backend
-      console.log('Configuration saved:', categoryWeights);
-      alert('Risk configuration saved successfully!');
-    } else {
-      alert(`Total weight must equal 100%. Current total: ${getTotalWeight()}%`);
-    }
-  }
-
-  // Reset configuration
-  const handleReset = () => {
-    setCategoryWeights({
-      creditworthiness: 40,
-      financial: 20,
-      cashflow: 10,
-      legal: 20,
-      equipment: loanType === 'equipment' ? 20 : 0,
-      property: loanType === 'realestate' ? 20 : 0,
-      guarantors: 10
-    });
-    setCurrentWeight(40);
-    setActiveCategory('creditworthiness');
-  }
+  // Handle saving the configuration
+  const handleSaveConfig = () => {
+    // In a real app, this would save to backend
+    alert('Configuration saved successfully!');
+    // Show the paywall modal to purchase credits
+    setShowPaywall(true);
+  };
 
   // Get styling for category based on loan type
   const getCategoryStyle = (category: RiskScoringCategory) => {
@@ -105,15 +285,27 @@ const RiskLabConfigurator: React.FC<ConfiguratorProps> = ({
         activeStyle = isActive ? 'bg-green-50 border-green-300 text-green-800' : 'bg-white border-gray-200 text-gray-700 hover:bg-green-50';
         break;
       case 'realestate':
-        activeStyle = isActive ? 'bg-amber-50 border-amber-300 text-amber-800' : 'bg-white border-gray-200 text-gray-700 hover:bg-amber-50';
+        activeStyle = isActive ? 'bg-blue-50 border-blue-300 text-blue-800' : 'bg-white border-gray-200 text-gray-700 hover:bg-blue-50';
         break;
       default: // general
         activeStyle = isActive ? 'bg-blue-50 border-blue-300 text-blue-800' : 'bg-white border-gray-200 text-gray-700 hover:bg-blue-50';
     }
     
     return `${baseStyle} ${activeStyle}`;
-  }
+  };
 
+  // Get slider style based on loan type
+  const getSliderStyle = () => {
+    switch (loanType) {
+      case 'equipment':
+        return 'accent-red-600';
+      case 'realestate':
+        return 'accent-blue-600';
+      default:
+        return 'accent-blue-600';
+    }
+  };
+  
   // Get category icon
   const getCategoryIcon = (category: RiskScoringCategory) => {
     switch (category) {
@@ -126,12 +318,12 @@ const RiskLabConfigurator: React.FC<ConfiguratorProps> = ({
       case 'guarantors': return '🤝';
       default: return '📋';
     }
-  }
+  };
 
   // Get category display name
   const getCategoryName = (category: RiskScoringCategory) => {
     switch (category) {
-      case 'creditworthiness': return 'Creditworthiness of The Borrower (CWB)';
+      case 'creditworthiness': return 'Creditworthiness Of The Borrower (CWB)';
       case 'financial': return 'Financial Statements And Ratios (FSR)';
       case 'cashflow': return 'Business Cash Flow (BCF)';
       case 'legal': return 'Legal And Regulatory Compliance (LRC)';
@@ -140,325 +332,328 @@ const RiskLabConfigurator: React.FC<ConfiguratorProps> = ({
       case 'guarantors': return 'Guarantors & Secondary Collateral';
       default: return category;
     }
-  }
+  };
 
-  // Get text for the note about fifth category
-  const getFifthCategoryNote = () => {
-    if (loanType === 'equipment') {
-      return 'Depending on whether it\'s an equipment or a real estate loan, a 5th category will be added based on the loan type.';
-    } else if (loanType === 'realestate') {
-      return 'For real estate loans, Property evaluation is added as a 5th category.';
-    } else {
-      return 'For equipment loans, Equipment Value assessment is added as a 5th category.';
+  // Update the credit score input fields
+  const renderCreditRangeInputs = () => {
+    return (
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">POSITIVE</label>
+          <input
+            type="number"
+            value={creditRanges.positive}
+            onChange={(e) => handleCreditRangeChange('positive', parseInt(e.target.value))}
+            className="w-full p-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">AVERAGE</label>
+          <input
+            type="number"
+            value={creditRanges.average}
+            onChange={(e) => handleCreditRangeChange('average', parseInt(e.target.value))}
+            className="w-full p-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">NEGATIVE</label>
+          <input
+            type="number"
+            value={creditRanges.negative}
+            onChange={(e) => handleCreditRangeChange('negative', parseInt(e.target.value))}
+            className="w-full p-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+    );
+  };
+
+  // Render payment option inputs
+  const renderPaymentOptions = () => {
+    return (
+      <div className="grid grid-cols-3 gap-4 mt-4">
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">POSITIVE</label>
+          <input
+            type="text"
+            value={paymentOptions.positive}
+            onChange={(e) => handlePaymentOptionChange('positive', e.target.value)}
+            className="w-full p-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">AVERAGE</label>
+          <input
+            type="text"
+            value={paymentOptions.average}
+            onChange={(e) => handlePaymentOptionChange('average', e.target.value)}
+            className="w-full p-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">NEGATIVE</label>
+          <input
+            type="text"
+            value={paymentOptions.negative}
+            onChange={(e) => handlePaymentOptionChange('negative', e.target.value)}
+            className="w-full p-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+    );
+  };
+
+  // Replace the creditworthiness section with the updated version
+  const renderCategoryWeightSlider = (category: RiskScoringCategory, categoryName: string) => {
+    return (
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <h4 className="font-medium text-gray-900">
+            {getCategoryName(category)}
+          </h4>
+          <button
+            className="text-xs text-blue-600"
+            onClick={() => {
+              // Save current weight
+              const currentWeight = parseInt(
+                document.getElementById(`weight-${category}`)?.innerText || '0'
+              );
+              setCategoryWeights(prev => ({
+                ...prev,
+                [category]: currentWeight
+              }));
+            }}
+          >
+            Save
+          </button>
+        </div>
+        
+        <div className="flex items-center mb-1">
+          <span className="text-xs text-gray-500 mr-2">WEIGHT</span>
+          <div 
+            className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden cursor-pointer"
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const position = e.clientX - rect.left;
+              const percentage = Math.round((position / rect.width) * 100);
+              handleWeightChange(category, Math.min(100, Math.max(0, percentage)));
+            }}
+          >
+            <div 
+              className={`h-full ${
+                loanType === 'equipment' && category === 'equipment' ? 'bg-red-600' :
+                loanType === 'realestate' && category === 'property' ? 'bg-blue-600' :
+                loanType === 'equipment' ? 'bg-red-600' : 
+                loanType === 'realestate' ? 'bg-blue-600' : 'bg-blue-600'
+              }`} 
+              style={{ width: `${categoryWeights[category]}%` }}
+            ></div>
+          </div>
+          <input 
+            type="number" 
+            id={`weight-${category}`}
+            min="0"
+            max="100"
+            value={categoryWeights[category]}
+            onChange={(e) => handleWeightChange(category, parseInt(e.target.value))}
+            className="w-12 text-xs ml-2 p-1 border border-gray-300 rounded text-center"
+          />
+          <span className="text-xs ml-1">%</span>
+        </div>
+
+        {category === 'creditworthiness' && (
+          <>
+            {renderCreditRangeInputs()}
+            
+            <div className="grid grid-cols-4 gap-1 items-center mt-4">
+              <div className="text-sm font-medium">Credit Score</div>
+              <div className="text-sm text-center text-green-600 font-semibold">
+                {creditRanges.positive} <span className="inline-block w-3 h-3 bg-green-100 text-green-800 rounded-full text-xs flex items-center justify-center">✓</span>
+              </div>
+              <div className="text-sm text-center">{creditRanges.average}</div>
+              <div className="text-sm text-center">{creditRanges.negative}</div>
+            </div>
+            
+            <div className="grid grid-cols-4 gap-1 items-center mt-2">
+              <div className="text-sm font-medium">Payment History</div>
+              <div className="text-sm text-center">{paymentOptions.positive}</div>
+              <div className="text-sm text-center text-green-600">{paymentOptions.average} <span className="inline-block w-3 h-3 bg-green-100 text-green-800 rounded-full text-xs flex items-center justify-center">✓</span></div>
+              <div className="text-sm text-center">{paymentOptions.negative}</div>
+            </div>
+            
+            {renderPaymentOptions()}
+          </>
+        )}
+      </div>
+    );
+  };
+
+  // Get the tab text for loan type selection
+  const getLoanTypeTabText = (type: LoanType) => {
+    switch (type) {
+      case 'equipment':
+        return 'Equipment & Vehicles';
+      case 'realestate':
+        return 'Real Estate';
+      default:
+        return 'General';
     }
-  }
+  };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">Risk Score And Report</h3>
-            <p className="text-sm text-gray-500 mt-1">Configure risk scoring parameters and weights</p>
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      {/* Header with tabs for loan type selection */}
+      <div className="flex border-b border-gray-200">
+        {['general', 'realestate', 'equipment'].map((type) => (
+          <button
+            key={type}
+            data-loan-type={type}
+            className={`flex-1 py-3 px-4 text-center font-medium ${
+              loanType === type
+                ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+            onClick={() => handleLoanTypeChange(type as LoanType)}
+          >
+            {getLoanTypeTabText(type as LoanType)}
+          </button>
+        ))}
+      </div>
+      
+      {/* Main content area */}
+      <div className="p-4">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          Risk Lab Configurator for {getLoanTypeTabText(loanType)}
+        </h2>
+        
+        {/* Category tabs */}
+        <div className="flex flex-wrap mb-6 border-b border-gray-200">
+          {Object.entries(categoryWeights)
+            .filter(([_, weight]) => weight > 0)
+            .map(([category]) => (
+              <button
+                key={category}
+                className={`py-2 px-4 text-sm font-medium border-b-2 mr-2 ${
+                  activeCategory === category
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+                onClick={() => setActiveCategory(category as RiskScoringCategory)}
+              >
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </button>
+            ))}
+        </div>
+        
+        {/* Weight distribution sliders */}
+        <div className="mb-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Weight Distribution</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Adjust the importance of each category in the overall risk assessment. 
+            Total must equal 100%.
+          </p>
+          
+          <div className="space-y-4">
+            {Object.entries(categoryWeights)
+              .filter(([_, weight]) => weight > 0)
+              .map(([category, weight]) => (
+                <div key={category} className="flex items-center">
+                  <div className="w-40 text-sm font-medium text-gray-700">
+                    {category.charAt(0).toUpperCase() + category.slice(1)}:
+                  </div>
+                  <div className="flex-1 mx-4">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={weight}
+                      onChange={(e) => handleWeightChange(
+                        category as RiskScoringCategory,
+                        parseInt(e.target.value)
+                      )}
+                      className={`w-full ${
+                        activeSlider === category ? 'accent-blue-600' : ''
+                      }`}
+                    />
+                  </div>
+                  <div className="w-16 text-center">
+                    <span className={`font-semibold ${
+                      activeSlider === category ? 'text-blue-600' : 'text-gray-700'
+                    }`}>
+                      {weight}%
+                    </span>
+                  </div>
+                </div>
+              ))}
           </div>
           
-          <div className="mt-4 md:mt-0 flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">Loan Type:</span>
-            {/* Loan type buttons */}
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handleLoanTypeChange('general')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md ${
-                  loanType === 'general'
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                General
-              </button>
-              <button
-                onClick={() => handleLoanTypeChange('equipment')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md ${
-                  loanType === 'equipment'
-                    ? 'bg-green-100 text-green-800 border border-green-200'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                Equipment & Vehicles
-              </button>
-              <button
-                onClick={() => handleLoanTypeChange('realestate')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md ${
-                  loanType === 'realestate'
-                    ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                Real Estate
-              </button>
-            </div>
+          {/* Validation message */}
+          <div className={`mt-2 text-sm ${
+            areWeightsValid() ? 'text-green-600' : 'text-red-600'
+          }`}>
+            {areWeightsValid() 
+              ? '✓ Valid configuration (100%)'
+              : `⚠ Total must equal 100% (current: ${getTotalWeight()}%)`
+            }
           </div>
         </div>
         
-        {/* Information note about 5th category */}
-        <div className="mt-4 p-3 bg-blue-50 text-blue-800 text-sm rounded-md border border-blue-200">
-          <p>{getFifthCategoryNote()}</p>
+        {/* Range configuration for the selected category */}
+        <div className="mt-6">
+          <RiskRangesConfigEditor
+            category={activeCategory}
+            initialRanges={customRanges[activeCategory]}
+            onChange={(ranges) => handleRangesChange(activeCategory, ranges)}
+          />
+        </div>
+        
+        {/* Action buttons */}
+        <div className="mt-8 flex justify-end">
+          <button
+            onClick={handleSaveConfig}
+            disabled={!areWeightsValid()}
+            className={`px-4 py-2 rounded-md font-medium ${
+              areWeightsValid()
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            Save Configuration & Run Assessment
+          </button>
         </div>
       </div>
       
-      {/* Main configurator layout */}
-      <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Category list - left column */}
-        <div className="md:col-span-1">
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Risk Categories</h4>
-          
-          <div className="space-y-2">
-            {/* Creditworthiness */}
-            <div 
-              className={getCategoryStyle('creditworthiness')}
-              onClick={() => handleCategoryClick('creditworthiness')}
-            >
-              <div className="flex items-center">
-                <span className="mr-2 text-lg">{getCategoryIcon('creditworthiness')}</span>
-                <span className="font-medium">Creditworthiness</span>
-              </div>
-              <div className="text-sm font-medium">
-                {categoryWeights.creditworthiness}%
-              </div>
-            </div>
-            
-            {/* Financial */}
-            <div 
-              className={getCategoryStyle('financial')}
-              onClick={() => handleCategoryClick('financial')}
-            >
-              <div className="flex items-center">
-                <span className="mr-2 text-lg">{getCategoryIcon('financial')}</span>
-                <span className="font-medium">Financial Statements</span>
-              </div>
-              <div className="text-sm font-medium">
-                {categoryWeights.financial}%
-              </div>
-            </div>
-            
-            {/* Cash flow */}
-            <div 
-              className={getCategoryStyle('cashflow')}
-              onClick={() => handleCategoryClick('cashflow')}
-            >
-              <div className="flex items-center">
-                <span className="mr-2 text-lg">{getCategoryIcon('cashflow')}</span>
-                <span className="font-medium">Cash Flow</span>
-              </div>
-              <div className="text-sm font-medium">
-                {categoryWeights.cashflow}%
-              </div>
-            </div>
-            
-            {/* Legal */}
-            <div 
-              className={getCategoryStyle('legal')}
-              onClick={() => handleCategoryClick('legal')}
-            >
-              <div className="flex items-center">
-                <span className="mr-2 text-lg">{getCategoryIcon('legal')}</span>
-                <span className="font-medium">Legal & Regulatory</span>
-              </div>
-              <div className="text-sm font-medium">
-                {categoryWeights.legal}%
-              </div>
-            </div>
-            
-            {/* Equipment - only for equipment loans */}
-            {loanType === 'equipment' && (
-              <div 
-                className={getCategoryStyle('equipment')}
-                onClick={() => handleCategoryClick('equipment')}
-              >
-                <div className="flex items-center">
-                  <span className="mr-2 text-lg">{getCategoryIcon('equipment')}</span>
-                  <span className="font-medium">Equipment Value</span>
-                </div>
-                <div className="text-sm font-medium">
-                  {categoryWeights.equipment}%
-                </div>
-              </div>
-            )}
-            
-            {/* Property - only for real estate loans */}
-            {loanType === 'realestate' && (
-              <div 
-                className={getCategoryStyle('property')}
-                onClick={() => handleCategoryClick('property')}
-              >
-                <div className="flex items-center">
-                  <span className="mr-2 text-lg">{getCategoryIcon('property')}</span>
-                  <span className="font-medium">Property</span>
-                </div>
-                <div className="text-sm font-medium">
-                  {categoryWeights.property}%
-                </div>
-              </div>
-            )}
-            
-            {/* Guarantors */}
-            <div 
-              className={getCategoryStyle('guarantors')}
-              onClick={() => handleCategoryClick('guarantors')}
-            >
-              <div className="flex items-center">
-                <span className="mr-2 text-lg">{getCategoryIcon('guarantors')}</span>
-                <span className="font-medium">Guarantors</span>
-              </div>
-              <div className="text-sm font-medium">
-                {categoryWeights.guarantors}%
-              </div>
-            </div>
-          </div>
-          
-          {/* Weight validation message */}
-          <div className={`mt-4 p-3 rounded-md text-sm ${areWeightsValid() ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-yellow-50 text-yellow-800 border border-yellow-200'}`}>
-            {areWeightsValid() 
-              ? 'Weights are balanced at 100%' 
-              : `Total weight: ${getTotalWeight()}% (should equal 100%)`}
-          </div>
-        </div>
-        
-        {/* Weight adjustment - middle column */}
-        <div className="md:col-span-1">
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Weight Configuration</h4>
-          
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h5 className="font-medium text-gray-900">{getCategoryName(activeCategory)}</h5>
-            <p className="text-sm text-gray-600 mt-1">
-              Adjust the importance of this factor in the overall risk score.
+      {/* Paywall Modal */}
+      {showPaywall && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-md p-6 max-w-lg w-full">
+            <h3 className="text-lg font-medium mb-4">Purchase Report Credits</h3>
+            <p className="text-gray-600 mb-6">
+              To run this risk assessment with your custom configuration, you need to purchase credits.
             </p>
             
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Weight: {currentWeight}%
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="5"
-                value={currentWeight}
-                onChange={(e) => handleWeightChange(activeCategory, parseInt(e.target.value))}
-                className={`w-full h-2 rounded-lg appearance-none cursor-pointer
-                  ${loanType === 'equipment' ? 'bg-green-200' : 
-                    loanType === 'realestate' ? 'bg-amber-200' : 'bg-blue-200'}`}
-              />
-              
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>0%</span>
-                <span>50%</span>
-                <span>100%</span>
-              </div>
-            </div>
-            
-            <div className="mt-8 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Recalculate other weights</span>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={recalculate} 
-                    onChange={() => setRecalculate(!recalculate)}
-                    className="sr-only peer" 
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-                </label>
-              </div>
-              
-              <div className="text-xs text-gray-500">
-                When enabled, changing this category's weight will automatically adjust other categories to maintain a total of 100%.
-              </div>
-            </div>
-            
-            <div className="mt-6">
+            <div className="flex justify-end">
               <button
-                onClick={handleReset}
-                className="w-full bg-white border border-gray-300 text-gray-700 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-50 transition duration-150"
+                onClick={() => setShowPaywall(false)}
+                className="px-4 py-2 border rounded-md text-gray-600 mr-2"
               >
-                Reset to Default
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  // In a real app, this would integrate with the PaywallModal component
+                  setShowPaywall(false);
+                  alert('Redirecting to payment screen...');
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md"
+              >
+                Purchase Credits
               </button>
             </div>
           </div>
         </div>
-        
-        {/* Scoring key and actions - right column */}
-        <div className="md:col-span-1">
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Scoring System</h4>
-          
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-            <h5 className="font-medium text-gray-900">Blackjack-Style Scoring</h5>
-            <p className="text-sm text-gray-600 mt-1">
-              This system uses a "blackjack" approach to calculating risk.
-            </p>
-            
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-green-100 rounded-full mr-2"></div>
-                <span className="text-sm text-gray-700">Good: +2 points</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-yellow-100 rounded-full mr-2"></div>
-                <span className="text-sm text-gray-700">Average: 0 points</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-red-100 rounded-full mr-2"></div>
-                <span className="text-sm text-gray-700">Negative: -1 point</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h5 className="font-medium text-gray-900">Risk Classification</h5>
-            <div className="mt-4 space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-green-700">Low Risk</span>
-                <span className="text-xs text-gray-500">70-100 points</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '70%' }}></div>
-              </div>
-              
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-sm font-medium text-yellow-700">Medium Risk</span>
-                <span className="text-xs text-gray-500">50-69 points</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '50%' }}></div>
-              </div>
-              
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-sm font-medium text-red-700">High Risk</span>
-                <span className="text-xs text-gray-500">0-49 points</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-red-500 h-2 rounded-full" style={{ width: '30%' }}></div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-6">
-            <button
-              onClick={handleSave}
-              className={`w-full text-white rounded-md px-4 py-2 text-sm font-medium transition duration-150 ${
-                loanType === 'equipment' 
-                  ? 'bg-green-600 hover:bg-green-700' 
-                  : loanType === 'realestate' 
-                    ? 'bg-amber-600 hover:bg-amber-700' 
-                    : 'bg-primary-600 hover:bg-primary-700'
-              }`}
-            >
-              Save Configuration
-            </button>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

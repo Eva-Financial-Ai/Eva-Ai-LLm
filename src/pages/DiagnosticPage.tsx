@@ -160,8 +160,12 @@ const DiagnosticPage: React.FC = () => {
               </div>
               <div className="p-4">
                 <RiskMapNavigator
-                  selectedCategory={selectedCategory}
-                  onCategorySelect={handleCategorySelect}
+                  selectedCategory={selectedCategory as string}
+                  onCategorySelect={handleCategorySelect as (category: string) => void}
+                  riskMapType="unsecured"
+                  onRiskMapTypeChange={() => {}}
+                  activeView="standard"
+                  onViewChange={() => {}}
                 />
               </div>
             </div>

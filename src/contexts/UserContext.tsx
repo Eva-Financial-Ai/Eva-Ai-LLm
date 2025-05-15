@@ -1,15 +1,16 @@
 import React, { createContext, useState, useEffect } from 'react';
-
-// Define user role type
-export type AppUserRole = 'borrower' | 'lender' | 'admin' | 'broker' | 'vendor' | '';
+import { UserRoleType } from '../components/layout/TopNavbar';
+import { roleDisplayNames } from '../types/UserTypes';
 
 // Define color scheme type
 export type ColorScheme = 'light' | 'dark' | 'system';
 
 // Define UserContext interface
 export interface UserContextType {
-  userRole: AppUserRole;
-  setUserRole: (role: AppUserRole) => void;
+  userRole: UserRoleType;
+  setUserRole: (role: UserRoleType) => void;
+  specificRole: string;
+  setSpecificRole: (role: string) => void;
   showSmartMatching: boolean;
   setShowSmartMatching: (show: boolean) => void;
   showDataOrchestrator: boolean;
@@ -46,7 +47,11 @@ export interface UserContextType {
 // Create context with default value
 export const UserContext = createContext<UserContextType>({
   userRole: 'lender',
-  setUserRole: (role: AppUserRole) => {
+  setUserRole: (role: UserRoleType) => {
+    /* Implementation not needed for default context */
+  },
+  specificRole: 'default_role',
+  setSpecificRole: (role: string) => {
     /* Implementation not needed for default context */
   },
   showSmartMatching: false,
@@ -119,7 +124,8 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isPQCAuthenticated, setPQCAuthenticated] = useState(false);
   const [userName, setUserName] = useState('');
-  const [userRole, setUserRole] = useState<AppUserRole>('');
+  const [userRole, setUserRole] = useState<UserRoleType>('lender');
+  const [specificRole, setSpecificRole] = useState('default_role');
   const [userId, setUserId] = useState('');
   const [userProfileImage, setUserProfileImage] = useState('/avatars/default-avatar.png');
   const [showSmartMatching, setShowSmartMatching] = useState(false);
@@ -148,12 +154,33 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return localStorage.getItem('highContrast') === 'true';
   });
 
+  // Map old roles to new roles
+  const mapOldRoleToNewRole = (oldRole: string): UserRoleType => {
+    if (oldRole === 'borrower' || 
+        oldRole === 'lender' || 
+        oldRole === 'admin' || 
+        oldRole === 'broker' || 
+        oldRole === 'vendor' ||
+        oldRole === 'developer' ||
+        oldRole === 'sales_manager' ||
+        oldRole === 'loan_processor' ||
+        oldRole === 'credit_underwriter' ||
+        oldRole === 'credit_committee' ||
+        oldRole === 'portfolio_manager') {
+      return oldRole as UserRoleType;
+    }
+    
+    // Default to lender if role doesn't match
+    return 'lender';
+  };
+
   // Check for authentication on mount
   useEffect(() => {
     // Check stored authentication (this is a simple example, not secure for production)
     const storedAuth = localStorage.getItem('isAuthenticated');
     const storedUserName = localStorage.getItem('userName');
     const storedUserRole = localStorage.getItem('userRole');
+    const storedSpecificRole = localStorage.getItem('specificRole');
     const storedUserId = localStorage.getItem('userId');
     const storedUserProfileImage = localStorage.getItem('userProfileImage');
     const storedTheme = localStorage.getItem('theme');
@@ -164,17 +191,14 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setIsAuthenticated(true);
       setUserName(storedUserName);
 
-      // Safely cast the role to AppUserRole type
-      if (
-        storedUserRole === 'borrower' ||
-        storedUserRole === 'lender' ||
-        storedUserRole === 'admin' ||
-        storedUserRole === 'broker' ||
-        storedUserRole === 'vendor'
-      ) {
-        setUserRole(storedUserRole as AppUserRole);
-      } else {
-        setUserRole('');
+      // Convert old role to new UserRoleType 
+      if (storedUserRole) {
+        setUserRole(mapOldRoleToNewRole(storedUserRole));
+      }
+
+      // Set specific role if available
+      if (storedSpecificRole) {
+        setSpecificRole(storedSpecificRole);
       }
 
       setUserId(storedUserId || '');
@@ -254,9 +278,15 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [theme, colorScheme, highContrast]);
 
   // Modified setUserRole function that persists to localStorage
-  const handleSetUserRole = (role: AppUserRole) => {
+  const handleSetUserRole = (role: UserRoleType) => {
     setUserRole(role);
     localStorage.setItem('userRole', role);
+  };
+
+  // Modified setSpecificRole function that persists to localStorage
+  const handleSetSpecificRole = (role: string) => {
+    setSpecificRole(role);
+    localStorage.setItem('specificRole', role);
   };
 
   // Toggle tool visibility
@@ -299,6 +329,8 @@ export const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       value={{
         userRole,
         setUserRole: handleSetUserRole,
+        specificRole,
+        setSpecificRole: handleSetSpecificRole,
         showSmartMatching,
         setShowSmartMatching,
         showDataOrchestrator,

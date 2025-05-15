@@ -8,6 +8,7 @@ import { RecentActivities } from './RecentActivities';
 import { DealProgressCard } from './DealProgressCard';
 import { PermissionGuard } from '../../components/PermissionGuard';
 import { PermissionLevel } from '../../types/UserTypes';
+import { useNavigate } from 'react-router-dom';
 
 // Additional widget components will be imported as needed
 
@@ -27,11 +28,11 @@ const DynamicDashboard: React.FC<DynamicDashboardProps> = ({
   trends,
 }) => {
   const { userType } = useUserType();
+  const navigate = useNavigate();
 
   // Handler for view transaction clicks
   const handleViewTransaction = (id: string) => {
-    console.log(`View transaction ${id}`);
-    // In a real app, this would navigate to the transaction detail page
+    navigate(`/transaction/${id}`);
   };
 
   if (!userType) {

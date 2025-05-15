@@ -1,0 +1,513 @@
+{
+  "masterUserStories": [
+    // Customer Retention Features
+    {
+      "storyId": "CR-001",
+      "title": "Customer Contact Management",
+      "description": "As a financial advisor, I need to manage and track customer relationships to maintain effective client engagement and retention.",
+      "diagramReference": "Blue contact management node in Customer Journey section",
+      "acceptanceCriteria": [
+        {
+          "given": "I am logged in as a financial advisor",
+          "when": "I navigate to the Customer Contacts page",
+          "then": "I should see a list of all customer contacts with search functionality"
+        },
+        {
+          "given": "I am viewing the Customer Contacts page",
+          "when": "I use the search functionality",
+          "then": "The contacts list should filter accordingly" 
+        },
+        {
+          "given": "I am viewing the Customer Contacts page",
+          "when": "I click on the 'Calendar' button",
+          "then": "I should be navigated to the Calendar Integration page"
+        }
+      ],
+      "codeImpact": {
+        "components": [
+          {"file": "src/components/customerRetention/ContactTypeFilter.tsx", "changes": "Update filter to include additional contact types and improve search algorithm"},
+          {"file": "src/components/common/DataDisplay/Table.tsx", "changes": "Reuse the common Table component for displaying contacts"}
+        ],
+        "pages": [
+          {"file": "src/pages/customerRetention/CustomerRetentionContacts.tsx", "changes": "Enhance the contact listing with additional filtering options and improved search"}
+        ],
+        "contexts": [
+          {"file": "src/contexts/UserContext.tsx", "changes": "Add user permissions for contact management"},
+          {"file": "src/contexts/WorkflowContext.tsx", "changes": "Update workflow state to track navigation between retention features"}
+        ],
+        "hooks": [
+          {"file": "src/hooks/useContacts.ts", "changes": "Create a custom hook for contact data fetching and management"}
+        ]
+      },
+      "testPlan": [
+        "Verify contact list renders correctly with mock data",
+        "Test search functionality filters contacts appropriately",
+        "Verify navigation to Calendar Integration works correctly"
+      ],
+      "aiIntegration": "EVA assistant can help prioritize contacts based on customer history"
+    },
+    {
+      "storyId": "CR-002",
+      "title": "Calendar Integration Management",
+      "description": "As a financial advisor, I need to manage calendar integrations to schedule and track client meetings efficiently.",
+      "diagramReference": "Blue calendar node connected to contact management",
+      "acceptanceCriteria": [
+        {
+          "given": "I am on the Calendar Integration page",
+          "when": "The page loads",
+          "then": "I should see sections for Connected Calendars and Calendar Settings"
+        },
+        {
+          "given": "I am on the Calendar Integration page",
+          "when": "I view the Connected Calendars section",
+          "then": "I should see Google Calendar as an option"
+        },
+        {
+          "given": "I am on the Calendar Integration page",
+          "when": "I view the Calendar Settings section",
+          "then": "I should see options for appointment notifications and email reminders"
+        }
+      ],
+      "codeImpact": {
+        "components": [
+          {"file": "src/components/customerRetention/CalendarIntegrationOptions.tsx", "changes": "Add support for additional calendar providers"}
+        ],
+        "pages": [
+          {"file": "src/pages/customerRetention/CustomerRetentionCalendar.tsx", "changes": "Enhance calendar integration interface"}
+        ],
+        "contexts": [
+          {"file": "src/contexts/UserContext.tsx", "changes": "Add calendar preferences to user context"}
+        ]
+      },
+      "testPlan": [
+        "Verify Calendar Integration page renders all required sections",
+        "Test that calendar provider options are displayed correctly",
+        "Verify notification settings are properly displayed and can be toggled"
+      ],
+      "aiIntegration": "EVA assistant can recommend optimal meeting times based on client history"
+    },
+
+    // Credit Application Features
+    {
+      "storyId": "CA-001",
+      "title": "Credit Application Form Submission",
+      "description": "As a borrower, I need to complete and submit a credit application to request financing.",
+      "diagramReference": "Green credit application node with decision diamond for validation",
+      "acceptanceCriteria": [
+        {
+          "given": "I am logged in as a borrower",
+          "when": "I navigate to the Credit Application page",
+          "then": "I should see a multi-section form for entering my financial information"
+        },
+        {
+          "given": "I am filling out the Credit Application form",
+          "when": "I complete all required fields and submit the form",
+          "then": "The application should be submitted and I should see a confirmation message"
+        },
+        {
+          "given": "I am filling out the Credit Application form",
+          "when": "I leave required fields empty and try to submit",
+          "then": "I should see validation errors highlighting the missing information"
+        }
+      ],
+      "codeImpact": {
+        "components": [
+          {
+            "file": "src/components/credit/SafeForms/CreditApplicationForm.tsx",
+            "changes": "Enhance form validation and improve field formatting",
+            "detailedChanges": [
+              "Add comprehensive validation for all financial input fields",
+              "Implement autosave functionality for long form sessions",
+              "Add support for document attachment directly in relevant form sections",
+              "Update responsive layout for better mobile experience"
+            ]
+          },
+          {
+            "file": "src/components/common/Form/FormFieldWithOther.tsx",
+            "changes": "Reuse for custom field options in the application"
+          }
+        ],
+        "pages": [
+          {
+            "file": "src/pages/CreditApplication.tsx",
+            "changes": "Update page flow to include progress tracking",
+            "detailedChanges": [
+              "Add multi-step navigation with progress indicators",
+              "Implement save and resume functionality",
+              "Add conditional sections based on applicant type"
+            ]
+          }
+        ],
+        "contexts": [
+          {"file": "src/contexts/WorkflowContext.tsx", "changes": "Add application progress tracking state"}
+        ],
+        "api": [
+          {"file": "src/api/creditApplicationService.ts", "changes": "Implement or update API methods for application submission"}
+        ]
+      },
+      "testPlan": [
+        "Test form validation for required fields",
+        "Verify form submission process with mock API responses",
+        "Test error handling for failed submissions",
+        "Verify progress tracking displays correctly"
+      ],
+      "aiIntegration": "EVA assistant can provide contextual help during application completion"
+    },
+    {
+      "storyId": "CA-002",
+      "title": "Credit Analysis Review",
+      "description": "As a credit analyst, I need to review submitted applications and perform risk analysis.",
+      "diagramReference": "Yellow analysis node with connector to approval/denial decision diamond",
+      "acceptanceCriteria": [
+        {
+          "given": "I am logged in as a credit analyst",
+          "when": "I navigate to the Credit Analysis System",
+          "then": "I should see a queue of applications pending review"
+        },
+        {
+          "given": "I am reviewing a credit application",
+          "when": "I view the Credit Analysis interface",
+          "then": "I should see the applicant's financial data and risk metrics"
+        },
+        {
+          "given": "I am reviewing a credit application",
+          "when": "I make an approval decision and submit it",
+          "then": "The application status should update and move to the next workflow stage"
+        }
+      ],
+      "codeImpact": {
+        "components": [
+          {"file": "src/components/credit/CreditAnalysisSystem.tsx", "changes": "Enhance the analysis dashboard with additional metrics"},
+          {"file": "src/components/risk/CreditAnalysisChatInterface.tsx", "changes": "Improve AI-assisted analysis features"}
+        ],
+        "pages": [
+          {"file": "src/pages/RiskAssessment.tsx", "changes": "Update risk assessment flow to include new analysis criteria"}
+        ],
+        "contexts": [
+          {"file": "src/contexts/RiskConfigContext.tsx", "changes": "Add new risk thresholds and configuration options"}
+        ]
+      },
+      "testPlan": [
+        "Verify analysis dashboard displays all required metrics",
+        "Test approval/denial workflow functions correctly",
+        "Verify risk scoring calculations with different financial scenarios",
+        "Test integration with EVA AI for credit analysis assistance"
+      ],
+      "aiIntegration": "EVA performs preliminary risk analysis and provides recommendations to the credit analyst"
+    },
+
+    // Document Verification Features
+    {
+      "storyId": "DV-001",
+      "title": "Document Upload and Verification",
+      "description": "As a user, I need to upload and verify documents to support my application or account.",
+      "diagramReference": "Purple document verification node with success/failure paths",
+      "acceptanceCriteria": [
+        {
+          "given": "I am on a page requiring document verification",
+          "when": "I click on the upload document button",
+          "then": "I should see a modal allowing me to select and upload documents"
+        },
+        {
+          "given": "I have selected a document to upload",
+          "when": "I submit the document",
+          "then": "The system should validate the document format and display a progress indicator"
+        },
+        {
+          "given": "I have uploaded a document",
+          "when": "The document verification process completes",
+          "then": "I should see a success message or error details if verification failed"
+        }
+      ],
+      "codeImpact": {
+        "components": [
+          {"file": "src/components/document/DocumentUploadModal.tsx", "changes": "Enhance upload interface with drag-and-drop and multi-file support"},
+          {"file": "src/components/document/DocumentVerificationSystem.tsx", "changes": "Improve verification logic and error handling"}
+        ],
+        "pages": [
+          {"file": "src/pages/Documents.tsx", "changes": "Enhance document management interface"}
+        ],
+        "contexts": [
+          {"file": "src/contexts/WorkflowContext.tsx", "changes": "Add document verification states to workflow"}
+        ],
+        "hooks": [
+          {"file": "src/hooks/useDocumentVerification.ts", "changes": "Create or update hook for document verification processes"}
+        ]
+      },
+      "testPlan": [
+        "Test document upload with various file types and sizes",
+        "Verify validation feedback for incorrect document formats",
+        "Test verification process with mock success and failure scenarios",
+        "Verify integration with EVA AI for document assistance"
+      ],
+      "aiIntegration": "EVA assists with document verification and provides guidance on fixing document issues"
+    },
+
+    // EVA AI Assistant Features
+    {
+      "storyId": "AI-001",
+      "title": "EVA AI Assistant Integration",
+      "description": "As a user, I need contextual AI assistance throughout my financial journey.",
+      "diagramReference": "Central EVA AI node with connections to all major feature areas",
+      "acceptanceCriteria": [
+        {
+          "given": "I am on any page in the application",
+          "when": "I open the EVA AI Assistant chat",
+          "then": "I should see a chat interface with contextual awareness of my current task"
+        },
+        {
+          "given": "I am using the EVA AI Assistant",
+          "when": "I ask a question related to my current task",
+          "then": "I should receive relevant and helpful guidance"
+        },
+        {
+          "given": "I am completing a complex workflow",
+          "when": "I interact with feature-specific AI assistance",
+          "then": "I should receive specialized help for that particular feature"
+        }
+      ],
+      "codeImpact": {
+        "components": [
+          {"file": "src/components/communications/EVAAssistantChat.tsx", "changes": "Enhance contextual awareness and response quality"},
+          {"file": "src/components/communications/AILifecycleAssistant.tsx", "changes": "Improve lifecycle awareness and predictive assistance"}
+        ],
+        "pages": [
+          {"file": "src/pages/AIAssistantPage.tsx", "changes": "Update standalone AI assistant interface"}
+        ],
+        "contexts": [
+          {"file": "src/contexts/UserContext.tsx", "changes": "Add AI preference settings"},
+          {"file": "src/contexts/WorkflowContext.tsx", "changes": "Enhance context tracking for AI assistance"}
+        ]
+      },
+      "testPlan": [
+        "Test contextual awareness across different application sections",
+        "Verify AI responses for common user questions",
+        "Test specialized assistance features for complex workflows",
+        "Verify AI preference settings are respected"
+      ],
+      "aiIntegration": "Core EVA functionality serving as an intelligent assistant throughout the application"
+    },
+
+    // Dashboard & Transaction Features
+    {
+      "storyId": "DB-001",
+      "title": "Financial Dashboard Overview",
+      "description": "As a user, I need a comprehensive dashboard to monitor my financial metrics and activities.",
+      "diagramReference": "Dashboard overview node with connections to all major metrics",
+      "acceptanceCriteria": [
+        {
+          "given": "I am logged in",
+          "when": "I navigate to the Dashboard",
+          "then": "I should see personalized financial metrics and quick access to key features"
+        },
+        {
+          "given": "I am viewing the Dashboard",
+          "when": "I interact with dashboard widgets",
+          "then": "I should see detailed information and navigation options to related areas"
+        }
+      ],
+      "codeImpact": {
+        "components": [
+          {"file": "src/components/dashboard/MetricsWidget.tsx", "changes": "Update dashboard widgets with enhanced visualization"},
+          {"file": "src/components/dashboard/DashboardAnalytics.tsx", "changes": "Add advanced analytics capabilities"}
+        ],
+        "pages": [
+          {"file": "src/pages/Dashboard.tsx", "changes": "Improve dashboard layout and add new metric displays"}
+        ],
+        "contexts": [
+          {"file": "src/contexts/UserContext.tsx", "changes": "Add dashboard preferences"}
+        ]
+      },
+      "testPlan": [
+        "Verify dashboard loads with correct personalized data",
+        "Test widget interactions and detailed views",
+        "Verify dashboard navigation functions correctly",
+        "Test dashboard performance with large data sets"
+      ],
+      "aiIntegration": "EVA provides insights on dashboard metrics and suggests optimization strategies"
+    }
+  ],
+  "implementationRoadmap": {
+    "phases": [
+      {
+        "phase": "1",
+        "duration": "3 weeks",
+        "priority": "High",
+        "userStories": ["AI-001", "DV-001", "CA-001"],
+        "rationale": "Core functionality enabling subsequent features"
+      },
+      {
+        "phase": "2",
+        "duration": "4 weeks",
+        "priority": "Medium",
+        "userStories": ["DB-001", "CR-001", "CR-002"],
+        "rationale": "Key user-facing features with dependency on phase 1"
+      },
+      {
+        "phase": "3",
+        "duration": "3 weeks",
+        "priority": "Low",
+        "userStories": ["CA-002"],
+        "rationale": "Advanced features building on established foundation"
+      }
+    ]
+  },
+  "performanceRequirements": {
+    "loadTime": {
+      "target": "< 2 seconds",
+      "measurement": "Lighthouse Performance Score > 90",
+      "implementation": {
+        "components": ["src/components/common/LazyLoadedComponents.tsx"],
+        "optimizations": ["Code splitting", "Image optimization", "Bundle size analysis"]
+      }
+    },
+    "responsiveness": {
+      "target": "< 100ms for user interactions",
+      "measurement": "React DevTools Profiler",
+      "implementation": {
+        "components": ["src/components/dashboard/*.tsx", "src/components/communications/EVAAssistantChat.tsx"],
+        "optimizations": ["Memoization", "Virtualized lists", "Optimistic UI updates"]
+      }
+    }
+  },
+  "securityCompliance": {
+    "securityTesting": [
+      {"type": "OWASP Top 10 Scan", "tool": "OWASP ZAP", "frequency": "Pre-release"},
+      {"type": "Dependency Scanning", "tool": "Snyk", "frequency": "Daily"},
+      {"type": "Static Code Analysis", "tool": "ESLint Security Plugin", "frequency": "On commit"}
+    ],
+    "dataPrivacy": [
+      {"standard": "GDPR", "implementation": "src/contexts/PrivacyContext.tsx"},
+      {"standard": "CCPA", "implementation": "src/components/common/DataConsentBanner.tsx"}
+    ],
+    "authentication": {
+      "implementation": "src/services/authService.ts",
+      "requirements": ["MFA support", "Session timeout", "Role-based access control"]
+    }
+  },
+  "cicdPipeline": {
+    "continuousIntegration": {
+      "tests": ["Unit tests", "Integration tests", "E2E tests", "Accessibility tests"],
+      "qualityGates": [
+        {"metric": "Test coverage", "threshold": ">80%"},
+        {"metric": "Linting", "threshold": "0 errors"},
+        {"metric": "Build size", "threshold": "<1MB main bundle"}
+      ]
+    },
+    "continuousDeployment": {
+      "strategy": "Blue/Green deployment",
+      "environments": ["Development", "Staging", "Production"],
+      "featureFlags": {
+        "implementation": "src/config/featureFlags.ts",
+        "managementTool": "LaunchDarkly"
+      }
+    }
+  },
+  "operationalReadiness": {
+    "monitoring": {
+      "errorTracking": {
+        "implementation": "src/utils/errorBoundary.tsx",
+        "service": "Sentry"
+      },
+      "performanceMonitoring": {
+        "implementation": "src/utils/metrics.ts",
+        "service": "DataDog"
+      }
+    },
+    "analytics": {
+      "implementation": "src/utils/analytics.ts",
+      "events": [
+        {"name": "credit_application_started", "parameters": ["user_segment", "entry_point"]},
+        {"name": "document_verified", "parameters": ["document_type", "verification_method"]},
+        {"name": "ai_assistant_interaction", "parameters": ["query_type", "response_quality"]}
+      ]
+    }
+  },
+  "compatibility": {
+    "accessibility": {
+      "standard": "WCAG 2.1 AA",
+      "implementation": {
+        "components": ["src/components/common/Button/Button.tsx", "src/components/common/Input/*.tsx"],
+        "testing": "jest-axe in component tests"
+      }
+    },
+    "browsers": [
+      {"name": "Chrome", "version": ">=90"},
+      {"name": "Firefox", "version": ">=85"},
+      {"name": "Safari", "version": ">=14"},
+      {"name": "Edge", "version": ">=90"},
+      {"name": "Mobile Safari", "version": ">=14"}
+    ],
+    "responsiveness": {
+      "breakpoints": [
+        {"size": "sm", "width": "640px"},
+        {"size": "md", "width": "768px"},
+        {"size": "lg", "width": "1024px"},
+        {"size": "xl", "width": "1280px"}
+      ]
+    }
+  },
+  "knowledgeTransfer": {
+    "technicalDocumentation": {
+      "architecture": {"file": "docs/architecture.md", "status": "Required"},
+      "api": {"file": "docs/api-schemas/*.yaml", "status": "Required"},
+      "components": {"file": "src/stories/index.js", "status": "Required"}
+    },
+    "userDocumentation": {
+      "implementation": "src/components/common/HelpContent.tsx",
+      "resources": ["In-app tutorials", "Knowledge base articles", "Video walkthroughs"]
+    },
+    "training": {
+      "internal": ["Component workshop", "Feature walkthrough", "AI integration training"],
+      "customer": ["Onboarding webinars", "Feature announcement emails", "In-app guided tours"]
+    }
+  },
+  "continuousImprovement": {
+    "feedbackCollection": {
+      "implementation": "src/components/common/FeedbackWidget.tsx",
+      "dataStorage": "src/api/feedbackService.ts"
+    },
+    "abTesting": {
+      "implementation": "src/utils/experimentation.ts",
+      "initialExperiments": [
+        {"id": "EVA-AI-PROACTIVITY", "variants": ["low", "medium", "high"]},
+        {"id": "CREDIT-APP-LAYOUT", "variants": ["single-page", "multi-step"]}
+      ]
+    },
+    "postLaunchReview": {
+      "timing": "2 weeks after production",
+      "metrics": ["User engagement", "Task completion rate", "Support ticket volume", "NPS"]
+    }
+  },
+  "riskMitigation": {
+    "backupStrategy": {
+      "dataBackup": "Daily automated backups",
+      "configuration": "Version-controlled in infrastructure-as-code"
+    },
+    "rollbackProcedure": {
+      "trigger": "Error rate exceeds 2% OR P0 bug reported",
+      "process": ["Feature flag disable", "Revert deployment", "Incident communication"],
+      "responsibility": "On-call engineer"
+    },
+    "incidentResponse": {
+      "team": ["Product owner", "Lead developer", "DevOps", "Support lead"],
+      "communication": ["Status page", "In-app notification", "Email for critical updates"]
+    }
+  },
+  "recommendedRefactor": [
+    "Extract shared form components from various feature areas into a unified form library",
+    "Implement a standardized data fetching pattern across all components using React Query",
+    "Create feature-specific contexts that inherit from a base context for better state organization",
+    "Standardize modal and notification components across the application",
+    "Implement a unified strategy for EVA AI integration across all feature areas"
+  ],
+  "deploymentChecklist": [
+    "Update unit and integration tests for all modified components",
+    "Ensure consistent Tailwind CSS styling across new and updated components",
+    "Verify cross-feature navigation flows and state persistence",
+    "Test EVA AI integration points with each feature area",
+    "Implement feature flags for gradual rollout of new capabilities",
+    "Update documentation with new feature descriptions and user guides",
+    "Perform accessibility testing on all updated UI components"
+  ]
+} 

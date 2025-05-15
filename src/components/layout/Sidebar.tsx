@@ -4,6 +4,7 @@ import { useWorkflow } from '../../contexts/WorkflowContext';
 import { UserContext, UserContextType } from '../../contexts/UserContext';
 import { useUserType, UserTypeContextType } from '../../contexts/UserTypeContext';
 import { PermissionLevel, FeatureAccess, UserType } from '../../types/UserTypes';
+import { useModal, ModalType } from '../../contexts/ModalContext';
 import {
   HomeIcon,
   DocumentTextIcon,
@@ -32,6 +33,7 @@ import {
   IdentificationIcon,
   AcademicCapIcon,
   ChatBubbleLeftRightIcon,
+  DocumentPlusIcon,
 } from '@heroicons/react/24/outline';
 import {} from './SidebarIcons';
 
@@ -463,6 +465,27 @@ const primaryNavItems: NavItem[] = [
     description: 'Overview and key metrics',
   },
   {
+    name: 'Credit Application',
+    path: '#credit-application',
+    icon: <DocumentDuplicateIcon className="w-5 h-5" />,
+    description: 'Manage and initiate credit applications',
+    children: [
+      {
+        name: 'New Application',
+        path: '/credit-application',
+        icon: <DocumentPlusIcon className="w-5 h-5" />,
+        description: 'Begin a new credit origination process',
+      },
+      {
+        name: 'New Origination',
+        path: '#new-origination',
+        icon: <DocumentPlusIcon className="w-5 h-5" />,
+        description: 'Start a SAFE credit application process',
+        onClick: () => {},
+      },
+    ],
+  },
+  {
     name: 'Documents',
     path: '/documents',
     icon: <DocumentTextIcon className="w-5 h-5" />,
@@ -525,6 +548,7 @@ const Sidebar: React.FC = () => {
   const { userType, permissions, employeeRole, hasPermission, hasRolePermission } = useUserType();
   const location = useLocation();
   const navigate = useNavigate();
+  const { openModal } = useModal();
 
   const [isSidebarActuallyCollapsed, setIsSidebarActuallyCollapsed] = useState(
     userContext.sidebarCollapsed
@@ -576,6 +600,13 @@ const Sidebar: React.FC = () => {
       }
 
       if (item.hidden || !canAccess) return acc;
+
+      if (item.name === 'New Origination') {
+        item = {
+          ...item,
+          onClick: () => openModal(ModalType.APPLICATION_TYPE),
+        };
+      }
 
       if (item.children) {
         const filteredChildren = getFilteredNavItems(item.children);

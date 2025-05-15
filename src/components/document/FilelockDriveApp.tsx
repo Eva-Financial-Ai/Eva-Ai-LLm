@@ -14,6 +14,7 @@ import ShieldVaultDashboard from './ShieldVaultDashboard';
 import FileChatPanel from './FileChatPanel';
 import AIDocumentAssistant from './AIDocumentAssistant';
 import CloudStorageConnector from './CloudStorageConnector';
+import { FileLockRequest } from '../risk/FileLock';
 
 // Types
 export interface FileItem {
@@ -1016,6 +1017,15 @@ const FilelockDriveApp: React.FC = () => {
           <div className="mt-6 mb-4 px-4">
             <AIDocumentAssistant onImportFromCloud={() => setShowCloudStorageModal(true)} />
           </div>
+          
+          {/* Add FileLock Request Widget */}
+          <FileLockRequest 
+            position="bottom-right" 
+            onRequestComplete={(selectedDocs) => {
+              console.log('Documents requested:', selectedDocs);
+              // Handle document request completion here
+            }}
+          />
         </div>
       )}
 

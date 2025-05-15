@@ -164,7 +164,10 @@ export const WorkflowProvider = ({ children }: WorkflowProviderProps) => {
       console.log('[WorkflowContext] Starting transaction fetch...');
 
       // Track performance of transaction loading
-      const endTracking = performanceMonitor.monitorTransactionLoading();
+      const metricId = performanceMonitor.startMetric('transaction_loading', 'api', {
+        userAgent: navigator.userAgent,
+        source: 'WorkflowContext'
+      });
 
       try {
         // Add a timeout to prevent hanging requests
@@ -195,14 +198,17 @@ export const WorkflowProvider = ({ children }: WorkflowProviderProps) => {
 
         setLoading(false);
         setIsFetching(false);
-        endTracking();
+        performanceMonitor.endMetric(metricId);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         console.error('[WorkflowContext] Failed to fetch transactions:', errorMessage, err);
         setError(`Failed to fetch transactions: ${errorMessage}`);
 
         // Track the error in performance monitor
-        performanceMonitor.trackError('transaction_loading', errorMessage);
+        performanceMonitor.endMetric(metricId, { 
+          error: errorMessage,
+          status: 'failed'
+        });
 
         // Check if we have mock data to fall back to
         try {

@@ -4,6 +4,16 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// Setup global Jest types
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace jest {
+    interface Matchers<R> {
+      toBeInTheDocument(): R;
+    }
+  }
+}
+
 // Mock for matchMedia which is not implemented in JSDOM
 global.matchMedia = global.matchMedia || function () {
   return {

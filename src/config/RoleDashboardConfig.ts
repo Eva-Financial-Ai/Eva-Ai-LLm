@@ -18,6 +18,9 @@ export enum DashboardWidgetType {
   FINANCING_OPTIONS = 'financing_options',
   COMMISSION_FORECAST = 'commission_forecast',
   CLIENT_PIPELINE = 'client_pipeline',
+  SYSTEM_STATUS = 'system_status',
+  PLATFORM_METRICS = 'platform_metrics',
+  USER_MANAGEMENT = 'user_management',
 }
 
 // Define widget configuration
@@ -243,6 +246,78 @@ export const dashboardConfigs: Record<UserType, DashboardConfig> = {
     ],
     primaryActions: ['Start New Application', 'Upload Documents'],
     secondaryActions: ['Contact Support', 'View Financing Options'],
+  },
+  [UserType.ADMIN]: {
+    title: 'System Administration',
+    subtitle: 'Platform management and security controls',
+    widgets: [
+      {
+        type: DashboardWidgetType.SYSTEM_STATUS,
+        title: 'System Status',
+        width: 'full',
+        height: 'medium',
+        priority: 1,
+      },
+      {
+        type: DashboardWidgetType.USER_MANAGEMENT,
+        title: 'User Management',
+        width: 'half',
+        height: 'large',
+        priority: 2,
+      },
+      {
+        type: DashboardWidgetType.PLATFORM_METRICS,
+        title: 'Platform Metrics',
+        width: 'half',
+        height: 'large',
+        priority: 3,
+      },
+      {
+        type: DashboardWidgetType.RECENT_ACTIVITIES,
+        title: 'System Activities',
+        width: 'full',
+        height: 'medium',
+        priority: 4,
+      },
+    ],
+    primaryActions: ['Manage Users', 'System Configuration'],
+    secondaryActions: ['View Logs', 'Security Settings'],
+  },
+  [UserType.DEVELOPER]: {
+    title: 'Developer Dashboard',
+    subtitle: 'API metrics and platform development',
+    widgets: [
+      {
+        type: DashboardWidgetType.SYSTEM_STATUS,
+        title: 'API Status',
+        width: 'half',
+        height: 'medium',
+        priority: 1,
+      },
+      {
+        type: DashboardWidgetType.PLATFORM_METRICS,
+        title: 'Performance Metrics',
+        width: 'half',
+        height: 'medium',
+        priority: 2,
+      },
+      {
+        type: DashboardWidgetType.USER_MANAGEMENT,
+        title: 'Development Users',
+        width: 'full',
+        height: 'medium',
+        priority: 3,
+      },
+      {
+        type: DashboardWidgetType.RECENT_ACTIVITIES,
+        title: 'Recent Deployments',
+        width: 'full',
+        height: 'medium',
+        priority: 4,
+      },
+    ],
+    primaryActions: ['API Explorer', 'View Documentation'],
+    secondaryActions: ['Deploy Changes', 'Test Environment'],
   },
 };
 

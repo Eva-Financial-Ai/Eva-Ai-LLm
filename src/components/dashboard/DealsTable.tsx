@@ -83,16 +83,8 @@ export const DealsTable: React.FC<DealsTableProps> = ({
 
   // Function to get the route based on status
   const getRouteForStatus = (status: string): string => {
-    const statusRoutes: Record<string, string> = {
-      'Document Collection': '/documents',
-      'Risk Assessment': '/risk-assessment',
-      'Deal Structuring': '/deal-structuring',
-      'Document Execution': '/transactions',
-      Funding: '/transactions',
-      Completed: '/transactions',
-    };
-
-    return statusRoutes[status] || '/';
+    // Use the new transaction route for all statuses
+    return '/transaction';
   };
 
   // Handle advancing a transaction to the next stage
@@ -131,25 +123,8 @@ export const DealsTable: React.FC<DealsTableProps> = ({
     e.stopPropagation();
     e.preventDefault(); // Prevent any default behavior
 
-    // Navigate to the appropriate route based on the transaction's status
-    const route = getRouteForStatus(transaction.status);
-
-    // Set the transaction ID in context or localStorage for reference on the destination page
-    localStorage.setItem('currentTransactionId', transaction.id);
-
-    // Navigate to the route without appending the transaction ID
-    navigate(route);
-
-    // Show a notification that we're loading the transaction
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-gray-800 text-white px-4 py-2 rounded z-50';
-    notification.textContent = `Loading transaction ${transaction.id}`;
-    document.body.appendChild(notification);
-
-    // Remove the notification after 2 seconds
-    setTimeout(() => {
-      document.body.removeChild(notification);
-    }, 2000);
+    // Navigate to the transaction route with the ID
+    navigate(`/transaction/${transaction.id}`);
   };
 
   return (

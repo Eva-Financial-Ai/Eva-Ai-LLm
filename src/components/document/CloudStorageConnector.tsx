@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { FileItem } from './FilelockDriveApp';
 
 // Define cloud storage provider types
-export type CloudStorageProvider = 'google-drive' | 'onedrive' | 'icloud';
+export type CloudStorageProvider = 'google-drive' | 'onedrive' | 'icloud' | 'dropbox';
 
 // Define CloudFile type for files from cloud storage providers
 export interface CloudFile {
@@ -405,79 +405,125 @@ const CloudStorageConnector: React.FC<CloudStorageConnectorProps> = ({
 
   // Render provider selection screen
   const renderProviderSelection = () => (
-    <div className="p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-6">Connect to Cloud Storage</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.98 }}
-          className="p-4 border border-gray-200 rounded-lg flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-200 transition-colors"
-          onClick={() => connectToProvider('google-drive')}
-        >
-          <div className="w-16 h-16 mb-3 bg-white rounded-full flex items-center justify-center shadow-sm">
-            <svg className="w-10 h-10" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z"
-                fill="#0066da"
-              />
-              <path
-                d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z"
-                fill="#00ac47"
-              />
-              <path
-                d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z"
-                fill="#ea4335"
-              />
-              <path
-                d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z"
-                fill="#00832d"
-              />
-              <path
-                d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z"
-                fill="#2684fc"
-              />
-              <path
-                d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z"
-                fill="#ffba00"
-              />
-            </svg>
-          </div>
-          <span className="font-medium text-gray-800">Google Drive</span>
-        </motion.button>
+    <div className="flex flex-col h-full">
+      <div className="p-4 border-b border-gray-200">
+        <h3 className="text-lg font-medium text-gray-900">Connect to Cloud Storage</h3>
+        <p className="mt-1 text-sm text-gray-500">
+          Select a cloud storage provider to import your documents
+        </p>
+      </div>
 
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.98 }}
-          className="p-4 border border-gray-200 rounded-lg flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-200 transition-colors"
-          onClick={() => connectToProvider('onedrive')}
-        >
-          <div className="w-16 h-16 mb-3 bg-white rounded-full flex items-center justify-center shadow-sm">
-            <svg className="w-10 h-10" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9.17 11.17 7.07 16.49H14.93L16.91 11.17H9.17Z" fill="#0364B8" />
-              <path d="M16.91 11.17 14.93 16.49H21.49L24 11.17H16.91Z" fill="#0A2767" />
-              <path d="M16.91 11.17H9.17L11.27 6 19 6.32 16.91 11.17Z" fill="#28A8EA" />
-              <path d="M11.27 6 9.17 11.17 7.07 16.49 2.51 15.22 0 10.24 11.27 6Z" fill="#0078D4" />
-            </svg>
+      <div className="flex-1 p-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {/* Google Drive */}
+          <div
+            className={`relative rounded-lg border ${
+              selectedProvider === 'google-drive' ? 'border-red-600 ring-2 ring-red-600' : 'border-gray-300'
+            } bg-white p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
+            onClick={() => connectToProvider('google-drive')}
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <img
+                  src="/icons/google-drive.svg"
+                  alt="Google Drive"
+                  className="h-10 w-10"
+                  onError={e => {
+                    (e.target as HTMLImageElement).src = `https://via.placeholder.com/40?text=GD`;
+                  }}
+                />
+              </div>
+              <div className="ml-4">
+                <h4 className="text-md font-medium text-gray-900">Google Drive</h4>
+                <p className="text-sm text-gray-500">Connect to your Google Drive account</p>
+              </div>
+            </div>
           </div>
-          <span className="font-medium text-gray-800">OneDrive</span>
-        </motion.button>
 
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.98 }}
-          className="p-4 border border-gray-200 rounded-lg flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-200 transition-colors"
-          onClick={() => connectToProvider('icloud')}
-        >
-          <div className="w-16 h-16 mb-3 bg-white rounded-full flex items-center justify-center shadow-sm">
-            <svg className="w-10 h-10" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M13.762 4c2.407 0 4.394 1.348 5.374 3.472a3.6 3.6 0 0 1 3.346 3.574c0 1.647-1.07 3.103-2.85 3.4-.306.812-.801 1.534-1.526 2.14-.724.604-1.58.956-2.45 1.057-.363.042-.731.005-1.09-.111a4.293 4.293 0 0 1-2.366.693c-.822 0-1.633-.226-2.354-.675-.354.11-.716.144-1.074.102a4.191 4.191 0 0 1-2.356-1.01 4.65 4.65 0 0 1-1.563-2.084c-1.874-.287-3.028-1.775-3.028-3.46 0-1.755 1.265-3.29 3.231-3.605 1.121-2.027 3.121-3.093 5.705-3.093Z"
-                fill="#3696F8"
-              />
-            </svg>
+          {/* Microsoft OneDrive */}
+          <div
+            className={`relative rounded-lg border ${
+              selectedProvider === 'onedrive' ? 'border-red-600 ring-2 ring-red-600' : 'border-gray-300'
+            } bg-white p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
+            onClick={() => connectToProvider('onedrive')}
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <img
+                  src="/icons/onedrive.svg"
+                  alt="OneDrive"
+                  className="h-10 w-10"
+                  onError={e => {
+                    (e.target as HTMLImageElement).src = `https://via.placeholder.com/40?text=OD`;
+                  }}
+                />
+              </div>
+              <div className="ml-4">
+                <h4 className="text-md font-medium text-gray-900">Microsoft OneDrive</h4>
+                <p className="text-sm text-gray-500">Connect to your OneDrive account</p>
+              </div>
+            </div>
           </div>
-          <span className="font-medium text-gray-800">iCloud Drive</span>
-        </motion.button>
+
+          {/* Dropbox */}
+          <div
+            className={`relative rounded-lg border ${
+              selectedProvider === 'dropbox' ? 'border-red-600 ring-2 ring-red-600' : 'border-gray-300'
+            } bg-white p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
+            onClick={() => connectToProvider('dropbox')}
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <img
+                  src="/icons/dropbox.svg"
+                  alt="Dropbox"
+                  className="h-10 w-10"
+                  onError={e => {
+                    (e.target as HTMLImageElement).src = `https://via.placeholder.com/40?text=DB`;
+                  }}
+                />
+              </div>
+              <div className="ml-4">
+                <h4 className="text-md font-medium text-gray-900">Dropbox</h4>
+                <p className="text-sm text-gray-500">Connect to your Dropbox account</p>
+              </div>
+            </div>
+          </div>
+
+          {/* iCloud Drive */}
+          <div
+            className={`relative rounded-lg border ${
+              selectedProvider === 'icloud' ? 'border-red-600 ring-2 ring-red-600' : 'border-gray-300'
+            } bg-white p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
+            onClick={() => connectToProvider('icloud')}
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <img
+                  src="/icons/icloud.svg"
+                  alt="iCloud Drive"
+                  className="h-10 w-10"
+                  onError={e => {
+                    (e.target as HTMLImageElement).src = `https://via.placeholder.com/40?text=iC`;
+                  }}
+                />
+              </div>
+              <div className="ml-4">
+                <h4 className="text-md font-medium text-gray-900">iCloud Drive</h4>
+                <p className="text-sm text-gray-500">Connect to your iCloud Drive account</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 border-t border-gray-200 flex justify-end">
+        <button
+          onClick={onClose}
+          className="ml-3 inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:w-auto sm:text-sm"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
@@ -492,7 +538,9 @@ const CloudStorageConnector: React.FC<CloudStorageConnectorProps> = ({
           ? 'Google Drive'
           : selectedProvider === 'onedrive'
             ? 'OneDrive'
-            : 'iCloud Drive'}
+            : selectedProvider === 'dropbox'
+              ? 'Dropbox'
+              : 'iCloud Drive'}
         ...
       </p>
     </div>
@@ -509,7 +557,9 @@ const CloudStorageConnector: React.FC<CloudStorageConnectorProps> = ({
               ? 'Google Drive'
               : selectedProvider === 'onedrive'
                 ? 'OneDrive'
-                : 'iCloud Drive'}
+                : selectedProvider === 'dropbox'
+                  ? 'Dropbox'
+                  : 'iCloud Drive'}
           </h3>
         </div>
         <div className="flex">
@@ -780,30 +830,21 @@ const CloudStorageConnector: React.FC<CloudStorageConnectorProps> = ({
           </select>
         </div>
 
-        <div className="flex justify-between items-center">
-          <div>
-            {selectedCloudFiles.length > 0 && (
-              <span className="text-sm text-gray-600">
-                {selectedCloudFiles.length} file{selectedCloudFiles.length !== 1 ? 's' : ''}{' '}
-                selected
-              </span>
-            )}
-          </div>
-          <div className="flex space-x-2">
-            <button
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button
-              className="px-4 py-2 bg-primary-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
-              onClick={importFiles}
-              disabled={selectedCloudFiles.length === 0 || isLoading}
-            >
-              {isLoading ? 'Importing...' : 'Import Selected Files'}
-            </button>
-          </div>
+        <div className="px-4 py-3 border-t border-gray-200 sm:flex sm:flex-row-reverse">
+          <button
+            type="button"
+            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+            onClick={importFiles}
+          >
+            Import Selected ({selectedCloudFiles.length})
+          </button>
+          <button
+            type="button"
+            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:w-auto sm:text-sm"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>

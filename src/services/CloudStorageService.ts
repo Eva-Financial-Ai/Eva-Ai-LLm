@@ -26,6 +26,7 @@ export class CloudStorageService {
     'google-drive': null,
     onedrive: null,
     icloud: null,
+    dropbox: null,
   };
 
   /**
