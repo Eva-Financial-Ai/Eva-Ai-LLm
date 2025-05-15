@@ -7,7 +7,7 @@ import RelationshipCommitment, {
   CommitmentData,
 } from '../components/common/RelationshipCommitment';
 import ContactsManager from '../components/communications/ContactsManager';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // Mock data for initial commitments
 const mockCommitments: CommitmentData[] = [
@@ -66,6 +66,7 @@ const CustomerRetention: React.FC = () => {
   const { userRole } = useContext(UserContext);
   const { userType } = useUserType();
   const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [contactsDropdownOpen, setContactsDropdownOpen] = useState(false);
   const contactsDropdownRef = useRef<HTMLDivElement>(null);
@@ -94,21 +95,22 @@ const CustomerRetention: React.FC = () => {
     window.history.replaceState({}, '', newUrl);
   }, [activeTab, location.pathname]);
 
-  // Add handler to close dropdown when clicking outside
+  // Close dropdown when clicking outside
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        contactsDropdownRef.current &&
-        !contactsDropdownRef.current.contains(event.target as Node)
-      ) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (contactsDropdownRef.current && !contactsDropdownRef.current.contains(event.target as Node)) {
         setContactsDropdownOpen(false);
       }
-    }
+    };
+    
+    // Add event listener
     document.addEventListener('mousedown', handleClickOutside);
+    
+    // Cleanup
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [contactsDropdownRef]);
 
   // Map userType or userRole to the effective role needed by child components
   const getEffectiveRole = (): string => {
@@ -132,11 +134,29 @@ const CustomerRetention: React.FC = () => {
 
   const effectiveRole = getEffectiveRole();
 
-  // Add handler for contact sub-items
-  const handleContactItemClick = (subItem: string) => {
+  // Handle contact item click
+  const handleContactItemClick = (contactType: string) => {
+    console.log(`[CustomerRetention] Selected contact type: ${contactType}`);
     setActiveTab('contacts');
     setContactsDropdownOpen(false);
-    // You can add additional logic here to handle different contact sub-items
+    
+    // Navigate to the appropriate view based on contact type
+    switch (contactType) {
+      case 'all':
+        navigate('/customer-retention/contacts?type=all');
+        break;
+      case 'customers':
+        navigate('/customer-retention/contacts?type=customers');
+        break;
+      case 'prospects':
+        navigate('/customer-retention/contacts?type=prospects');
+        break;
+      case 'vendors':
+        navigate('/customer-retention/contacts?type=vendors');
+        break;
+      default:
+        navigate('/customer-retention/contacts');
+    }
   };
 
   // Render content based on user role

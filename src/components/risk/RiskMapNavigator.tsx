@@ -90,6 +90,8 @@ const RiskMapNavigator: React.FC<RiskMapNavigatorProps> = ({
 
   // Centralized function to load risk data
   const loadRiskData = async (type: RiskMapType) => {
+    console.log(`[RiskMapNavigator] Loading risk data for type: ${type}`);
+    
     try {
       // Start loading indicators
       riskMapLoading.startLoading('Loading risk assessment data...');
@@ -104,6 +106,7 @@ const RiskMapNavigator: React.FC<RiskMapNavigatorProps> = ({
       
       // Fetch data from the service
       const data = await riskMapService.fetchRiskData(type);
+      console.log('[RiskMapNavigator] Risk data loaded successfully:', data);
       
       // Update state safely
       setRiskData(data);
@@ -121,7 +124,7 @@ const RiskMapNavigator: React.FC<RiskMapNavigatorProps> = ({
         evaAnalysisLoading.completeLoading('Analysis complete');
       }, 900);
     } catch (error) {
-      console.error('Error loading risk data:', error);
+      console.error('[RiskMapNavigator] Error loading risk data:', error);
       riskMapLoading.setError('Failed to load risk assessment data. Please try again.');
       riskScoreLoading.setError('Failed to calculate risk score. Please try again.');
       evaAnalysisLoading.setError('EVA AI analysis failed. Please try again.');

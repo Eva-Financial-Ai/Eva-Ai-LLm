@@ -529,37 +529,10 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
   // Add state for Paywall modal
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
   const [availableCredits, setAvailableCredits] = useState(riskMapService.getAvailableCredits());
-  
-  // Effect to listen for custom events from child components
-  useEffect(() => {
-    // Handler for the custom event
-    const handleOpenPaywall = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      if (customEvent.detail && customEvent.detail.type) {
-        // Update riskMapType if provided in the event
-        if (customEvent.detail.type !== riskMapType) {
-          setRiskMapType(customEvent.detail.type);
-        }
-      }
-      // Show the paywall
-      showPaywall();
-    };
-    
-    // Add event listener
-    document.addEventListener('openPaywall', handleOpenPaywall);
-    
-    // Clean up
-    return () => {
-      document.removeEventListener('openPaywall', handleOpenPaywall);
-    };
-  }, [riskMapType]);
 
-  // Periodic check for credit updates
+  // Periodically check for credit updates
   useEffect(() => {
-    // Initialize credits
-    setAvailableCredits(riskMapService.getAvailableCredits());
-    
-    // Check periodically
+    // Update credits on interval
     const interval = setInterval(() => {
       const currentCredits = riskMapService.getAvailableCredits();
       if (currentCredits !== availableCredits) {
@@ -573,13 +546,26 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
 
   // Function to show the paywall
   const showPaywall = () => {
-    console.log("Opening paywall modal for report type:", riskMapType);
-    setIsPaywallOpen(true);
+    console.log("[ModularRiskNavigator] Opening paywall modal for report type:", riskMapType);
+    // Ensure credits are checked from the service
+    const credits = riskMapService.getAvailableCredits();
+    console.log("[ModularRiskNavigator] Available credits:", credits);
+    
+    if (credits > 0) {
+      // If we have credits, use one and proceed directly
+      console.log("[ModularRiskNavigator] Using credit and continuing");
+      riskMapService.useCredit();
+      // Change to report view directly
+      handleViewChange(RISK_MAP_VIEWS.REPORT);
+    } else {
+      // Otherwise show the paywall
+      setIsPaywallOpen(true);
+    }
   };
-  
+
   // Function to handle report generation after payment
   const handleGenerateReport = () => {
-    console.log("Payment successful, generating report");
+    console.log("[ModularRiskNavigator] Payment successful, generating report");
     
     // Close the paywall
     setIsPaywallOpen(false);

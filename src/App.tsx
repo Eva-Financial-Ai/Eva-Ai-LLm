@@ -25,6 +25,7 @@ import SideNavigationTest from './components/layout/__tests__/SideNavigationTest
 import { ModalProvider } from './contexts/ModalContext';
 import PerformanceMonitor from './components/dev/PerformanceMonitor';
 import performanceMonitor from './utils/performance';
+import riskMapService from './components/risk/RiskMapService';
 
 // Import Portfolio Navigator Page
 import { PortfolioNavigatorPage } from './pages/PortfolioNavigatorPage';
@@ -333,15 +334,11 @@ function App() {
     if (process.env.NODE_ENV === 'development') {
       // Check if credits are already initialized
       const storedCredits = localStorage.getItem('availableCredits');
-      
-      // If no credits are stored, initialize with 3 for demo purposes
       if (!storedCredits) {
-        console.log('Initializing demo credits');
+        // Initialize with 3 credits for demo purposes
         localStorage.setItem('availableCredits', '3');
+        console.log('Initialized demo account with 3 credits');
       }
-      
-      // Clear any pending wire transfers that may have been left over from previous sessions
-      localStorage.removeItem('pendingWireTransfer');
     }
   }, []);
 
