@@ -45,6 +45,7 @@ const CommercialMarket = lazy(() => import('../../pages/CommercialMarket'));
 const Transactions = lazy(() => import('../../pages/Transactions'));
 const SmartMatchPage = lazy(() => import('../../pages/SmartMatchPage'));
 const EdgeConfigPage = lazy(() => import('../../pages/EdgeConfigPage'));
+const RiskCategoryDemoPage = lazy(() => import('../../pages/RiskCategoryDemoPage'));
 
 // Custom Agent components
 const CustomAgentDemo = lazy(() => import('../../pages/CustomAgentDemo'));
@@ -87,6 +88,7 @@ const routes: RouteConfig[] = [
   { path: '/risk-assessment/report', component: RiskAssessment, isProtected: true },
   { path: '/risk-assessment/lab', component: RiskAssessment, isProtected: true },
   { path: '/risk-assessment/score', component: RiskAssessment, isProtected: true },
+  { path: '/risk-assessment/category-demo', component: RiskCategoryDemoPage, isProtected: true },
 
   // Deal Structuring routes
   { path: '/deal-structuring', component: DealStructuring, isProtected: true },

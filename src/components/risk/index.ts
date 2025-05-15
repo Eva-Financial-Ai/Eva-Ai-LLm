@@ -22,4 +22,9 @@ export { default as SmartMatchingVariables } from './SmartMatchingVariables';
 export { default as EvaScore } from './EvaScore';
 export { default as EvaScoreLoader } from './EvaScoreLoader';
 
+// Export new category toggle components
+export { default as RiskCategoryToggle } from './RiskCategoryToggle';
+export { default as RiskLabConfiguratorEnhanced } from './RiskLabConfiguratorEnhanced';
+export { default as RiskCategoryDemo } from './RiskCategoryDemo';
+
 export { AssetInventoryManager, DealPipeline, RoleAnalyticsDisplay, SimplifiedBorrowerInterface };
