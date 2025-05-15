@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { RiskCategory } from './RiskMapOptimized';
-import OrganizationSelector, { Organization } from './OrganizationSelector';
+import { useNavigate } from 'react-router-dom';
+import RiskMapOptimized, { RiskCategory } from './RiskMapOptimized';
+import { useWorkflow } from '../../contexts/WorkflowContext';
+import { useLoadingStatus } from '../../services/LoadingService';
+import ModularLoading from '../common/ModularLoading';
+import riskMapService, { RiskData } from './RiskMapService';
 
+// Define and export RiskMapType
 export type RiskMapType = 'unsecured' | 'equipment' | 'realestate';
 
-interface RiskMapNavigatorProps {
-  selectedCategory: RiskCategory;
-  onCategorySelect: (category: RiskCategory) => void;
-  riskMapType?: RiskMapType;
-  onRiskMapTypeChange?: (type: RiskMapType) => void;
-  activeView?: string;
-  onViewChange?: (view: string) => void;
-}
-
-// Define the available risk map views for top navigation
+// Define and export RISK_MAP_VIEWS
 export const RISK_MAP_VIEWS = {
   STANDARD: 'standard',
   REPORT: 'report',
@@ -22,341 +17,432 @@ export const RISK_MAP_VIEWS = {
   SCORE: 'score',
 };
 
+// Re-export service mapping functions
+export const mapLoanTypeToRiskMapType = riskMapService.mapLoanTypeToRiskMapType;
+export const mapRiskMapTypeToLoanType = riskMapService.mapRiskMapTypeToLoanType;
+
+// Define Risk Map types for the tabs
+const riskMapTypes = [
+  { id: 'unsecured', label: 'Unsecured' },
+  { id: 'equipment', label: 'Equipment' },
+  { id: 'realestate', label: 'Real Estate' }
+];
+
+// Update component props to accept the props used in other components
+interface RiskMapNavigatorProps {
+  selectedCategory?: string;
+  onCategorySelect?: (category: RiskCategory) => void;
+  riskMapType?: RiskMapType;
+  onRiskMapTypeChange?: (type: RiskMapType) => void;
+  activeView?: string;
+  onViewChange?: (view: string) => void;
+}
+
 const RiskMapNavigator: React.FC<RiskMapNavigatorProps> = ({
   selectedCategory,
   onCategorySelect,
-  riskMapType = 'unsecured',
+  riskMapType,
   onRiskMapTypeChange,
-  activeView = RISK_MAP_VIEWS.STANDARD,
+  activeView,
   onViewChange
 }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
-  const [localActiveView, setLocalActiveView] = useState<string>(activeView);
+  const { currentTransaction } = useWorkflow();
   
-  // Update local state when prop changes
+  // Define state for active risk map and active type
+  const [activeRiskMap, setActiveRiskMap] = useState<'standard' | 'eva' | 'interactive'>('eva');
+  
+  // Use the parent component's riskMapType if provided, otherwise use local state
+  const [activeType, setActiveType] = useState<string>(riskMapType || 'unsecured');
+  
+  // Use the loading service for risk map components
+  const [riskMapStatus, riskMapLoading] = useLoadingStatus('risk-map', 'main');
+  const [riskScoreStatus, riskScoreLoading] = useLoadingStatus('risk-score', 'main');
+  const [evaAnalysisStatus, evaAnalysisLoading] = useLoadingStatus('eva-analysis', 'main');
+  const [paymentProcessingStatus, paymentProcessingLoading] = useLoadingStatus('payment-processing', 'main');
+
+  // Add state for payment handling
+  const [isPaymentProcessorOpen, setIsPaymentProcessorOpen] = useState(false);
+  const [availableCredits, setAvailableCredits] = useState(riskMapService.getAvailableCredits());
+  
+  // State for risk data
+  const [riskData, setRiskData] = useState<RiskData | null>(null);
+
+  // Update local state when props change
   useEffect(() => {
-    setLocalActiveView(activeView);
-  }, [activeView]);
+    if (riskMapType) {
+      setActiveType(riskMapType);
+    }
+  }, [riskMapType]);
+  
+  // Load risk data when component mounts or active type changes
+  useEffect(() => {
+    loadRiskData(activeType as RiskMapType);
+    
+    // Clean up function
+    return () => {
+      riskMapLoading.resetLoading();
+      riskScoreLoading.resetLoading();
+      evaAnalysisLoading.resetLoading();
+      paymentProcessingLoading.resetLoading();
+    };
+  }, [activeType]);
 
-  // Define available categories with readable labels and icons
-  const categoryConfig: {
-    id: RiskCategory;
-    label: string;
-    icon: string;
-    description?: string;
-  }[] = [
-    {
-      id: 'all',
-      label: 'Overview',
-      icon: '📊',
-      description: 'Complete risk assessment overview',
-    },
-    {
-      id: 'credit',
-      label: 'Credit',
-      icon: '💳',
-      description: 'Credit history and score analysis',
-    },
-    {
-      id: 'capacity',
-      label: 'Capacity',
-      icon: '💼',
-      description: 'Debt service capacity assessment',
-    },
-    {
-      id: 'collateral',
-      label: 'Collateral',
-      icon: '🏠',
-      description: 'Asset evaluation and coverage',
-    },
-    {
-      id: 'capital',
-      label: 'Capital',
-      icon: '💰',
-      description: 'Available funds and investments',
-    },
-    {
-      id: 'conditions',
-      label: 'Conditions',
-      icon: '📈',
-      description: 'Market and economic factors',
-    },
-    {
-      id: 'character',
-      label: 'Character',
-      icon: '👤',
-      description: 'Reputation and responsibility',
-    },
-  ];
-
-  // Handle navigation click from the sidebar
-  const handleNavigationClick = (category: RiskCategory) => {
-    onCategorySelect(category);
+  // Centralized function to load risk data
+  const loadRiskData = async (type: RiskMapType) => {
+    try {
+      // Start loading indicators
+      riskMapLoading.startLoading('Loading risk assessment data...');
+      
+      setTimeout(() => {
+        riskScoreLoading.startLoading('Calculating risk score...');
+      }, 100);
+      
+      setTimeout(() => {
+        evaAnalysisLoading.startLoading('EVA AI is analyzing application data...');
+      }, 200);
+      
+      // Fetch data from the service
+      const data = await riskMapService.fetchRiskData(type);
+      
+      // Update state safely
+      setRiskData(data);
+      
+      // Complete loading indicators with staggered timing for better UX
+      setTimeout(() => {
+        riskScoreLoading.completeLoading('Risk score calculated successfully');
+      }, 500);
+      
+      setTimeout(() => {
+        riskMapLoading.completeLoading('Risk assessment loaded');
+      }, 700);
+      
+      setTimeout(() => {
+        evaAnalysisLoading.completeLoading('Analysis complete');
+      }, 900);
+    } catch (error) {
+      console.error('Error loading risk data:', error);
+      riskMapLoading.setError('Failed to load risk assessment data. Please try again.');
+      riskScoreLoading.setError('Failed to calculate risk score. Please try again.');
+      evaAnalysisLoading.setError('EVA AI analysis failed. Please try again.');
+    }
+  };
+  
+  // Handle category selection
+  const handleCategorySelection = (category: RiskCategory) => {
+    if (onCategorySelect) {
+      onCategorySelect(category);
+    }
   };
 
-  // Handle organization change
-  const handleOrganizationChange = (organization: Organization) => {
-    setSelectedOrganization(organization);
-    console.log(`Selected organization: ${organization.name}`);
-  };
-
-  // Handle risk map type change
-  const handleRiskMapTypeChange = (type: RiskMapType) => {
+  // Handle risk type change
+  const handleRiskTypeChange = (type: RiskMapType) => {
+    console.log(`Changing risk map type to: ${type}`);
+    setActiveType(type);
+    
+    // Notify parent component
     if (onRiskMapTypeChange) {
       onRiskMapTypeChange(type);
     }
+    
+    // Load new risk data
+    loadRiskData(type);
   };
 
-  // Handle view change with animation and style updates
-  const handleViewChange = (view: string) => {
-    console.log(`Changing view to: ${view}`); // Add logging to help debug
-    
-    // Update local state immediately for responsive UI
-    setLocalActiveView(view);
-    
-    // Call parent handler if provided
-    if (onViewChange) {
-      onViewChange(view);
-      
-      // Add visual feedback during navigation
-      const element = document.getElementById(`risk-tab-${view}`);
-      if (element) {
-        element.classList.add('animate-pulse');
-        setTimeout(() => element.classList.remove('animate-pulse'), 500);
+  // Handle payment processing with credits
+  const handlePaymentProcessing = () => {
+    // Check if user has credits
+    if (availableCredits > 0) {
+      // Use the service to use a credit
+      if (riskMapService.useCredit()) {
+        // Update local state
+        setAvailableCredits(riskMapService.getAvailableCredits());
+        
+        console.log('Using credit for report generation');
+        paymentProcessingLoading.startLoading('Processing credit redemption...');
+        
+        // Simulate processing
+        setTimeout(() => {
+          paymentProcessingLoading.completeLoading('Credit redeemed successfully');
+          
+          // Redirect to report view
+          if (onViewChange) {
+            onViewChange(RISK_MAP_VIEWS.REPORT);
+          }
+        }, 1000);
       }
     } else {
-      // Create a more dynamic and responsive navigation experience
-      const element = document.getElementById(`risk-tab-${view}`);
-      if (element) {
-        // Add visual feedback during navigation
-        element.classList.add('animate-pulse');
-        setTimeout(() => element.classList.remove('animate-pulse'), 500);
-      }
+      console.log('Insufficient credits');
+      paymentProcessingLoading.setError('Insufficient credits. Please purchase more credits.');
       
-      // Navigate to the selected view with clear path structure
-      const basePath = '/risk-assessment';
-      let newPath = '';
-      
-      switch (view) {
-        case RISK_MAP_VIEWS.STANDARD:
-          newPath = basePath;
-          break;
-        case RISK_MAP_VIEWS.REPORT:
-          newPath = `${basePath}/report`;
-          break;
-        case RISK_MAP_VIEWS.LAB:
-          newPath = `${basePath}/lab`;
-          break;
-        case RISK_MAP_VIEWS.SCORE:
-          newPath = `${basePath}/score`;
-          break;
-        default:
-          newPath = basePath;
-      }
-      
-      // Use replace: true to avoid cluttering browser history with tab changes
-      navigate(newPath, { replace: true });
+      // Open payment modal in parent component via custom event
+      const openPaywallEvent = new CustomEvent('openPaywall', { detail: { type: activeType } });
+      document.dispatchEvent(openPaywallEvent);
     }
   };
 
-  // Get the title and subtitle based on risk map type
-  const getRiskMapTypeInfo = () => {
-    switch (riskMapType) {
-      case 'unsecured':
-        return {
-          title: 'Unsecured Commercial Paper',
-          subtitle: 'General credit application and intangible assets',
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200',
-          textColor: 'text-blue-800',
-        };
-      case 'equipment':
-        return {
-          title: 'Commercial Equipment',
-          subtitle: 'Equipment, vehicles, machines, technology assets',
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200',
-          textColor: 'text-green-800',
-        };
-      case 'realestate':
-        return {
-          title: 'Commercial Real Estate',
-          subtitle: 'Properties, land, and real estate assets',
-          bgColor: 'bg-amber-50',
-          borderColor: 'border-amber-200',
-          textColor: 'text-amber-800',
-        };
-      default:
-        return {
-          title: 'Risk Categories',
-          subtitle: 'Select a category to view details',
-          bgColor: 'bg-gray-50',
-          borderColor: 'border-gray-200',
-          textColor: 'text-gray-900',
-        };
-    }
-  };
+  // Listen for credits updates
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'availableCredits') {
+        setAvailableCredits(riskMapService.getAvailableCredits());
+      }
+    };
+    
+    // Check credits on mount and on storage changes
+    setAvailableCredits(riskMapService.getAvailableCredits());
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
-  const typeInfo = getRiskMapTypeInfo();
+  // Create a periodic checker for credit updates (for cases where storage event doesn't fire)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentCredits = riskMapService.getAvailableCredits();
+      if (currentCredits !== availableCredits) {
+        setAvailableCredits(currentCredits);
+      }
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [availableCredits]);
 
   return (
-    <>
-      {/* Top navigation for views and organization selector - Redesigned to prevent overlap */}
-      <div className="mb-6 border-b border-gray-200 pb-4">
-        {/* Separate navigation into two rows for better organization */}
-        <div className="flex flex-col lg:flex-row gap-6 justify-between">
-          {/* Top navigation tabs */}
-          <div className="flex flex-wrap items-center gap-1 overflow-visible">
-            <button
-              id="risk-tab-standard"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleViewChange(RISK_MAP_VIEWS.STANDARD);
-              }}
-              className={`px-4 py-2 text-sm font-medium rounded-t-md transition-all duration-300 ease-in-out relative ${
-                localActiveView === RISK_MAP_VIEWS.STANDARD
-                  ? 'bg-white text-primary-700 shadow-sm border-t-2 border-l-2 border-r-2 border-primary-500 border-b-0 z-20'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-b border-gray-200'
-              }`}
-              type="button"
-            >
-              Standard Risk Map
-            </button>
-            <button
-              id="risk-tab-report"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleViewChange(RISK_MAP_VIEWS.REPORT);
-              }}
-              className={`px-4 py-2 text-sm font-medium rounded-t-md transition-all duration-300 ease-in-out relative ${
-                localActiveView === RISK_MAP_VIEWS.REPORT
-                  ? 'bg-white text-primary-700 shadow-sm border-t-2 border-l-2 border-r-2 border-primary-500 border-b-0 z-20'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-b border-gray-200'
-              }`}
-              type="button"
-            >
-              Eva Risk Report
-            </button>
-            <button
-              id="risk-tab-lab"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleViewChange(RISK_MAP_VIEWS.LAB);
-              }}
-              className={`px-4 py-2 text-sm font-medium rounded-t-md transition-all duration-300 ease-in-out relative ${
-                localActiveView === RISK_MAP_VIEWS.LAB
-                  ? 'bg-white text-primary-700 shadow-sm border-t-2 border-l-2 border-r-2 border-primary-500 border-b-0 z-20'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-b border-gray-200'
-              }`}
-              type="button"
-            >
-              RiskLab
-            </button>
-            <button
-              id="risk-tab-score"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleViewChange(RISK_MAP_VIEWS.SCORE);
-              }}
-              className={`px-4 py-2 text-sm font-medium rounded-t-md transition-all duration-300 ease-in-out relative ${
-                localActiveView === RISK_MAP_VIEWS.SCORE
-                  ? 'bg-white text-primary-700 shadow-sm border-t-2 border-l-2 border-r-2 border-primary-500 border-b-0 z-20'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-b border-gray-200'
-              }`}
-              type="button"
-            >
-              Eva Score
-            </button>
-          </div>
+    <div className="px-4 py-6">
+      <h1 className="text-xl font-semibold text-gray-900 mb-4">Risk Assessment for ABC Corp</h1>
+      <p className="text-gray-600 mb-6">
+        Comprehensive analysis of risk factors for this transaction
+      </p>
 
-          {/* Type selector buttons in their own row on mobile, same row on desktop */}
-          <div className="flex flex-wrap items-center gap-2 mt-2 lg:mt-0">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Loan Type:</span>
-              <div className="flex flex-wrap gap-1">
-                <button
-                  onClick={() => handleRiskMapTypeChange('unsecured')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md ${
-                    riskMapType === 'unsecured'
-                      ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Unsecured
-                </button>
-                <button
-                  onClick={() => handleRiskMapTypeChange('equipment')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md ${
-                    riskMapType === 'equipment'
-                      ? 'bg-green-100 text-green-800 border border-green-200'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Equipment
-                </button>
-                <button
-                  onClick={() => handleRiskMapTypeChange('realestate')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md ${
-                    riskMapType === 'realestate'
-                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Real Estate
-                </button>
+      {/* Tabs for risk map types */}
+      <div className="mb-6 border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8" aria-label="Risk map types">
+          {riskMapTypes.map(mapType => (
+            <button
+              key={mapType.id}
+              onClick={() => handleRiskTypeChange(mapType.id as RiskMapType)}
+              className={`pb-4 px-1 text-sm font-medium ${
+                (riskMapType || activeType) === mapType.id
+                  ? 'border-b-2 border-red-600 text-red-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              {mapType.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Payment Credits Display */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-center">
+        <div>
+          <span className="text-sm text-gray-600">Available Credits:</span>
+          <span className="ml-2 font-semibold">{availableCredits}</span>
+        </div>
+        <button
+          onClick={handlePaymentProcessing}
+          className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-sm font-medium"
+        >
+          {availableCredits > 0 ? 'Use Credit' : 'Buy Credits'}
+        </button>
+      </div>
+
+      {/* Risk map content */}
+      <div className="mb-6 relative">
+        {/* EVA AI Analysis Loading */}
+        {evaAnalysisStatus.state === 'loading' && (
+          <div className="mb-6">
+            <ModularLoading 
+              status={evaAnalysisStatus} 
+              theme="red" 
+              spinnerType="dots"
+              size="full"
+              className="border border-gray-200 bg-gray-50"
+              showThoughtProcess={true}
+            />
+          </div>
+        )}
+        
+        {/* Risk Score Loading Indicator */}
+        {riskScoreStatus.state === 'loading' && (
+          <div className="mb-6">
+            <ModularLoading 
+              status={riskScoreStatus} 
+              theme="red" 
+              spinnerType="bar"
+              size="full"
+              className="border border-gray-200"
+            />
+          </div>
+        )}
+        
+        {/* Combined Risk Report and Score Component */}
+        {riskScoreStatus.state !== 'loading' && riskData && (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+              <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                <span className="mr-2">
+                  <svg
+                    className="h-5 w-5 text-red-600"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1v-3a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
+                EVA AI Risk Analysis & Score
+              </h3>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Based on our industry analysis, this application shows strong metrics with minor exceptions to review.
+              </p>
+              
+              {/* Score display */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-gray-500">Overall Risk Score</h4>
+                  <div className="flex items-center mt-1">
+                    <div className="text-3xl font-bold text-gray-900">{riskData.score}</div>
+                    <div className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Good
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-gray-500">Industry Average</h4>
+                  <div className="text-3xl font-bold text-gray-900 mt-1">{riskData.industry_avg}</div>
+                </div>
+                
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-gray-500">AI Confidence</h4>
+                  <div className="text-3xl font-bold text-gray-900 mt-1">{riskData.confidence}%</div>
+                </div>
+              </div>
+              
+              {/* Risk categories */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Risk Category Scores</h4>
+                <div className="grid grid-cols-3 gap-4">
+                  {Object.entries(riskData.categories).map(([category, data]) => (
+                    <div key={category} className="bg-gray-50 p-3 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-500">{category.charAt(0).toUpperCase() + category.slice(1)}</span>
+                        <span className="text-sm font-semibold text-gray-900">{data.score}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                        <div 
+                          className={`bg-${data.status === 'green' ? 'green' : data.status === 'yellow' ? 'yellow' : 'red'}-500 h-1.5 rounded-full`} 
+                          style={{ width: `${data.score}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Key findings */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Key Findings</h4>
+                <ul className="space-y-2 text-sm">
+                  {riskData.findings.map((finding, index) => (
+                    <li key={index} className="flex items-start">
+                      <svg 
+                        className={`h-5 w-5 ${
+                          finding.type === 'positive' ? 'text-green-500' : 
+                          finding.type === 'warning' ? 'text-yellow-500' : 
+                          'text-red-500'
+                        } mr-2 mt-0.5`} 
+                        fill="currentColor" 
+                        viewBox="0 0 20 20"
+                      >
+                        {finding.type === 'positive' ? (
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                        ) : finding.type === 'warning' ? (
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                        ) : (
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
+                        )}
+                      </svg>
+                      <span>{finding.text}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
-        </div>
+        )}
         
-        {/* Organization selector in its own row for better spacing */}
-        <div className="mt-4">
-          <OrganizationSelector onOrganizationChange={handleOrganizationChange} />
-        </div>
+        {/* Risk Map Loading Indicator */}
+        {riskMapStatus.state === 'loading' && (
+          <div className="mb-6">
+            <ModularLoading 
+              status={riskMapStatus} 
+              theme="red" 
+              spinnerType="circle"
+              size="full"
+              className="border border-gray-200 py-8"
+            />
+          </div>
+        )}
+        
+        {/* Risk Map */}
+        {riskMapStatus.state !== 'loading' && (
+          <RiskMapOptimized initialCategory={selectedCategory as RiskCategory || 'capacity'} />
+        )}
       </div>
-    
-      {/* Left sidebar navigation */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className={`p-4 border-b ${typeInfo.borderColor} ${typeInfo.bgColor}`}>
-          <h3 className={`text-lg font-medium ${typeInfo.textColor}`}>{typeInfo.title}</h3>
-          <p className="text-sm text-gray-500 mt-1">{typeInfo.subtitle}</p>
-          {selectedOrganization && (
-            <div className="mt-2 text-sm font-medium">
-              Organization: <span className="text-primary-600">{selectedOrganization.name}</span>
+
+      {/* Payment processor modal */}
+      {isPaymentProcessorOpen && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Credit Card Payment</h3>
+              <button 
+                onClick={() => setIsPaymentProcessorOpen(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-          )}
-        </div>
-        <nav className="p-3">
-          <ul className="space-y-1">
-            {categoryConfig.map(category => (
-              <li key={category.id}>
-                <button
-                  onClick={() => handleNavigationClick(category.id)}
-                  className={`w-full flex items-center text-left px-3 py-2 rounded-md text-sm font-medium transition-colors
-                    ${
-                      selectedCategory === category.id
-                        ? `bg-${riskMapType === 'unsecured' ? 'blue' : riskMapType === 'equipment' ? 'green' : 'amber'}-50 
-                        text-${riskMapType === 'unsecured' ? 'blue' : riskMapType === 'equipment' ? 'green' : 'amber'}-700 
-                        border-l-4 border-${riskMapType === 'unsecured' ? 'blue' : riskMapType === 'equipment' ? 'green' : 'amber'}-600`
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                  title={category.description}
+            
+            {paymentProcessingStatus.state === 'loading' ? (
+              <ModularLoading 
+                status={paymentProcessingStatus} 
+                theme="red" 
+                spinnerType="dots"
+                size="full"
+              />
+            ) : paymentProcessingStatus.state === 'error' ? (
+              <div className="text-center p-4">
+                <div className="text-red-600 mb-4">{paymentProcessingStatus.error}</div>
+                <button 
+                  onClick={handlePaymentProcessing}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                 >
-                  <span className="mr-3">{category.icon}</span>
-                  <span>{category.label}</span>
+                  Try Again
                 </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-    </>
+              </div>
+            ) : (
+              <p className="text-gray-600 mb-4">
+                Please purchase credits through the checkout process to access reports.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

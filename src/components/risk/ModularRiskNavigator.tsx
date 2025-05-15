@@ -6,6 +6,8 @@ import { RiskCategory } from './RiskMapOptimized';
 import RiskLabConfigurator from './RiskLabConfigurator';
 import RiskScoreDisplay from './RiskScoringModel';
 import PaywallModal from './PaywallModal';
+import { RiskRange } from './RiskRangesConfigEditor';
+import riskMapService from './RiskMapService';
 
 // Extend the imported RISK_MAP_VIEWS with additional views
 export const RISK_MAP_VIEWS = {
@@ -17,33 +19,11 @@ export const RISK_MAP_VIEWS = {
 // Define the LoanType to match the expected type in RiskLabConfigurator and RiskScoreDisplay
 export type LoanType = 'general' | 'equipment' | 'realestate';
 
-// Convert RiskMapType to LoanType
-const mapRiskMapTypeToLoanType = (riskMapType: RiskMapType): LoanType => {
-  switch (riskMapType) {
-    case 'unsecured':
-      return 'general';
-    case 'equipment':
-      return 'equipment';
-    case 'realestate':
-      return 'realestate';
-    default:
-      return 'general';
-  }
+// Reusing service methods instead of local implementations
+const mapRiskMapTypeToLoanType = (type: RiskMapType): LoanType => {
+  return riskMapService.mapRiskMapTypeToLoanType(type) as LoanType;
 };
-
-// Convert LoanType to RiskMapType
-const mapLoanTypeToRiskMapType = (loanType: LoanType): RiskMapType => {
-  switch (loanType) {
-    case 'general':
-      return 'unsecured';
-    case 'equipment':
-      return 'equipment';
-    case 'realestate':
-      return 'realestate';
-    default:
-      return 'unsecured';
-  }
-};
+const mapLoanTypeToRiskMapType = riskMapService.mapLoanTypeToRiskMapType;
 
 // Update the interface for MOCK_CREDIT_DATA
 interface CreditDataItem {
@@ -187,6 +167,7 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
   const [activeView, setActiveView] = useState<string>(initialView);
   const [riskMapType, setRiskMapType] = useState<RiskMapType>(initialRiskMapType);
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
+  const [loanType, setLoanType] = useState<LoanType>(mapRiskMapTypeToLoanType(initialRiskMapType));
   
   // Add parameter sets for different risk types
   const [riskParameters, setRiskParameters] = useState({
@@ -206,6 +187,10 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
     propertyLocation: '',
   });
   
+  // Add state for custom ranges and weights
+  const [customRanges, setCustomRanges] = useState<{[key: string]: RiskRange[]}>({});
+  const [customWeights, setCustomWeights] = useState<{[key: string]: number}>({});
+  
   // Update local state when props change
   useEffect(() => {
     console.log(`initialView changed to: ${initialView}`);
@@ -217,6 +202,24 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
     setRiskMapType(initialRiskMapType);
   }, [initialRiskMapType]);
   
+  // Extract the risk map type from URL query parameters on component mount
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const typeParam = queryParams.get('type') as RiskMapType | null;
+    
+    if (typeParam && ['unsecured', 'equipment', 'realestate'].includes(typeParam)) {
+      setRiskMapType(typeParam);
+      
+      // Also update the loan type for RiskLab
+      const newLoanType: LoanType = 
+        typeParam === 'equipment' ? 'equipment' : 
+        typeParam === 'realestate' ? 'realestate' : 
+        'general';
+      
+      setLoanType(newLoanType);
+    }
+  }, [location.search]);
+  
   // Handle category selection from sidebar
   const handleCategorySelect = (category: RiskCategory) => {
     setSelectedCategory(category);
@@ -227,9 +230,36 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
     console.log(`Risk map type changing to: ${type}`);
     setRiskMapType(type);
     
+    // Adjust loan type for RiskLab based on risk map type
+    const newLoanType: LoanType = 
+      type === 'equipment' ? 'equipment' : 
+      type === 'realestate' ? 'realestate' : 
+      'general';
+    
+    setLoanType(newLoanType);
+    
+    // Update URL with new type if appropriate
+    if (!onRiskMapTypeChange) {
+      // If no parent handler, we need to update the URL ourselves
+      const currentPath = location.pathname;
+      const queryParams = new URLSearchParams(location.search);
+      queryParams.set('type', type);
+      
+      navigate(`${currentPath}?${queryParams.toString()}`, { replace: true });
+    }
+    
     // Notify parent component if callback provided
     if (onRiskMapTypeChange) {
       onRiskMapTypeChange(type);
+    }
+    
+    // If currently in RiskLab view, ensure the RiskLab shows the right loan type
+    if (activeView === RISK_MAP_VIEWS.LAB) {
+      // Force a re-render of the RiskLab component by triggering a state change
+      setActiveView(prev => {
+        setTimeout(() => setActiveView(RISK_MAP_VIEWS.LAB), 10);
+        return 'refresh';
+      });
     }
   };
   
@@ -246,21 +276,24 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
       const basePath = '/risk-assessment';
       let newPath = '';
       
+      // Include the risk map type as a query parameter
+      const typeParam = riskMapType ? `?type=${riskMapType}` : '';
+      
       switch (view) {
         case RISK_MAP_VIEWS.STANDARD:
-          newPath = basePath;
+          newPath = `${basePath}${typeParam}`;
           break;
         case RISK_MAP_VIEWS.REPORT:
-          newPath = `${basePath}/report`;
+          newPath = `${basePath}/report${typeParam}`;
           break;
         case RISK_MAP_VIEWS.LAB:
-          newPath = `${basePath}/lab`;
+          newPath = `${basePath}/lab${typeParam}`;
           break;
         case RISK_MAP_VIEWS.SCORE:
-          newPath = `${basePath}/score`;
+          newPath = `${basePath}/score${typeParam}`;
           break;
         default:
-          newPath = basePath;
+          newPath = `${basePath}${typeParam}`;
       }
       
       navigate(newPath, { replace: true });
@@ -493,87 +526,69 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
     );
   };
 
-  // Update the renderContent function to include the risk parameters in the configuration view
-  const renderConfiguration = () => {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Risk Lab Configuration</h2>
-        
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Risk Assessment Type
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <button
-              className={`text-sm px-4 py-2 rounded-md ${
-                riskMapType === 'unsecured' 
-                  ? 'bg-primary-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-              onClick={() => handleRiskMapTypeChange('unsecured')}
-            >
-              Unsecured Financing
-            </button>
-            <button
-              className={`text-sm px-4 py-2 rounded-md ${
-                riskMapType === 'equipment' 
-                  ? 'bg-primary-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-              onClick={() => handleRiskMapTypeChange('equipment')}
-            >
-              Equipment Financing
-            </button>
-            <button
-              className={`text-sm px-4 py-2 rounded-md ${
-                riskMapType === 'realestate' 
-                  ? 'bg-primary-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-              onClick={() => handleRiskMapTypeChange('realestate')}
-            >
-              Real Estate Financing
-            </button>
-          </div>
-        </div>
-        
-        <div className="mb-6">
-          <h3 className="text-md font-medium text-gray-800 mb-3">Risk Parameters</h3>
-          {renderRiskParameters()}
-        </div>
-        
-        <div className="mb-6">
-          <h3 className="text-md font-medium text-gray-800 mb-3">Risk Categories</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {Object.keys(MOCK_CREDIT_DATA).map(category => (
-              <button
-                key={category}
-                className={`text-sm px-4 py-2 rounded-md ${
-                  selectedCategory === category 
-                    ? 'bg-primary-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                onClick={() => handleCategorySelect(category as RiskCategory)}
-              >
-                {category === 'all' ? 'All Categories' : MOCK_CREDIT_DATA[category as keyof typeof MOCK_CREDIT_DATA]?.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <div className="mt-8 flex justify-end">
-          <button 
-            className="bg-primary-600 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-primary-700 transition duration-150"
-            onClick={() => handleViewChange(RISK_MAP_VIEWS.DASHBOARD)}
-          >
-            Apply Configuration
-          </button>
-        </div>
-      </div>
-    );
+  // Add state for Paywall modal
+  const [isPaywallOpen, setIsPaywallOpen] = useState(false);
+  const [availableCredits, setAvailableCredits] = useState(riskMapService.getAvailableCredits());
+  
+  // Effect to listen for custom events from child components
+  useEffect(() => {
+    // Handler for the custom event
+    const handleOpenPaywall = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail && customEvent.detail.type) {
+        // Update riskMapType if provided in the event
+        if (customEvent.detail.type !== riskMapType) {
+          setRiskMapType(customEvent.detail.type);
+        }
+      }
+      // Show the paywall
+      showPaywall();
+    };
+    
+    // Add event listener
+    document.addEventListener('openPaywall', handleOpenPaywall);
+    
+    // Clean up
+    return () => {
+      document.removeEventListener('openPaywall', handleOpenPaywall);
+    };
+  }, [riskMapType]);
+
+  // Periodic check for credit updates
+  useEffect(() => {
+    // Initialize credits
+    setAvailableCredits(riskMapService.getAvailableCredits());
+    
+    // Check periodically
+    const interval = setInterval(() => {
+      const currentCredits = riskMapService.getAvailableCredits();
+      if (currentCredits !== availableCredits) {
+        setAvailableCredits(currentCredits);
+      }
+    }, 2000);
+    
+    // Clean up
+    return () => clearInterval(interval);
+  }, [availableCredits]);
+
+  // Function to show the paywall
+  const showPaywall = () => {
+    console.log("Opening paywall modal for report type:", riskMapType);
+    setIsPaywallOpen(true);
+  };
+  
+  // Function to handle report generation after payment
+  const handleGenerateReport = () => {
+    console.log("Payment successful, generating report");
+    
+    // Close the paywall
+    setIsPaywallOpen(false);
+    
+    // Change to report view
+    handleViewChange(RISK_MAP_VIEWS.REPORT);
   };
 
-  // Update the renderContent function
+  // Update the renderContent function to ensure the paywall is properly triggered
   const renderContent = () => {
     switch (activeView) {
       case RISK_MAP_VIEWS.DASHBOARD:
@@ -581,27 +596,47 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
       case RISK_MAP_VIEWS.CONFIGURATION:
         return renderConfiguration();
       case RISK_MAP_VIEWS.REPORT:
-        return <RiskScoreDisplay companyId="demo" loanType={mapRiskMapTypeToLoanType(riskMapType)} />;
+        // Check for credits before showing the report
+        const creditsCount = riskMapService.getAvailableCredits();
+        
+        if (creditsCount <= 0) {
+          // No credits, show paywall instead
+          setTimeout(() => showPaywall(), 100); // Small delay to ensure state is updated correctly
+          return (
+            <div className="p-6 text-center">
+              <p className="text-lg text-gray-600">Generating report...</p>
+            </div>
+          );
+        }
+        
+        // Has credits, use a credit and show the report
+        riskMapService.useCredit();
+        setAvailableCredits(riskMapService.getAvailableCredits());
+        
+        return (
+          <RiskScoreDisplay 
+            companyId="demo" 
+            loanType={loanType} 
+            customRanges={customRanges}
+            customWeights={customWeights}
+          />
+        );
+      case RISK_MAP_VIEWS.LAB:
+        return (
+          <RiskLabConfigurator 
+            loanType={loanType} 
+            onLoanTypeChange={(type) => {
+              // When loan type changes in RiskLab, update the risk map type as well
+              const newRiskMapType = riskMapService.mapLoanTypeToRiskMapType(type);
+              if (onRiskMapTypeChange) {
+                onRiskMapTypeChange(newRiskMapType);
+              }
+            }}
+          />
+        );
       default:
         return renderDashboard();
     }
-  };
-
-  // Add state for Paywall modal
-  const [isPaywallOpen, setIsPaywallOpen] = useState(false);
-  
-  // Function to show the paywall
-  const showPaywall = () => {
-    setIsPaywallOpen(true);
-  };
-  
-  // Function to handle report generation after payment
-  const handleGenerateReport = () => {
-    // Close the paywall
-    setIsPaywallOpen(false);
-    
-    // Change to report view
-    handleViewChange(RISK_MAP_VIEWS.REPORT);
   };
 
   // Add renderDashboard function
@@ -800,13 +835,93 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
     );
   };
 
+  // Update the renderContent function to include the risk parameters in the configuration view
+  const renderConfiguration = () => {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <h2 className="text-lg font-medium text-gray-900 mb-4">Risk Lab Configuration</h2>
+        
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Risk Assessment Type
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <button
+              className={`text-sm px-4 py-2 rounded-md ${
+                riskMapType === 'unsecured' 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              onClick={() => handleRiskMapTypeChange('unsecured')}
+            >
+              Unsecured Financing
+            </button>
+            <button
+              className={`text-sm px-4 py-2 rounded-md ${
+                riskMapType === 'equipment' 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              onClick={() => handleRiskMapTypeChange('equipment')}
+            >
+              Equipment Financing
+            </button>
+            <button
+              className={`text-sm px-4 py-2 rounded-md ${
+                riskMapType === 'realestate' 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              onClick={() => handleRiskMapTypeChange('realestate')}
+            >
+              Real Estate Financing
+            </button>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <h3 className="text-md font-medium text-gray-800 mb-3">Risk Parameters</h3>
+          {renderRiskParameters()}
+        </div>
+        
+        <div className="mb-6">
+          <h3 className="text-md font-medium text-gray-800 mb-3">Risk Categories</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {Object.keys(MOCK_CREDIT_DATA).map(category => (
+              <button
+                key={category}
+                className={`text-sm px-4 py-2 rounded-md ${
+                  selectedCategory === category 
+                    ? 'bg-primary-600 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                onClick={() => handleCategorySelect(category as RiskCategory)}
+              >
+                {category === 'all' ? 'All Categories' : MOCK_CREDIT_DATA[category as keyof typeof MOCK_CREDIT_DATA]?.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div className="mt-8 flex justify-end">
+          <button 
+            className="bg-primary-600 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-primary-700 transition duration-150"
+            onClick={() => handleViewChange(RISK_MAP_VIEWS.DASHBOARD)}
+          >
+            Apply Configuration
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="modular-risk-navigator">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Sidebar with risk navigator */}
         <div className="lg:col-span-3">
           <RiskMapNavigator 
-            selectedCategory={selectedCategory}
+            selectedCategory={selectedCategory as string}
             onCategorySelect={handleCategorySelect}
             riskMapType={riskMapType}
             onRiskMapTypeChange={handleRiskMapTypeChange}

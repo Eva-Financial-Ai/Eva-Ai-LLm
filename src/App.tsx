@@ -22,6 +22,9 @@ import { ToastProvider } from './components/common/ToastContainer';
 import { Analytics } from '@vercel/analytics/react';
 import ResponsiveTestingPanel from './components/ResponsiveTestingPanel';
 import SideNavigationTest from './components/layout/__tests__/SideNavigationTest';
+import { ModalProvider } from './contexts/ModalContext';
+import PerformanceMonitor from './components/dev/PerformanceMonitor';
+import performanceMonitor from './utils/performance';
 
 // Import Portfolio Navigator Page
 import { PortfolioNavigatorPage } from './pages/PortfolioNavigatorPage';
@@ -82,6 +85,9 @@ const AppContent: React.FC = () => {
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const [deviceType, setDeviceType] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
+  const [showPerformanceMonitor, setShowPerformanceMonitor] = useState(
+    process.env.NODE_ENV === 'development'
+  );
 
   // Update window dimensions and device info on resize
   useEffect(() => {
@@ -109,6 +115,35 @@ const AppContent: React.FC = () => {
     handleResize(); // Initial call
     
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  // Track initial app load performance
+  useEffect(() => {
+    // Log the time from navigation start to app content mount
+    const loadTime = performance.now();
+    performanceMonitor.startMetric('app-mount', 'load', { 
+      windowWidth, 
+      windowHeight,
+      deviceType,
+      orientation 
+    });
+    
+    return () => {
+      performanceMonitor.endMetric('app-mount');
+    };
+  }, [windowWidth, windowHeight, deviceType, orientation]);
+
+  // Add keyboard shortcut to toggle performance monitor
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Alt+Shift+P toggles the performance monitor
+      if (e.altKey && e.shiftKey && e.key === 'P') {
+        setShowPerformanceMonitor(prev => !prev);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   // Default values if context is not available
@@ -228,6 +263,9 @@ const AppContent: React.FC = () => {
               
               {/* Responsive Testing Panel */}
               <ResponsiveTestingPanel />
+              
+              {/* Performance Monitor (only in development mode) */}
+              {showPerformanceMonitor && <PerformanceMonitor />}
             </main>
 
             {/* Smart Matching Component */}
@@ -289,6 +327,24 @@ function App() {
     }
   }, []);
 
+  // Initialize payment credits for development/demo
+  useEffect(() => {
+    // Only do this in development mode
+    if (process.env.NODE_ENV === 'development') {
+      // Check if credits are already initialized
+      const storedCredits = localStorage.getItem('availableCredits');
+      
+      // If no credits are stored, initialize with 3 for demo purposes
+      if (!storedCredits) {
+        console.log('Initializing demo credits');
+        localStorage.setItem('availableCredits', '3');
+      }
+      
+      // Clear any pending wire transfers that may have been left over from previous sessions
+      localStorage.removeItem('pendingWireTransfer');
+    }
+  }, []);
+
   // Validate environment variables
   const { isValid, missingVars, isLoading } = useEnvValidation();
 
@@ -321,10 +377,12 @@ function App() {
             <UserTypeProvider>
               <ToastProvider>
                 <Router>
-                  <WorkflowProvider>
-                    <AppContent />
-                    <Analytics />
-                  </WorkflowProvider>
+                  <ModalProvider>
+                    <WorkflowProvider>
+                      <AppContent />
+                      <Analytics />
+                    </WorkflowProvider>
+                  </ModalProvider>
                 </Router>
               </ToastProvider>
             </UserTypeProvider>
