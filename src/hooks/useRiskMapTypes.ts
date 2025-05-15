@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import riskMapService from '../components/risk/RiskMapService';
 
 export type TransactionType = 'general' | 'equipment' | 'realestate';
 export type RiskMapType = 'unsecured' | 'equipment' | 'realestate';
@@ -11,7 +12,7 @@ interface Transaction {
   date: string;
 }
 
-// Mock transactions for demo purposes
+// For demo purposes, use only one transaction of each type to reduce load
 const mockTransactions: Transaction[] = [
   {
     id: 'tx-unsecured-1',
@@ -33,28 +34,7 @@ const mockTransactions: Transaction[] = [
     name: 'Metropolis Office Building Acquisition',
     status: 'Completed',
     date: '2023-07-10',
-  },
-  {
-    id: 'tx-unsecured-2',
-    type: 'general',
-    name: 'StartUp Inc Line of Credit',
-    status: 'In Progress',
-    date: '2023-08-05',
-  },
-  {
-    id: 'tx-equipment-2',
-    type: 'equipment',
-    name: 'Logistics Pro Fleet Expansion',
-    status: 'Completed',
-    date: '2023-08-18',
-  },
-  {
-    id: 'tx-realestate-2',
-    type: 'realestate',
-    name: 'Retail Plaza Development Project',
-    status: 'In Progress',
-    date: '2023-09-01',
-  },
+  }
 ];
 
 // Map transaction types to risk map types
@@ -65,42 +45,65 @@ const transactionToRiskMapType: Record<TransactionType, RiskMapType> = {
 };
 
 export const useRiskMapTypes = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [transactions] = useState<Transaction[]>(mockTransactions);
   const [selectedTransaction, setSelectedTransaction] = useState<string | null>(null);
   const [transactionType, setTransactionType] = useState<TransactionType>('general');
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
-
-  // Initialize with mock data
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Initialize but don't load any risk map data yet
   useEffect(() => {
-    // Set the first transaction as selected if none is already selected
-    if (!selectedTransaction && mockTransactions.length > 0) {
-      setSelectedTransaction(mockTransactions[0].id);
-      setTransactionType(mockTransactions[0].type);
-      setFilteredTransactions(mockTransactions.filter(tx => tx.type === mockTransactions[0].type));
+    // Only set transaction type and filter transactions, but don't select any by default
+    if (!selectedTransaction) {
+      const defaultType = 'general';
+      setTransactionType(defaultType);
+      
+      // Find the transactions of this type
+      const filtered = mockTransactions.filter(tx => tx.type === defaultType);
+      setFilteredTransactions(filtered);
     }
   }, [selectedTransaction]);
 
   // Filter transactions by type
   const filterByType = (type: TransactionType) => {
+    // Don't do anything if already loading or if it's the same type
+    if (isLoading || type === transactionType) return;
+    
+    setIsLoading(true);
+    
+    // Clear the risk map service cache when switching types
+    riskMapService.clearCache();
+    
     setTransactionType(type);
+    
+    // Unselect current transaction
+    setSelectedTransaction(null);
+    
+    // Filter to show only transactions of this type
     const filtered = mockTransactions.filter(tx => tx.type === type);
     setFilteredTransactions(filtered);
-
-    // Select the first transaction of this type
-    if (filtered.length > 0) {
-      setSelectedTransaction(filtered[0].id);
-    } else {
-      setSelectedTransaction(null);
-    }
+    
+    setIsLoading(false);
   };
 
-  // Handle transaction selection
+  // Handle transaction selection - in demo there should be only one per type
   const selectTransaction = (transactionId: string) => {
+    // Don't do anything if already loading or if it's the same transaction
+    if (isLoading || transactionId === selectedTransaction) return;
+    
+    setIsLoading(true);
+    
+    // Clear cache when selecting a new transaction
+    riskMapService.clearCache();
+    
     setSelectedTransaction(transactionId);
+    
     const selected = mockTransactions.find(tx => tx.id === transactionId);
     if (selected) {
       setTransactionType(selected.type);
     }
+    
+    setIsLoading(false);
   };
 
   // Get the current risk map type based on the selected transaction type
@@ -114,6 +117,7 @@ export const useRiskMapTypes = () => {
     selectedTransaction,
     transactionType,
     riskMapType: getCurrentRiskMapType(),
+    isLoading,
     filterByType,
     selectTransaction,
   };

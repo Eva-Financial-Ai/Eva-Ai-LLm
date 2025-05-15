@@ -336,6 +336,59 @@ class EvaReportApi {
       }, 800);
     });
   }
+  
+  /**
+   * Generate and download a PDF report
+   * 
+   * In a real application, this would call an API endpoint that generates
+   * a PDF report server-side and returns it for download.
+   * 
+   * For demo purposes, we're simulating the download with a setTimeout.
+   */
+  async generatePdfReport(
+    transactionId: string,
+    riskMapType: RiskMapType = 'unsecured'
+  ): Promise<boolean> {
+    console.log(`Generating PDF report for transaction ${transactionId} with type ${riskMapType}`);
+    
+    // In a real app, we would:
+    // 1. Call an API endpoint to generate the PDF
+    // 2. Receive a blob or download URL
+    // 3. Trigger download using that URL
+    
+    // Simulate network request and processing time
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log('PDF report generation completed');
+        
+        // In a real implementation, we would trigger the download here
+        // For the demo, we'll just simulate success
+        
+        // You could use the following code in a real implementation:
+        /*
+        fetch(`${API_ENDPOINT}/reports/${transactionId}/pdf?type=${riskMapType}`)
+          .then(response => response.blob())
+          .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `EVA_Risk_Report_${transactionId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            resolve(true);
+          })
+          .catch(error => {
+            console.error('Error downloading PDF:', error);
+            resolve(false);
+          });
+        */
+        
+        resolve(true);
+      }, 1500);
+    });
+  }
 }
 
 export default new EvaReportApi(); 

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { RiskMapEvaReport } from './RiskMapEvaReport';
 import { useRiskMapTypes } from '../../hooks/useRiskMapTypes';
+import riskMapService from './RiskMapService';
 
 const RiskMapSelector: React.FC = () => {
   const {
@@ -11,6 +12,21 @@ const RiskMapSelector: React.FC = () => {
     filterByType,
     selectTransaction,
   } = useRiskMapTypes();
+  
+  // Add state to track whether a risk map should be displayed
+  const [showRiskMap, setShowRiskMap] = useState(false);
+  
+  // Reset the display when transaction type changes
+  useEffect(() => {
+    setShowRiskMap(false);
+  }, [transactionType]);
+
+  // Clear risk map service cache when component unmounts
+  useEffect(() => {
+    return () => {
+      riskMapService.clearCache();
+    };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -60,7 +76,10 @@ const RiskMapSelector: React.FC = () => {
             {filteredTransactions.map(transaction => (
               <div
                 key={transaction.id}
-                onClick={() => selectTransaction(transaction.id)}
+                onClick={() => {
+                  selectTransaction(transaction.id);
+                  setShowRiskMap(false); // Reset display when selecting a new transaction
+                }}
                 className={`p-3 rounded-md cursor-pointer ${
                   selectedTransaction === transaction.id
                     ? 'bg-primary-50 border border-primary-200'
@@ -92,9 +111,40 @@ const RiskMapSelector: React.FC = () => {
         )}
       </div>
 
-      {/* Risk Map Display */}
-      {selectedTransaction && (
+      {/* Load Risk Map Button */}
+      {selectedTransaction && !showRiskMap && (
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => {
+              // Clear cache before loading to ensure fresh data
+              riskMapService.clearCache();
+              setShowRiskMap(true);
+            }}
+            className="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded-md shadow-sm"
+          >
+            Load Risk Map
+          </button>
+          <p className="mt-2 text-sm text-gray-500">
+            Click to load the risk map for this transaction
+          </p>
+        </div>
+      )}
+
+      {/* Risk Map Display - Only show when explicitly requested */}
+      {selectedTransaction && showRiskMap && (
         <div className="mt-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-900">Risk Map</h3>
+            <button
+              onClick={() => {
+                setShowRiskMap(false);
+                riskMapService.clearCache();
+              }}
+              className="text-sm text-primary-600 hover:text-primary-800"
+            >
+              Hide Risk Map
+            </button>
+          </div>
           <RiskMapEvaReport
             // In a real app, you would pass the actual transaction ID
             transactionId={selectedTransaction}

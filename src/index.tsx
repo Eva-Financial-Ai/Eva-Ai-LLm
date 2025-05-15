@@ -9,6 +9,10 @@ import App from './App';
 import './i18n'; // Import i18n configuration
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
+import { initDemoCredits } from './utils/initDemoCredits'; // Import the demo credits utility
+
+// Initialize demo credits for risk report feature
+initDemoCredits();
 
 // Inject crucial environment variables if they're missing
 if (!process.env.REACT_APP_AUTH_DOMAIN) {

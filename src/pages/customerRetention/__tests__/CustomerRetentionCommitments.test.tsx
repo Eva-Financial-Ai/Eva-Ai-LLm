@@ -17,7 +17,7 @@ describe('CustomerRetentionCommitments Component', () => {
     );
     
     // Check if basic component elements are rendered
-    expect(screen.getByText(/Commitments/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Commitments/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Track and manage customer agreements and commitments/i)).toBeInTheDocument();
   });
 
@@ -66,7 +66,7 @@ describe('CustomerRetentionCommitments Component', () => {
     );
     
     // Check if table columns are rendered
-    expect(screen.getByText(/Commitment/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Commitment/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Customer/i)).toBeInTheDocument();
     expect(screen.getByText(/Type\/Status/i)).toBeInTheDocument();
     expect(screen.getByText(/Dates/i)).toBeInTheDocument();

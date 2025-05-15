@@ -22,7 +22,7 @@ const ResponsiveTestingPanel: React.FC = () => {
   const [showTester, setShowTester] = useState<boolean>(false);
   const [isRunningTests, setIsRunningTests] = useState<boolean>(false);
   const [testResults, setTestResults] = useState<ResponsiveTestResult[]>([]);
-  const [isPanelVisible, setIsPanelVisible] = useState<boolean>(true);
+  const [isPanelVisible, setIsPanelVisible] = useState<boolean>(false);
 
   // Predefined screen sizes for testing
   const screenSizes: ScreenSize[] = [

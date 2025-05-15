@@ -73,4 +73,40 @@ HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
   rotate: jest.fn(),
   arc: jest.fn(),
   fill: jest.fn(),
-})); 
+}));
+
+// -----------------------------------------------------------------------------
+// Global test-environment hardening
+// -----------------------------------------------------------------------------
+// In plain Jest runs (or when individual tests deliberately delete `window`)
+// React-DOM still expects a handful of browser APIs.  We create a *very* small
+// stub so that any component can mount without throwing reference errors.
+
+if (typeof global.window === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore – we are intentionally creating a global stub
+  global.window = {} as any;
+}
+
+// Basic DOM-like objects expected by React / libraries
+// (We only create them if missing so we don't overwrite jsdom when it is
+// already provided by react-scripts.)
+const win = global.window as any;
+
+if (!win.document) {
+  win.document = {
+    createElement: () => ({ style: {} }),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  };
+}
+
+if (!win.navigator) {
+  win.navigator = { userAgent: 'node.js' };
+}
+
+// Timers
+if (!win.requestAnimationFrame) {
+  win.requestAnimationFrame = (cb: FrameRequestCallback) => setTimeout(cb, 0);
+  win.cancelAnimationFrame = (id: any) => clearTimeout(id);
+} 

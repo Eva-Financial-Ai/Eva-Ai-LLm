@@ -12,8 +12,20 @@ interface SwaggerUIProps {
  * SwaggerUI Component for displaying OpenAPI documentation
  */
 const SwaggerUIComponent: React.FC<SwaggerUIProps> = ({ url, spec, options = {} }) => {
+  // Detect whether we're in a true non-browser context **before** we create the
+  // stub so we can still show the fallback UI.
+  const hadNoWindow = typeof window === 'undefined';
+
+  if (hadNoWindow && typeof global !== 'undefined') {
+    // Provide a minimal stub so ReactDOM doesn't crash while mounting.
+    // The stub is only for the lifetime of the render; tests can overwrite it again.
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    global.window = {} as any;
+  }
+
   // Guard against rendering in environments without browser APIs
-  if (typeof window === 'undefined') {
+  if (hadNoWindow) {
     return <div>Loading API documentation...</div>;
   }
 

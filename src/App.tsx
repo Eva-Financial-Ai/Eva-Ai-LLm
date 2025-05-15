@@ -26,6 +26,7 @@ import { ModalProvider } from './contexts/ModalContext';
 import PerformanceMonitor from './components/dev/PerformanceMonitor';
 import performanceMonitor from './utils/performance';
 import riskMapService from './components/risk/RiskMapService';
+import RiskReportDevTools from './components/dev/RiskReportDevTools';
 
 // Import Portfolio Navigator Page
 import { PortfolioNavigatorPage } from './pages/PortfolioNavigatorPage';
@@ -206,6 +207,9 @@ const AppContent: React.FC = () => {
     return 'lender';
   };
 
+  // Check if we're in development mode
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
   return (
     <div className={`app ${theme} text-sm`} data-device-type={deviceType} data-orientation={orientation}>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -267,6 +271,9 @@ const AppContent: React.FC = () => {
               
               {/* Performance Monitor (only in development mode) */}
               {showPerformanceMonitor && <PerformanceMonitor />}
+              
+              {/* Risk Report DevTools (only in development mode) */}
+              {isDevelopment && <RiskReportDevTools />}
             </main>
 
             {/* Smart Matching Component */}

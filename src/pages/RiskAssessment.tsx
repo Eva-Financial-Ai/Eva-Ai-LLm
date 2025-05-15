@@ -28,7 +28,6 @@ const RiskAssessment: React.FC = () => {
     const path = location.pathname;
     console.log(`Current path: ${path}`);
 
-    if (path.includes('/risk-assessment/report')) return RISK_MAP_VIEWS.REPORT;
     if (path.includes('/risk-assessment/lab')) return RISK_MAP_VIEWS.LAB;
     if (path.includes('/risk-assessment/score')) return RISK_MAP_VIEWS.SCORE;
     return RISK_MAP_VIEWS.STANDARD;
@@ -58,9 +57,6 @@ const RiskAssessment: React.FC = () => {
     switch (currentView) {
       case RISK_MAP_VIEWS.STANDARD:
         newPath = basePath;
-        break;
-      case RISK_MAP_VIEWS.REPORT:
-        newPath = `${basePath}/report`;
         break;
       case RISK_MAP_VIEWS.LAB:
         newPath = `${basePath}/lab`;

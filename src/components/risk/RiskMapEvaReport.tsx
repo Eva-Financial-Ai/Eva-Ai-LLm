@@ -478,53 +478,6 @@ const BusinessCreditAnalysis = memo(({ businessScoreDetails }: {
   );
 });
 
-// Extract the RiskMapTypeSelector into a memoized component
-const RiskMapTypeSelector = memo(({
-  selectedRiskMapType,
-  setSelectedRiskMapType
-}: {
-  selectedRiskMapType: RiskMapType;
-  setSelectedRiskMapType: (type: RiskMapType) => void;
-}) => {
-  return (
-    <div className="bg-white p-4 rounded-lg border border-gray-200 mb-6">
-      <h4 className="font-medium text-gray-800 mb-4">RiskMap Type</h4>
-      <div className="flex space-x-4">
-        <button
-          onClick={() => setSelectedRiskMapType('unsecured')}
-          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium ${
-            selectedRiskMapType === 'unsecured'
-              ? 'bg-primary-100 text-primary-700 border border-primary-300'
-              : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
-          }`}
-        >
-          Unsecured Commercial Paper
-        </button>
-        <button
-          onClick={() => setSelectedRiskMapType('equipment')}
-          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium ${
-            selectedRiskMapType === 'equipment'
-              ? 'bg-primary-100 text-primary-700 border border-primary-300'
-              : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
-          }`}
-        >
-          Commercial Equipment
-        </button>
-        <button
-          onClick={() => setSelectedRiskMapType('realestate')}
-          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium ${
-            selectedRiskMapType === 'realestate'
-              ? 'bg-primary-100 text-primary-700 border border-primary-300'
-              : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
-          }`}
-        >
-          Commercial Real Estate
-        </button>
-      </div>
-    </div>
-  );
-});
-
 // Extract the Credit View Tabs into a memoized component
 const CreditViewTabs = memo(({
   selectedCreditView,
@@ -1203,14 +1156,26 @@ export const RiskMapEvaReport: React.FC<RiskMapEvaReportProps> = ({
   const personalScoreDetails = getPersonalCreditScore(personalCreditModel);
   const businessScoreDetails = getBusinessCreditScore(businessCreditModel);
 
-  // Set initial risk map type based on prop
+  // Update risk map type based on the risk map type - optimize to only load for current type
   useEffect(() => {
     if (riskMapType) {
+      console.log(`[RiskMapEvaReport] Setting risk map type to: ${riskMapType}`);
       setSelectedRiskMapType(riskMapType);
+      
+      // Reset loaded categories when risk map type changes to ensure fresh data
+      setLoadedCategories(new Set());
+      setCategoriesLoading({
+        credit: false,
+        capacity: false,
+        character: false,
+        collateral: false,
+        capital: false,
+        conditions: false,
+      });
     }
   }, [riskMapType]);
 
-  // Update risk config type based on the risk map type
+  // Update risk config type based on the risk map type - optimize to only load for current type
   useEffect(() => {
     // Map the riskMapType to a RiskConfigType
     let newConfigType: RiskConfigType = 'general';
@@ -1221,9 +1186,12 @@ export const RiskMapEvaReport: React.FC<RiskMapEvaReportProps> = ({
       newConfigType = 'real_estate';
     }
 
-    // Load the appropriate config if it's different
+    // Only load the config if it's different and we don't have it loaded already
     if (newConfigType !== configType) {
+      console.log(`[RiskMapEvaReport] Loading risk config for type: ${newConfigType}`);
       loadConfigForType(newConfigType);
+    } else {
+      console.log(`[RiskMapEvaReport] Using existing risk config for type: ${newConfigType}`);
     }
   }, [riskMapType, configType, loadConfigForType]);
 
@@ -1233,12 +1201,6 @@ export const RiskMapEvaReport: React.FC<RiskMapEvaReportProps> = ({
 
     return (
       <div className="space-y-6">
-        {/* Risk Map Type Selector */}
-        <RiskMapTypeSelector 
-          selectedRiskMapType={selectedRiskMapType}
-          setSelectedRiskMapType={setSelectedRiskMapType}
-        />
-
         {/* Risk Type Specific Header */}
         {selectedRiskMapType === 'unsecured' && (
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">

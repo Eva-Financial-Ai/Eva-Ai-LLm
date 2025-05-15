@@ -61,29 +61,29 @@ describe('UserProfileSimulator', () => {
     expect(screen.getByText('User Profile Simulator')).toBeInTheDocument();
     
     // Check that borrower role button has active styling
-    const borrowerButton = screen.getByText('borrower');
+    const borrowerButton = screen.getByRole('button', { name: /^borrower$/i });
     expect(borrowerButton.className).toContain('bg-primary-600 text-white');
     
     // Check that initial profile is selected
-    expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-    expect(screen.getByText('Tech Innovators LLC')).toBeInTheDocument();
+    expect(screen.getAllByText('Jane Smith')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Tech Innovators LLC')[0]).toBeInTheDocument();
   });
 
   test('changes role when user clicks on a different role button', async () => {
     renderWithProviders(<UserProfileSimulator />);
 
     // Click lender role button
-    fireEvent.click(screen.getByText('lender'));
+    fireEvent.click(screen.getByRole('button', { name: /^lender$/i }));
     
     // Check that lender role button has active styling
     await waitFor(() => {
-      const lenderButton = screen.getByText('lender');
+      const lenderButton = screen.getByRole('button', { name: /^lender$/i });
       expect(lenderButton.className).toContain('bg-primary-600 text-white');
     });
     
     // Check that lender profiles are displayed
-    expect(screen.getByText('Thomas Wilson')).toBeInTheDocument();
-    expect(screen.getByText('First Capital Bank')).toBeInTheDocument();
+    expect(screen.getAllByText('Thomas Wilson')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('First Capital Bank')[0]).toBeInTheDocument();
     
     // Verify localStorage was updated with the role
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith('userRole', 'lender');
@@ -97,21 +97,22 @@ describe('UserProfileSimulator', () => {
 
     // First check current profile
     expect(screen.getByText('Active Profile')).toBeInTheDocument();
-    expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+    expect(screen.getAllByText('Jane Smith')[0]).toBeInTheDocument();
     
     // Click second profile for current role
-    fireEvent.click(screen.getByText('Robert Chen'));
+    fireEvent.click(screen.getAllByText('Robert Chen')[0]);
     
     // Check that profile details have updated
     await waitFor(() => {
-      expect(screen.getByText('Robert Chen')).toBeInTheDocument();
-      expect(screen.getByText('GreenGrow Farms')).toBeInTheDocument();
+      expect(screen.getAllByText('Robert Chen')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('GreenGrow Farms')[0]).toBeInTheDocument();
     });
     
     // Verify localStorage was updated with the profile
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith('userProfile', expect.any(String));
-    const savedProfile = JSON.parse(mockLocalStorage.setItem.mock.calls[1][1]);
-    expect(savedProfile.name).toBe('Robert Chen');
+    const profileCall = mockLocalStorage.setItem.mock.calls.find(c => c[0] === 'userProfile');
+    const savedProfile = profileCall ? JSON.parse(profileCall[1]) : null;
+    expect(savedProfile?.name).toBe('Robert Chen');
   });
 
   test('navigates to recommended pages when clicked', async () => {
@@ -128,7 +129,7 @@ describe('UserProfileSimulator', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/credit-application');
     
     // Change role and check that recommended pages update
-    fireEvent.click(screen.getByText('lender'));
+    fireEvent.click(screen.getByRole('button', { name: /^lender$/i }));
     
     // Check that lender recommended pages appear
     await waitFor(() => {

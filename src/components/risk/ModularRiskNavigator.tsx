@@ -283,14 +283,17 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
         case RISK_MAP_VIEWS.STANDARD:
           newPath = `${basePath}${typeParam}`;
           break;
-        case RISK_MAP_VIEWS.REPORT:
-          newPath = `${basePath}/report${typeParam}`;
-          break;
         case RISK_MAP_VIEWS.LAB:
           newPath = `${basePath}/lab${typeParam}`;
           break;
         case RISK_MAP_VIEWS.SCORE:
           newPath = `${basePath}/score${typeParam}`;
+          break;
+        case RISK_MAP_VIEWS.DASHBOARD:
+          newPath = `${basePath}/dashboard${typeParam}`;
+          break;
+        case RISK_MAP_VIEWS.CONFIGURATION:
+          newPath = `${basePath}/config${typeParam}`;
           break;
         default:
           newPath = `${basePath}${typeParam}`;
@@ -546,7 +549,7 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
 
   // Function to show the paywall
   const showPaywall = () => {
-    console.log("[ModularRiskNavigator] Opening paywall modal for report type:", riskMapType);
+    console.log("[ModularRiskNavigator] Opening paywall modal for score type:", riskMapType);
     // Ensure credits are checked from the service
     const credits = riskMapService.getAvailableCredits();
     console.log("[ModularRiskNavigator] Available credits:", credits);
@@ -555,8 +558,8 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
       // If we have credits, use one and proceed directly
       console.log("[ModularRiskNavigator] Using credit and continuing");
       riskMapService.useCredit();
-      // Change to report view directly
-      handleViewChange(RISK_MAP_VIEWS.REPORT);
+      // Change to score view directly
+      handleViewChange(RISK_MAP_VIEWS.SCORE);
     } else {
       // Otherwise show the paywall
       setIsPaywallOpen(true);
@@ -565,24 +568,24 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
 
   // Function to handle report generation after payment
   const handleGenerateReport = () => {
-    console.log("[ModularRiskNavigator] Payment successful, generating report");
+    console.log("[ModularRiskNavigator] Payment successful, generating score");
     
     // Close the paywall
     setIsPaywallOpen(false);
     
-    // Change to report view
-    handleViewChange(RISK_MAP_VIEWS.REPORT);
+    // Change to score view
+    handleViewChange(RISK_MAP_VIEWS.SCORE);
   };
 
-  // Update the renderContent function to ensure the paywall is properly triggered
+  // Update the renderContent function to replace RISK_MAP_VIEWS.REPORT with RISK_MAP_VIEWS.SCORE
   const renderContent = () => {
     switch (activeView) {
       case RISK_MAP_VIEWS.DASHBOARD:
         return renderDashboard();
       case RISK_MAP_VIEWS.CONFIGURATION:
         return renderConfiguration();
-      case RISK_MAP_VIEWS.REPORT:
-        // Check for credits before showing the report
+      case RISK_MAP_VIEWS.SCORE:
+        // Check for credits before showing the score
         const creditsCount = riskMapService.getAvailableCredits();
         
         if (creditsCount <= 0) {
@@ -590,12 +593,12 @@ const ModularRiskNavigator: React.FC<ModularRiskNavigatorProps> = ({
           setTimeout(() => showPaywall(), 100); // Small delay to ensure state is updated correctly
           return (
             <div className="p-6 text-center">
-              <p className="text-lg text-gray-600">Generating report...</p>
+              <p className="text-lg text-gray-600">Generating score...</p>
             </div>
           );
         }
         
-        // Has credits, use a credit and show the report
+        // Has credits, use a credit and show the score
         riskMapService.useCredit();
         setAvailableCredits(riskMapService.getAvailableCredits());
         
