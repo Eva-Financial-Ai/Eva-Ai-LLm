@@ -34,7 +34,18 @@ i18n
     },
     react: {
       useSuspense: true
-    }
+    },
+    // Ensure compatibility with different versions
+    compatibilityJSON: 'v3',
+    // Use an empty string for missing translations
+    returnEmptyString: false,
+    // Use fallback language for missing keys
+    fallbackLng: 'en',
+    // Allow nesting of translations
+    nsSeparator: ':',
+    keySeparator: '.',
+    // Return key if value is empty
+    returnNull: false
   });
 
 export default i18n; 
