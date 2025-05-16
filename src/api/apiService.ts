@@ -4,6 +4,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
 // @ts-ignore
 import { setupCache } from 'axios-cache-interceptor';
+import demoModeService from './demoModeService';
 
 // NOTE: This service connects to the eva-platform-backend repository
 // which is now maintained separately from the frontend codebase.
@@ -56,6 +57,12 @@ class ApiService {
     // Add request interceptor
     this.instance.interceptors.request.use(
       config => {
+        // Check if in demo mode
+        if (demoModeService.isEnabled()) {
+          console.log(`[apiService] Demo mode active - intercepting request to ${config.url}`);
+          // Let request proceed for now, we'll handle mock data in the response interceptor
+        }
+
         // Add auth token if available
         const token = localStorage.getItem('auth_token');
         if (token) {
@@ -83,6 +90,13 @@ class ApiService {
       },
       async error => {
         const originalRequest = error.config;
+
+        // If in demo mode, don't retry or throw errors
+        if (demoModeService.isEnabled()) {
+          console.log('[apiService] Demo mode active - suppressing network error');
+          // Return a resolved promise with an empty data object
+          return Promise.resolve({ data: {} });
+        }
 
         // Check if error is a network error (offline, timeout, etc.)
         if (axios.isAxiosError(error) && !error.response) {
@@ -121,8 +135,27 @@ class ApiService {
     );
   }
 
+  // Simulate network latency for demo mode
+  private async simulateLatency(): Promise<void> {
+    if (demoModeService.isEnabled() && demoModeService.getConfig().simulateNetworkLatency) {
+      const baseDelay = 300; // Base delay in ms
+      const randomFactor = Math.random() * 200; // Random additional delay up to 200ms
+      const delay = baseDelay + randomFactor;
+      
+      await new Promise(resolve => setTimeout(resolve, delay));
+      console.log(`[apiService] Demo mode - simulated network latency: ${delay.toFixed(0)}ms`);
+    }
+  }
+
   // Generic request method
   async request<T>(config: AxiosRequestConfig): Promise<T> {
+    // If in demo mode, don't actually make the request
+    if (demoModeService.isEnabled()) {
+      await this.simulateLatency();
+      console.log(`[apiService] Demo mode - mock request to ${config.url}`);
+      return {} as T; // Return empty object, specific mock providers will override this
+    }
+
     try {
       const response = await this.instance.request<T>(config);
       return response.data;
@@ -176,6 +209,12 @@ class ApiService {
 
   // Check API connectivity - useful for diagnostics
   async checkConnectivity(): Promise<boolean> {
+    // Always return true in demo mode
+    if (demoModeService.isEnabled()) {
+      console.log('[apiService] Demo mode - reporting API as connected');
+      return true;
+    }
+
     try {
       await this.get('/health');
       return true;
@@ -187,6 +226,10 @@ class ApiService {
 
   // Get network status
   isNetworkOffline(): boolean {
+    // Always report as online in demo mode
+    if (demoModeService.isEnabled()) {
+      return false;
+    }
     return this.isNetworkIssue;
   }
 }

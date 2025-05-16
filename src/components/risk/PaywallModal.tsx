@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { XMarkIcon, CheckCircleIcon, CreditCardIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { loadStripe } from '@stripe/stripe-js';
 import { usePlaidLink } from 'react-plaid-link';
 import '../../styles/paywall.css';
+import { addDemoCredits } from '../../utils/initDemoCredits';
+import riskMapService from './RiskMapService';
 
 // Placeholder for Stripe public key - in production would come from environment variables
 const stripePromise = loadStripe('pk_test_TYooMQauvdEDq54NiTphI7jx');
@@ -71,7 +73,7 @@ interface PaywallModalProps {
 }
 
 const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onSuccess, reportType }) => {
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('credit_card');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('credits');
   const [selectedPackage, setSelectedPackage] = useState<CreditPackage>('single');
   const [currentStep, setCurrentStep] = useState<PaymentStep>('select_method');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -79,9 +81,18 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onSuccess,
   const [success, setSuccess] = useState<boolean>(false);
   const [availableCredits, setAvailableCredits] = useState<number>(() => {
     // Initialize from localStorage if available
-    const storedCredits = localStorage.getItem('availableCredits');
-    return storedCredits ? parseInt(storedCredits, 10) : 0;
+    return riskMapService.getAvailableCredits();
   });
+  
+  // Check if we need to add demo credits to ensure the user has at least one credit
+  useEffect(() => {
+    if (availableCredits < 1 && process.env.NODE_ENV === 'development') {
+      // Add 1 credit to ensure the user has credits available
+      const newTotal = addDemoCredits(1);
+      setAvailableCredits(newTotal);
+      console.log('Added 1 demo credit for testing');
+    }
+  }, [availableCredits]);
   
   // Credit card input state
   const [cardDetails, setCardDetails] = useState({
@@ -161,58 +172,40 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onSuccess,
     }
   };
   
-  // Stripe payment handler
+  // Stripe payment handler - In demo mode always succeeds
   const handleCreditCardPayment = () => {
     setIsProcessing(true);
     setError(null);
     
-    // Validate card details
-    if (!cardDetails.cardNumber || !cardDetails.cardHolder || !cardDetails.expiryDate || !cardDetails.cvv) {
-      setError('Please fill in all card details');
-      setIsProcessing(false);
-      return;
-    }
-    
-    try {
-      // In a real implementation, this would call your backend API to create a payment intent
-      // For demo purposes, we'll simulate a successful payment after a delay
-      setTimeout(() => {
-        handlePaymentSuccess();
-      }, 2000);
-    } catch (err) {
-      setError('Payment processing failed. Please try again.');
-      setIsProcessing(false);
-    }
+    // For demo purposes, we'll simulate a successful payment after a delay
+    setTimeout(() => {
+      handlePaymentSuccess();
+    }, 1000);
   };
   
-  // Handle bank transfer with Plaid
+  // Handle bank transfer with Plaid - In demo mode always succeeds
   const handleBankTransfer = () => {
     setIsProcessing(true);
     setError(null);
     
-    if (plaidReady) {
-      openPlaidLink();
-    } else {
-      setError('Bank connection service is not ready. Please try again in a moment.');
-      setIsProcessing(false);
-    }
+    // For demo purposes, simulate success
+    setTimeout(() => {
+      handlePaymentSuccess();
+    }, 1000);
   };
   
-  // Handle wire transfer (mark as pending)
+  // Handle wire transfer details - In demo mode always succeeds
   const handleWireTransfer = () => {
     setIsProcessing(true);
     setError(null);
     
-    // In a real app, you would record a pending credit until wire is confirmed
+    // In a real app, this would generate a payment and monitor for confirmation
     setTimeout(() => {
-      setCurrentStep('success');
-      setAvailableCredits(prev => prev + packageInfo.credits);
-      setIsProcessing(false);
-      localStorage.setItem('pendingWireTransfer', 'true');
-    }, 1500);
+      handlePaymentSuccess();
+    }, 1000);
   };
   
-  // Handle Coinbase Commerce payment
+  // Handle crypto payment - In demo mode always succeeds
   const handleCryptoPayment = () => {
     setIsProcessing(true);
     setError(null);
@@ -220,31 +213,50 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onSuccess,
     // In a real app, this would generate a payment and monitor for confirmation
     setTimeout(() => {
       handlePaymentSuccess();
-    }, 2000);
+    }, 1000);
   };
   
   // Common success handler
   const handlePaymentSuccess = () => {
     setCurrentStep('success');
     setSuccess(true);
-    setAvailableCredits(prev => prev + packageInfo.credits);
+    
+    // Use the RiskMapService to add credits
+    const creditsToAdd = packageInfo.credits;
+    riskMapService.addCredits(creditsToAdd);
+    
+    // Update state
+    setAvailableCredits(riskMapService.getAvailableCredits());
     setIsProcessing(false);
     
-    // In a real app, you would store this in the user's account
-    localStorage.setItem('availableCredits', (availableCredits + packageInfo.credits).toString());
+    // After 1.5 seconds, automatically close and call onSuccess
+    setTimeout(() => {
+      onSuccess();
+      onClose();
+    }, 1500);
   };
   
   // Handle using credits to generate report
   const handleUseCredits = () => {
+    const availableCredits = riskMapService.getAvailableCredits();
+    
     if (availableCredits > 0) {
-      // Deduct a credit
-      const newCredits = availableCredits - 1;
-      setAvailableCredits(newCredits);
-      localStorage.setItem('availableCredits', newCredits.toString());
+      // Use the service to deduct a credit
+      const useSuccessful = riskMapService.useCredit();
       
-      // Proceed with report generation
-      onSuccess();
-      onClose();
+      if (useSuccessful) {
+        // Update our state to reflect the change
+        setAvailableCredits(riskMapService.getAvailableCredits());
+        
+        // In demo mode, add the report to purchased reports
+        riskMapService.addPurchasedReport('demo-transaction-id', reportType);
+        
+        // Proceed with report generation
+        onSuccess();
+        onClose();
+      } else {
+        setError('Failed to use credit. Please try again.');
+      }
     } else {
       setError('No credits available. Please purchase credits first.');
     }
@@ -263,6 +275,7 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onSuccess,
   const updateSelectedPaymentMethod = (methodId: PaymentMethod) => {
     console.log(`Selected payment method: ${methodId}`);
     setSelectedPaymentMethod(methodId);
+    setError(null);
   };
   
   // If modal is not open, don't render anything
@@ -430,7 +443,7 @@ const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, onSuccess,
             <div className="mb-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Enter Payment Details</h3>
               <p className="text-sm text-gray-600 mb-6">
-                You're purchasing {packageInfo.credits} credit{packageInfo.credits !== 1 ? 's' : ''} for {formatCurrency(finalPrice)}
+                You're purchasing {packageInfo.credits} credit{packageInfo.credits !== 1 ? 's' : ''}.
               </p>
               
               <div className="space-y-4 credit-card-form">

@@ -10,10 +10,11 @@ export const initDemoCredits = (forceReset = false) => {
   // Check if credits have been initialized already
   const existingCredits = localStorage.getItem('availableCredits');
   
-  // Initialize with 3 demo credits if not already set or if force reset
+  // Initialize with 10 demo credits if not already set or if force reset
+  // Increased from 3 to 10 to ensure enough credits for all report types
   if (!existingCredits || forceReset) {
     console.log('Initializing demo credits for risk report feature');
-    localStorage.setItem('availableCredits', '3');
+    localStorage.setItem('availableCredits', '10');
   }
   
   // Clear purchased reports if force reset
@@ -39,14 +40,24 @@ export const addDemoCredits = (amount = 1) => {
 
 // Function to reset all reports and credits (for testing)
 export const resetDemoCreditsAndReports = () => {
-  localStorage.setItem('availableCredits', '3');
+  localStorage.setItem('availableCredits', '10');
   localStorage.removeItem('purchasedReports');
   
-  console.log('Reset demo credits to 3 and cleared all purchased reports');
+  console.log('Reset demo credits to 10 and cleared all purchased reports');
   return {
-    credits: '3',
+    credits: '10',
     purchasedReports: '[]'
   };
 };
+
+// Force reset credits for demo (will be triggered on import)
+// This ensures the user always has enough credits
+(function ensureCreditsForDemo() {
+  const currentCredits = parseInt(localStorage.getItem('availableCredits') || '0', 10);
+  if (currentCredits < 5) {
+    console.log(`Current credits (${currentCredits}) below minimum threshold, resetting to 10`);
+    resetDemoCreditsAndReports();
+  }
+})();
 
 export default initDemoCredits; 

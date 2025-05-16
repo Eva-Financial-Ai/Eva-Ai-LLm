@@ -1,5 +1,7 @@
-// Import mock data
+// Import mock data and services
 import { mockLoginResponse } from './mockData';
+import demoModeService from './demoModeService';
+import { currentUser } from './mockBackendService';
 
 // API base URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
@@ -44,6 +46,36 @@ interface AuthResponse {
 
 // Login user
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
+  // Check if in demo mode
+  if (demoModeService.isEnabled()) {
+    console.log('[authService] Demo mode - simulating login');
+    
+    // Add a small delay to simulate network request
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Always succeed in demo mode
+    const demoToken = 'demo-jwt-token-' + Math.random().toString(36).substring(2);
+    
+    // Use the currentUser from mockBackendService
+    const demoResponse = {
+      success: true,
+      token: demoToken,
+      user: {
+        id: currentUser.id,
+        name: currentUser.name,
+        email: credentials.email || currentUser.email,
+        role: currentUser.role,
+        phoneNumber: credentials.phoneNumber || currentUser.phone,
+      },
+    };
+    
+    // Store the demo token and user data
+    localStorage.setItem('auth_token', demoResponse.token);
+    localStorage.setItem('user', JSON.stringify(demoResponse.user));
+    
+    return demoResponse;
+  }
+
   // Check if email is in the whitelist
   if (!ALLOWED_EMAILS.includes(credentials.email.toLowerCase())) {
     return {
@@ -150,11 +182,48 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
 
 // Check if user is authenticated
 export const isAuthenticated = (): boolean => {
+  // In demo mode, always consider the user authenticated
+  if (demoModeService.isEnabled()) {
+    // Make sure we have a demo token set
+    if (!localStorage.getItem('auth_token')) {
+      const demoToken = 'demo-jwt-token-' + Math.random().toString(36).substring(2);
+      localStorage.setItem('auth_token', demoToken);
+      localStorage.setItem('user', JSON.stringify({
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role,
+        phoneNumber: currentUser.phone,
+      }));
+    }
+    return true;
+  }
+  
   return !!localStorage.getItem('auth_token');
 };
 
 // Get current user
 export const getCurrentUser = () => {
+  // In demo mode, return the current demo user
+  if (demoModeService.isEnabled()) {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      return JSON.parse(storedUser);
+    }
+    
+    // If no stored user, create one based on the currentUser from mockBackendService
+    const demoUser = {
+      id: currentUser.id,
+      name: currentUser.name,
+      email: currentUser.email,
+      role: currentUser.role,
+      phoneNumber: currentUser.phone,
+    };
+    
+    localStorage.setItem('user', JSON.stringify(demoUser));
+    return demoUser;
+  }
+  
   const userString = localStorage.getItem('user');
   return userString ? JSON.parse(userString) : null;
 };
@@ -163,14 +232,33 @@ export const getCurrentUser = () => {
 export const logout = (): void => {
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user');
+  
+  // If in demo mode, don't redirect if we're keeping the user logged in
+  if (demoModeService.isEnabled() && demoModeService.getConfig().enabled) {
+    console.log('[authService] Demo mode - simulating logout (but staying logged in for demo)');
+    return;
+  }
+  
   // You might want to redirect to login page here
   window.location.href = '/login';
 };
 
 // Refresh token
 export const refreshToken = async (): Promise<boolean> => {
+  // In demo mode, always succeed token refresh
+  if (demoModeService.isEnabled()) {
+    console.log('[authService] Demo mode - simulating token refresh');
+    
+    // Make sure we have a demo token set
+    if (!localStorage.getItem('auth_token')) {
+      const demoToken = 'demo-jwt-token-' + Math.random().toString(36).substring(2);
+      localStorage.setItem('auth_token', demoToken);
+    }
+    
+    return true;
+  }
+  
   const token = localStorage.getItem('auth_token');
-
   if (!token) return false;
 
   if (USE_MOCK_DATA) {
