@@ -152,7 +152,7 @@
     "webpack-dev-server": "^4.9.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "18.18.0"
   },
   "resolutions": {
     "@types/react": "^18.2.0",
