@@ -22,7 +22,7 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
     <div className={`space-y-6 ${className}`}>
       <div>
         <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-3">
-          {t('theme.colorScheme', 'Color Scheme')}
+          {t('theme.colorScheme')}
         </h3>
         <div className="flex flex-col gap-3">
           <div className="flex items-center">
@@ -38,7 +38,7 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
               htmlFor="light-mode"
               className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('theme.light', 'Light')}
+              {t('theme.light')}
             </label>
           </div>
           
@@ -55,7 +55,7 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
               htmlFor="dark-mode"
               className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('theme.dark', 'Dark')}
+              {t('theme.dark')}
             </label>
           </div>
           
@@ -72,10 +72,10 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
               htmlFor="system-mode"
               className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('theme.system', 'Use System Setting')}
+              {t('theme.system')}
             </label>
             <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-              {t('theme.systemHint', 'Follows your device theme')}
+              {t('theme.systemHint')}
             </span>
           </div>
         </div>
@@ -83,7 +83,7 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
       
       <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
         <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-3">
-          {t('theme.accessibility', 'Accessibility')}
+          {t('theme.accessibility')}
         </h3>
         
         <div className="flex items-center">
@@ -99,16 +99,16 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
           </div>
           <div className="ml-3 flex items-center justify-between w-full">
             <label htmlFor="high-contrast" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {t('theme.highContrast', 'High Contrast Mode')}
+              {t('theme.highContrast')}
             </label>
             <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-              {t('theme.highContrastHint', 'Enhances visual distinction')}
+              {t('theme.highContrastHint')}
             </span>
           </div>
         </div>
 
         <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          {t('theme.accessibilityNote', 'These settings improve visibility and readability.')}
+          {t('theme.accessibilityNote')}
         </p>
       </div>
       
@@ -136,7 +136,7 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
           />
         </div>
         <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          {t('theme.previewNote', 'Preview of your selected color scheme and contrast settings.')}
+          {t('theme.previewNote')}
         </p>
       </div>
     </div>

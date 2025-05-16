@@ -239,7 +239,7 @@ const ProfileSettings: React.FC = () => {
     userService
       .changePassword(passwordForm.currentPassword, passwordForm.newPassword)
       .then(() => {
-        showToast(t('profile.passwordUpdated', 'Password successfully updated'), 'success');
+        showToast(t('profile.passwordUpdated'));
 
         // Reset form
         setPasswordForm({
@@ -275,8 +275,8 @@ const ProfileSettings: React.FC = () => {
         setTwoFactorEnabled(!twoFactorEnabled);
         showToast(
           twoFactorEnabled
-            ? t('profile.twoFactorDisabled', 'Two-factor authentication disabled')
-            : t('profile.twoFactorEnabled', 'Two-factor authentication enabled'),
+            ? t('profile.twoFactorDisabled')
+            : t('profile.twoFactorEnabled'),
           'success'
         );
       })
@@ -314,7 +314,7 @@ const ProfileSettings: React.FC = () => {
     // Mock API call
     setTimeout(() => {
       setIsSavingNotifications(false);
-      showToast(t('profile.notificationsSaved', 'Notification preferences saved'), 'success');
+      showToast(t('profile.notificationsSaved'), 'success');
     }, 1000);
   };
 
@@ -360,8 +360,8 @@ const ProfileSettings: React.FC = () => {
       setShowTeamMemberModal(false);
       showToast(
         teamMemberMode === 'create'
-          ? t('profile.teamMemberAdded', 'Team member added successfully')
-          : t('profile.teamMemberUpdated', 'Team member updated successfully'),
+          ? t('profile.teamMemberAdded')
+          : t('profile.teamMemberUpdated'),
         'success'
       );
     }
@@ -370,13 +370,13 @@ const ProfileSettings: React.FC = () => {
   const handleRemoveTeamMember = async (id: string) => {
     if (
       window.confirm(
-        t('profile.confirmRemoveMember', 'Are you sure you want to remove this team member?')
+        t('profile.confirmRemoveMember')
       )
     ) {
       const success = await removeTeamMember(id);
 
       if (success) {
-        showToast(t('profile.teamMemberRemoved', 'Team member removed successfully'), 'success');
+        showToast(t('profile.teamMemberRemoved'), 'success');
       }
     }
   };
@@ -572,7 +572,7 @@ const ProfileSettings: React.FC = () => {
     return (
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-6">
-          {t('profile.personalInfo', 'Personal Information')}
+          {t('profile.personalInfo')}
         </h2>
 
         {profileErrors.general && (
@@ -592,7 +592,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.name', 'Name')}
+                {t('profile.name')}
               </label>
               <input
                 type="text"
@@ -620,7 +620,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.email', 'Email')}
+                {t('profile.email')}
               </label>
               <input
                 type="email"
@@ -648,7 +648,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="phone"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.phone', 'Phone')}
+                {t('profile.phone')}
               </label>
               <input
                 type="tel"
@@ -676,7 +676,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="preferredLanguage"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.language', 'Preferred Language')}
+                {t('profile.language')}
               </label>
               <select
                 id="preferredLanguage"
@@ -685,10 +685,10 @@ const ProfileSettings: React.FC = () => {
                 onChange={handleProfileChange}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               >
-                <option value="en">{t('languages.english', 'English')}</option>
-                <option value="es">{t('languages.spanish', 'Spanish')}</option>
-                <option value="fr">{t('languages.french', 'French')}</option>
-                <option value="de">{t('languages.german', 'German')}</option>
+                <option value="en">{t('languages.english')}</option>
+                <option value="es">{t('languages.spanish')}</option>
+                <option value="fr">{t('languages.french')}</option>
+                <option value="de">{t('languages.german')}</option>
               </select>
             </div>
 
@@ -699,7 +699,7 @@ const ProfileSettings: React.FC = () => {
                 disabled={!isProfileDirty || isSavingProfile}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50"
               >
-                {t('common.cancel', 'Cancel')}
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
@@ -728,7 +728,7 @@ const ProfileSettings: React.FC = () => {
                     ></path>
                   </svg>
                 )}
-                {t('common.save', 'Save')}
+                {t('common.save')}
               </button>
             </div>
           </form>
@@ -742,37 +742,37 @@ const ProfileSettings: React.FC = () => {
     return (
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-6">
-          {t('profile.accountSettings', 'Account Settings')}
+          {t('profile.accountSettings')}
         </h2>
 
         <div className="space-y-6">
           <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
             <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-3">
-              {t('profile.accountType', 'Account Type')}
+              {t('profile.accountType')}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t('profile.currentPlan', 'You are currently on the Enterprise plan')}
+              {t('profile.currentPlan')}
             </p>
           </div>
 
           <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
             <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-3">
-              {t('profile.dataExport', 'Data Export')}
+              {t('profile.dataExport')}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              {t('profile.dataExportDesc', 'Download a copy of your data from the EVA platform.')}
+              {t('profile.dataExportDesc')}
             </p>
             <button
               type="button"
               className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
-              {t('profile.exportData', 'Export Data')}
+              {t('profile.exportData')}
             </button>
           </div>
 
           <div>
             <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-3">
-              {t('profile.dangerZone', 'Danger Zone')}
+              {t('profile.dangerZone')}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               {t(
@@ -784,7 +784,7 @@ const ProfileSettings: React.FC = () => {
               type="button"
               className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
-              {t('profile.deleteAccount', 'Delete Account')}
+              {t('profile.deleteAccount')}
             </button>
           </div>
         </div>
@@ -797,13 +797,13 @@ const ProfileSettings: React.FC = () => {
     return (
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-6">
-          {t('profile.security', 'Security Settings')}
+          {t('profile.security')}
         </h2>
 
         {/* Password Change Section */}
         <div className="mb-8">
           <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
-            {t('profile.changePassword', 'Change Password')}
+            {t('profile.changePassword')}
           </h3>
 
           {passwordErrors.general && (
@@ -818,7 +818,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="currentPassword"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.currentPassword', 'Current Password')}
+                {t('profile.currentPassword')}
               </label>
               <input
                 type="password"
@@ -851,7 +851,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="newPassword"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.newPassword', 'New Password')}
+                {t('profile.newPassword')}
               </label>
               <input
                 type="password"
@@ -884,7 +884,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.confirmPassword', 'Confirm Password')}
+                {t('profile.confirmPassword')}
               </label>
               <input
                 type="password"
@@ -940,7 +940,7 @@ const ProfileSettings: React.FC = () => {
                     ></path>
                   </svg>
                 )}
-                {t('profile.updatePassword', 'Update Password')}
+                {t('profile.updatePassword')}
               </button>
             </div>
           </form>
@@ -949,7 +949,7 @@ const ProfileSettings: React.FC = () => {
         {/* Two-Factor Authentication Section */}
         <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
-            {t('profile.twoFactorAuth', 'Two-Factor Authentication')}
+            {t('profile.twoFactorAuth')}
           </h3>
 
           <p className="mb-4 text-gray-600 dark:text-gray-400">
@@ -963,8 +963,8 @@ const ProfileSettings: React.FC = () => {
             <div>
               <p className="font-medium">
                 {twoFactorEnabled
-                  ? t('profile.twoFactorEnabled', 'Two-factor authentication is enabled')
-                  : t('profile.twoFactorDisabled', 'Two-factor authentication is disabled')}
+                  ? t('profile.twoFactorEnabled')
+                  : t('profile.twoFactorDisabled')}
               </p>
             </div>
 
@@ -1000,7 +1000,7 @@ const ProfileSettings: React.FC = () => {
                   ></path>
                 </svg>
               )}
-              {twoFactorEnabled ? t('profile.disable', 'Disable') : t('profile.enable', 'Enable')}
+              {twoFactorEnabled ? t('profile.disable') : t('profile.enable')}
             </button>
           </div>
         </div>
@@ -1013,14 +1013,14 @@ const ProfileSettings: React.FC = () => {
     return (
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-6">
-          {t('profile.notifications', 'Notification Preferences')}
+          {t('profile.notifications')}
         </h2>
 
         <div className="space-y-6">
           {/* Channel Preferences */}
           <div>
             <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
-              {t('profile.notificationChannels', 'Notification Channels')}
+              {t('profile.notificationChannels')}
             </h3>
 
             <div className="space-y-3">
@@ -1037,7 +1037,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="emailNotifications"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.emailNotifications', 'Email Notifications')}
+                  {t('profile.emailNotifications')}
                 </label>
               </div>
 
@@ -1054,7 +1054,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="smsNotifications"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.smsNotifications', 'SMS Notifications')}
+                  {t('profile.smsNotifications')}
                 </label>
               </div>
 
@@ -1071,7 +1071,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="inAppNotifications"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.inAppNotifications', 'In-App Notifications')}
+                  {t('profile.inAppNotifications')}
                 </label>
               </div>
             </div>
@@ -1080,7 +1080,7 @@ const ProfileSettings: React.FC = () => {
           {/* Notification Types */}
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
-              {t('profile.notificationTypes', 'Notification Types')}
+              {t('profile.notificationTypes')}
             </h3>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -1097,7 +1097,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="transactions"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.transactions', 'Transactions')}
+                  {t('profile.transactions')}
                 </label>
               </div>
 
@@ -1114,7 +1114,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="documents"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.documents', 'Documents')}
+                  {t('profile.documents')}
                 </label>
               </div>
 
@@ -1131,7 +1131,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="messages"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.messages', 'Messages')}
+                  {t('profile.messages')}
                 </label>
               </div>
 
@@ -1148,7 +1148,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="reminders"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.reminders', 'Reminders')}
+                  {t('profile.reminders')}
                 </label>
               </div>
             </div>
@@ -1184,7 +1184,7 @@ const ProfileSettings: React.FC = () => {
                   ></path>
                 </svg>
               )}
-              {t('common.save', 'Save')}
+              {t('common.save')}
             </button>
           </div>
         </div>
@@ -1197,7 +1197,7 @@ const ProfileSettings: React.FC = () => {
     return (
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-6">
-          {t('profile.accessibility', 'Accessibility Settings')}
+          {t('profile.accessibility')}
         </h2>
 
         <p className="mb-6 text-gray-600 dark:text-gray-300">
@@ -1210,7 +1210,7 @@ const ProfileSettings: React.FC = () => {
         <AccessibilityControls className="mb-6" />
 
         <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mt-8 mb-3">
-          {t('profile.additionalAccessibility', 'Additional Accessibility Options')}
+          {t('profile.additionalAccessibility')}
         </h3>
 
         {/* Additional accessibility options can be added here */}
@@ -1226,7 +1226,7 @@ const ProfileSettings: React.FC = () => {
               htmlFor="highContrast"
               className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('profile.highContrast', 'High Contrast Mode')}
+              {t('profile.highContrast')}
             </label>
           </div>
 
@@ -1241,7 +1241,7 @@ const ProfileSettings: React.FC = () => {
               htmlFor="reducedMotion"
               className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('profile.reducedMotion', 'Reduced Motion')}
+              {t('profile.reducedMotion')}
             </label>
           </div>
 
@@ -1256,7 +1256,7 @@ const ProfileSettings: React.FC = () => {
               htmlFor="largerText"
               className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('profile.largerText', 'Larger Text')}
+              {t('profile.largerText')}
             </label>
           </div>
         </div>
@@ -1270,7 +1270,7 @@ const ProfileSettings: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white">
-            {t('profile.teamManagement', 'Team Management')}
+            {t('profile.teamManagement')}
           </h2>
 
           <button
@@ -1286,7 +1286,7 @@ const ProfileSettings: React.FC = () => {
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            {t('profile.addTeamMember', 'Add Team Member')}
+            {t('profile.addTeamMember')}
           </button>
         </div>
 
@@ -1331,37 +1331,37 @@ const ProfileSettings: React.FC = () => {
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.name', 'Name')}
+                    {t('profile.name')}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.email', 'Email')}
+                    {t('profile.email')}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.role', 'Role')}
+                    {t('profile.role')}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.status', 'Status')}
+                    {t('profile.status')}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.lastActive', 'Last Active')}
+                    {t('profile.lastActive')}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.actions', 'Actions')}
+                    {t('profile.actions')}
                   </th>
                 </tr>
               </thead>
@@ -1393,20 +1393,20 @@ const ProfileSettings: React.FC = () => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       {member.lastActive
                         ? new Date(member.lastActive).toLocaleDateString()
-                        : t('profile.never', 'Never')}
+                        : t('profile.never')}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => openTeamMemberModal(member)}
                         className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300 mr-4"
                       >
-                        {t('common.edit', 'Edit')}
+                        {t('common.edit')}
                       </button>
                       <button
                         onClick={() => handleRemoveTeamMember(member.id)}
                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                       >
-                        {t('common.remove', 'Remove')}
+                        {t('common.remove')}
                       </button>
                     </td>
                   </tr>
@@ -1427,15 +1427,15 @@ const ProfileSettings: React.FC = () => {
           <div className="flex justify-between items-center mb-5">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
               {teamMemberMode === 'create'
-                ? t('profile.addTeamMember', 'Add Team Member')
-                : t('profile.editTeamMember', 'Edit Team Member')}
+                ? t('profile.addTeamMember')
+                : t('profile.editTeamMember')}
             </h3>
             <button
               type="button"
               onClick={() => setShowTeamMemberModal(false)}
               className="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200"
             >
-              <span className="sr-only">{t('common.close', 'Close')}</span>
+              <span className="sr-only">{t('common.close')}</span>
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -1459,7 +1459,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.name', 'Name')} *
+                {t('profile.name')} *
               </label>
               <input
                 type="text"
@@ -1487,7 +1487,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.email', 'Email')} *
+                {t('profile.email')} *
               </label>
               <input
                 type="email"
@@ -1515,7 +1515,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="role"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.role', 'Role')} *
+                {t('profile.role')} *
               </label>
               <select
                 id="role"
@@ -1529,10 +1529,10 @@ const ProfileSettings: React.FC = () => {
                 }
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               >
-                <option value="admin">{t('profile.roles.admin', 'Admin')}</option>
-                <option value="manager">{t('profile.roles.manager', 'Manager')}</option>
-                <option value="user">{t('profile.roles.user', 'Regular User')}</option>
-                <option value="viewer">{t('profile.roles.viewer', 'Viewer')}</option>
+                <option value="admin">{t('profile.roles.admin')}</option>
+                <option value="manager">{t('profile.roles.manager')}</option>
+                <option value="user">{t('profile.roles.user')}</option>
+                <option value="viewer">{t('profile.roles.viewer')}</option>
               </select>
               {teamErrors.role && (
                 <p id="role-error" className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -1543,7 +1543,7 @@ const ProfileSettings: React.FC = () => {
 
             <div>
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('profile.permissions', 'Permissions')}
+                {t('profile.permissions')}
               </h4>
 
               <div className="space-y-2">
@@ -1560,7 +1560,7 @@ const ProfileSettings: React.FC = () => {
                     htmlFor="canManageUsers"
                     className="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {t('profile.permissions.manageUsers', 'Manage Users')}
+                    {t('profile.permissions.manageUsers')}
                   </label>
                 </div>
 
@@ -1577,7 +1577,7 @@ const ProfileSettings: React.FC = () => {
                     htmlFor="canViewDocuments"
                     className="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {t('profile.permissions.viewDocuments', 'View Documents')}
+                    {t('profile.permissions.viewDocuments')}
                   </label>
                 </div>
 
@@ -1594,7 +1594,7 @@ const ProfileSettings: React.FC = () => {
                     htmlFor="canEditDocuments"
                     className="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {t('profile.permissions.editDocuments', 'Edit Documents')}
+                    {t('profile.permissions.editDocuments')}
                   </label>
                 </div>
 
@@ -1611,7 +1611,7 @@ const ProfileSettings: React.FC = () => {
                     htmlFor="canApproveDeals"
                     className="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {t('profile.permissions.approveDeals', 'Approve Deals')}
+                    {t('profile.permissions.approveDeals')}
                   </label>
                 </div>
 
@@ -1628,7 +1628,7 @@ const ProfileSettings: React.FC = () => {
                     htmlFor="canManageSettings"
                     className="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {t('profile.permissions.manageSettings', 'Manage Settings')}
+                    {t('profile.permissions.manageSettings')}
                   </label>
                 </div>
               </div>
@@ -1640,7 +1640,7 @@ const ProfileSettings: React.FC = () => {
                 onClick={() => setShowTeamMemberModal(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50"
               >
-                {t('common.cancel', 'Cancel')}
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -1670,7 +1670,7 @@ const ProfileSettings: React.FC = () => {
                     ></path>
                   </svg>
                 )}
-                {t('common.save', 'Save')}
+                {t('common.save')}
               </button>
             </div>
           </form>
@@ -1698,7 +1698,7 @@ const ProfileSettings: React.FC = () => {
   return (
     <div className="container py-8 mx-auto max-w-7xl">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
-        {t('profile.settings', 'Profile Settings')}
+        {t('profile.settings')}
       </h1>
 
       <div className="flex flex-col md:flex-row gap-6">
@@ -1709,7 +1709,7 @@ const ProfileSettings: React.FC = () => {
               <div className="border-b border-gray-200 dark:border-gray-700">
                 <div className="p-4">
                   <h2 className="text-base font-medium text-gray-800 dark:text-white">
-                    {t('profile.settingsMenu', 'Settings')}
+                    {t('profile.settingsMenu')}
                   </h2>
                 </div>
               </div>
@@ -1723,7 +1723,7 @@ const ProfileSettings: React.FC = () => {
                         : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700'
                     }`}
                   >
-                    {t('profile.personalInfo', 'Personal Information')}
+                    {t('profile.personalInfo')}
                   </button>
                 </li>
                 <li>
@@ -1735,7 +1735,7 @@ const ProfileSettings: React.FC = () => {
                         : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700'
                     }`}
                   >
-                    {t('profile.security', 'Security')}
+                    {t('profile.security')}
                   </button>
                 </li>
                 <li>
@@ -1747,7 +1747,7 @@ const ProfileSettings: React.FC = () => {
                         : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700'
                     }`}
                   >
-                    {t('profile.notifications', 'Notifications')}
+                    {t('profile.notifications')}
                   </button>
                 </li>
                 <li>
@@ -1759,7 +1759,7 @@ const ProfileSettings: React.FC = () => {
                         : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700'
                     }`}
                   >
-                    {t('profile.accessibility', 'Accessibility')}
+                    {t('profile.accessibility')}
                   </button>
                 </li>
                 <li>
@@ -1771,7 +1771,7 @@ const ProfileSettings: React.FC = () => {
                         : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700'
                     }`}
                   >
-                    {t('profile.teamManagement', 'Team Management')}
+                    {t('profile.teamManagement')}
                   </button>
                 </li>
               </ul>
