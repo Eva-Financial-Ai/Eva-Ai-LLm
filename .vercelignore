@@ -1,0 +1,13 @@
+.git
+node_modules
+.husky
+.github
+design-system
+docs
+test
+scripts
+*.sh
+.storybook
+*.md
+jest.config.js
+webpack.test.config.js 
