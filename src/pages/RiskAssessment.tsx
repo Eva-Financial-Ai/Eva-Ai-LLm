@@ -4,7 +4,6 @@ import ModularRiskNavigator from '../components/risk/ModularRiskNavigator';
 import { RISK_MAP_VIEWS, RiskMapType } from '../components/risk/RiskMapNavigator';
 import TopNavigation from '../components/layout/TopNavigation';
 import useTransactionStore from '../hooks/useTransactionStore';
-import DemoCreditsManager from '../components/dev/DemoCreditsManager';
 
 const RiskAssessment: React.FC = () => {
   const navigate = useNavigate();
@@ -238,9 +237,6 @@ const RiskAssessment: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Add the demo credits manager component */}
-      <DemoCreditsManager />
     </div>
   );
 };
