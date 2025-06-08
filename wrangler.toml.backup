@@ -1,0 +1,300 @@
+# ========================================
+# EVA AI Frontend - Cloudflare Pages Configuration
+# ========================================
+
+name = "eva-ai-frontend"
+main = "src/index.js"
+compatibility_date = "2025-06-07"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "build"
+
+# Account Configuration
+account_id = "eace6f3c56b5735ae4a9ef385d6ee914"
+
+# Environment Configurations
+[env.staging]
+name = "eva-ai-frontend-staging"
+zone_id = "79cbd8176057c91e2e2329ffd8b386a5"
+route = "demo.evafin.ai/*"
+custom_domain = "demo.evafin.ai"
+
+[env.production]
+name = "eva-ai-frontend-production"
+zone_id = "913680b4428f2f4d1c078dd841cd8cdb"
+route = "app.evafi.ai/*"
+custom_domain = "app.evafi.ai"
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "EVA_CACHE"
+id = "e28fe91a1b844808a5b3109592b890a7"
+preview_id = "e28fe91a1b844808a5b3109592b890a7"
+
+[[kv_namespaces]]
+binding = "USER_SESSIONS"
+id = "3c32a3731dcf444fa788804d20587d43"
+preview_id = "3c32a3731dcf444fa788804d20587d43"
+
+[[kv_namespaces]]
+binding = "ANALYTICS_DATA"
+id = "47d169b21b9742db8e3040e7c127964e"
+preview_id = "47d169b21b9742db8e3040e7c127964e"
+
+# R2 Buckets
+[[r2_buckets]]
+binding = "DOCUMENTS_BUCKET"
+bucket_name = "eva-documents"
+
+[[r2_buckets]]
+binding = "STATIC_ASSETS_BUCKET"
+bucket_name = "eva-static-assets"
+
+# D1 Database
+[[d1_databases]]
+binding = "DOCUMENT_DB"
+database_name = "eva-documents-db"
+database_id = "your-database-id"
+
+# Hyperdrive Configuration
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "your-hyperdrive-id"
+localConnectionString = "postgresql://username:password@localhost:5432/eva_db"
+
+# Queue Configuration
+[[queues.producers]]
+queue = "eva-processing-queue"
+binding = "QUEUE"
+
+[[queues.consumers]]
+queue = "eva-processing-queue"
+max_batch_size = 10
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "eva-dlq"
+
+# Analytics Engine
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "eva-analytics"
+
+# Durable Objects
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+script_name = "eva-rate-limiter"
+
+[[durable_objects.bindings]]
+name = "SESSION_MANAGER"
+class_name = "SessionManager"
+script_name = "eva-session-manager"
+
+# Environment Variables (Safe to expose)
+[vars]
+ENVIRONMENT = "staging"
+API_BASE_URL = "https://api-staging.evafi.ai"
+SUPPORT_PHONE = "7025762013"
+CLOUDFLARE_STREAM_SUBDOMAIN = "customer-9eikf9ekxbfirnkc.cloudflarestream.com"
+PUBLIC_R2_BUCKET_URL = "https://eva-documents.eva-ai.com"
+PUBLIC_STATIC_ASSETS_URL = "https://eva-static-assets.eva-ai.com"
+
+# Secrets (Use: wrangler secret put SECRET_NAME --env ENV_NAME)
+# Updated 2024 - All credentials secured in Workers secrets
+# - CLOUDFLARE_API_TOKEN (includes Images permissions - no separate key needed)
+# - PLAID_CLIENT_ID
+# - PLAID_PUBLIC_KEY  
+# - SENDGRID_API_KEY
+# - TWILIO_ACCOUNT_SID
+# - TWILIO_AUTH_TOKEN
+# - AUTH0_CLIENT_SECRET
+# - GEOAPIFY_API_KEY
+# - ENCRYPTION_KEY
+# - SENTRY_DSN
+# - STRIPE_SECRET_KEY (production only)
+
+# Build Configuration
+[build]
+command = "npm run build"
+cwd = "."
+watch_dir = "src"
+
+# Security Headers
+[[pages.headers]]
+for = "/*"
+[pages.headers.values]
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+X-XSS-Protection = "1; mode=block"
+Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.evafi.ai https://api-staging.evafi.ai wss:; frame-ancestors 'none';"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+# Cache Configuration
+[[pages.headers]]
+for = "/static/*"
+[pages.headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[pages.headers]]
+for = "*.js"
+[pages.headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[pages.headers]]
+for = "*.css"
+[pages.headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirects
+[[pages.redirects]]
+from = "/app"
+to = "/dashboard"
+status = 301
+
+[[pages.redirects]]
+from = "/login"
+to = "/auth/login"
+status = 301
+
+# Custom Domains
+[env.staging.custom_domains]
+domains = ["demo.evafin.ai"]
+
+[env.production.custom_domains]
+domains = ["app.evafi.ai"]
+
+# Production Environment Overrides
+[env.production.vars]
+ENVIRONMENT = "production"
+API_BASE_URL = "https://api.evafi.ai"
+
+# ========================================
+# EVA AI Platform - Cloudflare Workers Configuration
+# ========================================
+
+name = "eva-platform"
+main = "src/worker.ts"
+compatibility_date = "2024-01-15"
+
+# Account Configuration (Safe to expose)
+account_id = "eace6f3c56b5735ae4a9ef385d6ee914"
+
+# Development Environment
+[env.development]
+name = "eva-platform-dev"
+vars = {
+  ENVIRONMENT = "development",
+  NODE_ENV = "development",
+  
+  # Public API Endpoints (Safe to expose)
+  API_URL = "https://eva-api-gateway.eva-platform.workers.dev",
+  FILES_URL = "https://eva-file-access.eva-platform.workers.dev",
+  SMART_MATCHING_URL = "https://eva-smart-match-lender.eva-platform.workers.dev",
+  CHAT_URL = "https://eva-chat-ai-agent.eva-platform.workers.dev",
+  VIDEO_URL = "https://eva-stream-video.eva-platform.workers.dev",
+  IMAGES_URL = "https://eva-images-optimization.eva-platform.workers.dev",
+  SECURITY_URL = "https://eva-turnstile-bot-protection.eva-platform.workers.dev",
+  
+  # Cloudflare Configuration (Non-sensitive)
+  CLOUDFLARE_ACCOUNT_ID = "eace6f3c56b5735ae4a9ef385d6ee914",
+  CLOUDFLARE_EMAIL = "support@evafi.ai",
+  
+  # Auth0 Configuration (Domain is public)
+  AUTH0_DOMAIN = "evafi.us.auth0.com",
+  AUTH0_AUDIENCE = "https://api.evafin.ai",
+  
+  # Feature Flags
+  ENABLE_DEBUG = "true",
+  ENABLE_SMART_MATCHING = "true",
+  ENABLE_FILELOCK_CHAT = "true",
+  ENABLE_REAL_TIME_ANALYSIS = "true",
+  ENABLE_ADVANCED_ANALYTICS = "true",
+  ENABLE_AI_UNDERWRITING = "true",
+  ENABLE_VIDEO_CONFERENCING = "true",
+  ENABLE_VOICE_CALLS = "true",
+  ENABLE_IMAGE_PROCESSING = "true",
+  ENABLE_BOT_PROTECTION = "true"
+}
+
+# Staging Environment 
+[env.staging]
+name = "eva-platform-staging"
+vars = {
+  ENVIRONMENT = "staging",
+  NODE_ENV = "production",
+  
+  # Public API Endpoints
+  API_URL = "https://api.evafin.ai",
+  
+  # Cloudflare Configuration
+  CLOUDFLARE_ACCOUNT_ID = "eace6f3c56b5735ae4a9ef385d6ee914",
+  CLOUDFLARE_ZONE_ID = "79cbd8176057c91e2e2329ffd8b386a5",
+  CLOUDFLARE_EMAIL = "support@evafi.ai",
+  CLOUDFLARE_STREAM_SUBDOMAIN = "customer-9eikf9ekxbfirnkc.cloudflarestream.com",
+  
+  # Auth0 Configuration
+  AUTH0_DOMAIN = "evafi.us.auth0.com",
+  AUTH0_AUDIENCE = "https://api.evafin.ai",
+  
+  # Feature Flags (Staging)
+  ENABLE_DEBUG = "false",
+  ENABLE_SMART_MATCHING = "true",
+  ENABLE_FILELOCK_CHAT = "true",
+  ENABLE_REAL_TIME_ANALYSIS = "true",
+  ENABLE_ADVANCED_ANALYTICS = "true",
+  ENABLE_AI_UNDERWRITING = "true",
+  ENABLE_VIDEO_CONFERENCING = "true",
+  ENABLE_VOICE_CALLS = "true",
+  ENABLE_IMAGE_PROCESSING = "true",
+  ENABLE_BOT_PROTECTION = "true"
+}
+
+# Production Environment
+[env.production]
+name = "eva-platform-production"
+vars = {
+  ENVIRONMENT = "production",
+  NODE_ENV = "production",
+  
+  # Public API Endpoints
+  API_URL = "https://api.evafi.ai",
+  
+  # Cloudflare Configuration
+  CLOUDFLARE_ACCOUNT_ID = "eace6f3c56b5735ae4a9ef385d6ee914",
+  CLOUDFLARE_ZONE_ID = "913680b4428f2f4d1c078dd841cd8cdb",
+  CLOUDFLARE_EMAIL = "support@evafi.ai",
+  CLOUDFLARE_STREAM_SUBDOMAIN = "customer-9eikf9ekxbfirnkc.cloudflarestream.com",
+  
+  # Auth0 Configuration
+  AUTH0_DOMAIN = "evafi.us.auth0.com", 
+  AUTH0_AUDIENCE = "https://api.evafi.ai",
+  
+  # Feature Flags (Production)
+  ENABLE_DEBUG = "false",
+  ENABLE_SMART_MATCHING = "true",
+  ENABLE_FILELOCK_CHAT = "true",
+  ENABLE_REAL_TIME_ANALYSIS = "true",
+  ENABLE_ADVANCED_ANALYTICS = "true",
+  ENABLE_AI_UNDERWRITING = "true",
+  ENABLE_VIDEO_CONFERENCING = "true",
+  ENABLE_VOICE_CALLS = "true",
+  ENABLE_IMAGE_PROCESSING = "true",
+  ENABLE_BOT_PROTECTION = "true"
+}
+
+# IMPORTANT: All sensitive data must be stored as Wrangler secrets
+# Use: wrangler secret put SECRET_NAME
+# Never store these in this file:
+# - CLOUDFLARE_API_TOKEN
+# - CLOUDFLARE_IMAGES_API_KEY  
+# - PLAID_CLIENT_ID
+# - PLAID_PUBLIC_KEY
+# - SENDGRID_API_KEY
+# - TWILIO_ACCOUNT_SID
+# - TWILIO_AUTH_TOKEN
+# - AUTH0_CLIENT_ID
+# - AUTH0_CLIENT_SECRET
+# - STRIPE_SECRET_KEY
+# - GEOAPIFY_API_KEY
+# - ENCRYPTION_KEY 

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Viewer Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-info { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e9; color: #2e7d32; }
+        iframe { border: 1px solid #ccc; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Document Viewer Debug Tool</h1>
+    
+    <div>
+        <h3>Test File Upload</h3>
+        <input type="file" id="fileInput" accept=".pdf,.doc,.docx" />
+        <button onclick="testFile()">Test Document</button>
+    </div>
+    
+    <div id="debugInfo"></div>
+    
+    <div id="documentPreview"></div>
+
+    <script>
+        function testFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file first');
+                return;
+            }
+            
+            const debugInfo = document.getElementById('debugInfo');
+            const preview = document.getElementById('documentPreview');
+            
+            // Clear previous results
+            debugInfo.innerHTML = '';
+            preview.innerHTML = '';
+            
+            // Create blob URL
+            const blobUrl = URL.createObjectURL(file);
+            
+            // Display debug information
+            debugInfo.innerHTML = `
+                <div class="debug-info">
+                    <h4>File Information</h4>
+                    <p><strong>Name:</strong> ${file.name}</p>
+                    <p><strong>Type:</strong> ${file.type}</p>
+                    <p><strong>Size:</strong> ${file.size} bytes</p>
+                    <p><strong>Last Modified:</strong> ${new Date(file.lastModified)}</p>
+                    <p><strong>Blob URL:</strong> ${blobUrl}</p>
+                </div>
+            `;
+            
+            // Test if blob URL is accessible
+            fetch(blobUrl)
+                .then(response => {
+                    if (response.ok) {
+                        debugInfo.innerHTML += `
+                            <div class="debug-info success">
+                                <h4>✅ Blob URL Test</h4>
+                                <p>Blob URL is accessible via fetch</p>
+                                <p>Status: ${response.status}</p>
+                                <p>Content-Type: ${response.headers.get('content-type') || 'Unknown'}</p>
+                            </div>
+                        `;
+                        
+                        // Try to display the document
+                        if (file.type === 'application/pdf') {
+                            preview.innerHTML = `
+                                <h4>PDF Preview Attempts</h4>
+                                <div>
+                                    <h5>Method 1: Object Tag</h5>
+                                    <object data="${blobUrl}" type="application/pdf" width="600" height="400">
+                                        <p>PDF cannot be displayed with object tag</p>
+                                    </object>
+                                </div>
+                                <div>
+                                    <h5>Method 2: Iframe</h5>
+                                    <iframe src="${blobUrl}" width="600" height="400">
+                                        <p>PDF cannot be displayed with iframe</p>
+                                    </iframe>
+                                </div>
+                            `;
+                        } else if (file.type.includes('word') || file.name.includes('.docx')) {
+                            preview.innerHTML = `
+                                <h4>DOCX File Detected</h4>
+                                <p>DOCX files require special processing (mammoth.js) to display content.</p>
+                                <p>Blob URL: <a href="${blobUrl}" target="_blank">Download/Open</a></p>
+                            `;
+                        }
+                        
+                    } else {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                })
+                .catch(error => {
+                    debugInfo.innerHTML += `
+                        <div class="debug-info error">
+                            <h4>❌ Blob URL Test Failed</h4>
+                            <p>Error: ${error.message}</p>
+                        </div>
+                    `;
+                });
+        }
+        
+        // Test with sample files
+        function testSamplePDF() {
+            debugInfo.innerHTML += `
+                <div class="debug-info">
+                    <h4>Testing Sample PDF from Internet</h4>
+                    <iframe src="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" width="600" height="400">
+                        <p>Cannot load external PDF</p>
+                    </iframe>
+                </div>
+            `;
+        }
+    </script>
+    
+    <div style="margin-top: 30px;">
+        <h3>Additional Tests</h3>
+        <button onclick="testSamplePDF()">Test External PDF</button>
+    </div>
+</body>
+</html> 
