@@ -1,6 +1,8 @@
 import debounce from 'lodash.debounce';
 import apiService from './apiService';
 import { mockInsights } from './mockData';
+import { processChatWithCloudflareAI } from './cloudflareAIService';
+import { config } from '../config/environment';
 // Remove the imports that don't exist and create them below
 // import { mockRatios, mockInsights, mockChatResponses, mockReferences } from './mockData';
 
@@ -75,7 +77,7 @@ export const mockReferences = [
 // Import insights from mockData.ts if it exists
 // import { mockInsights } from './mockData';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
+const API_BASE_URL = config.apiUrl || '';
 
 // Types for credit analysis context and communication
 export interface ModelContextProtocol {
@@ -265,73 +267,8 @@ export const getChatResponseDebounced = debounce(
  */
 export const getChatResponse = async (context: ModelContextProtocol): Promise<ChatResponse> => {
   try {
-    // In a real implementation, this would call the backend AI service
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    /*
-    // For file uploads, we'd use formData
-    if (context.attachments && context.attachments.length > 0) {
-      const formData = new FormData();
-      formData.append('userId', context.userId);
-      if (context.transactionId) formData.append('transactionId', context.transactionId);
-      if (context.modelId) formData.append('modelId', context.modelId);
-      if (context.message) formData.append('message', context.message);
-      
-      // Add message history as JSON
-      if (context.messageHistory) {
-        formData.append('messageHistory', JSON.stringify(context.messageHistory));
-      }
-      
-      // Add any attachments
-      context.attachments.forEach((file, index) => {
-        formData.append(`attachment_${index}`, file);
-      });
-      
-      return await apiService.uploadFormData<ChatResponse>(
-        '/api/eva/chat',
-        formData
-      );
-    } else {
-      // For regular text messages without attachments
-      return await apiService.post<ChatResponse>(
-        '/api/eva/chat',
-        {
-          userId: context.userId,
-          transactionId: context.transactionId,
-          modelId: context.modelId,
-          message: context.message,
-          messageHistory: context.messageHistory
-        }
-      );
-    }
-    */
-
-    // Generate a mock response based on the incoming message
-    const input = context.message?.toLowerCase() || '';
-    let responseText = '';
-
-    if (input.includes('portfolio') || input.includes('operators') || input.includes('servicing')) {
-      responseText = mockChatResponses.portfolio.response;
-    } else if (input.includes('mitigation')) {
-      responseText = mockChatResponses.mitigation.response;
-    } else if (input.includes('benchmark')) {
-      responseText = mockChatResponses.benchmark.response;
-    } else {
-      responseText = mockChatResponses.default.response.replace(
-        'your account',
-        context.userId || 'your account'
-      );
-    }
-
-    return {
-      messageId: `msg-${Date.now()}`,
-      text: responseText,
-      timestamp: new Date().toISOString(),
-      aiModel: context.modelId || 'EVA-Financial-Analyst-v1',
-      confidence: 0.92,
-      references: mockReferences,
-    };
+    // Use Cloudflare AI for chat responses
+    return await processChatWithCloudflareAI(context);
   } catch (error) {
     console.error('Error getting AI response:', error);
     return {

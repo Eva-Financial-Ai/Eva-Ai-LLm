@@ -1,0 +1,6 @@
+name = "new-llm"
+main = "src/index.js"
+compatibility_date = "2024-06-09"
+
+[vars]
+# No need to put the secret here, it's stored securely 

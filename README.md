@@ -346,3 +346,44 @@ function MyComponent() {
 - Follow the color palette defined in `tailwind.config.js`
 - Use proper heading hierarchy (h1, h2, h3) for semantic HTML
 
+## Cloudflare LLM Integration
+
+### Environment Variables
+
+Before deploying or running locally, set the following in your `.env.staging` or `.env.production` files:
+
+```
+REACT_APP_CLOUDFLARE_ACCOUNT_ID=eace6f3c56b5735ae4a9ef385d6ee914
+REACT_APP_CLOUDFLARE_ZONE_ID=79cbd8176057c91e2e2329ffd8b386a5   # Staging
+# REACT_APP_CLOUDFLARE_ZONE_ID=913680b4428f2f4d1c078dd841cd8cdb # Production (uncomment for prod)
+REACT_APP_CLOUDFLARE_API_TOKEN=qCC_PYqqlXW6ufNP_SuGW8CrhPoKB9BfFZEPuOiT
+REACT_APP_CLOUDFLARE_EMAIL=support@evafi.ai
+REACT_APP_SUPPORT_PHONE=7025762013
+```
+
+- Only one `REACT_APP_CLOUDFLARE_ZONE_ID` should be active per environment.
+- Never commit `.env.*` files with secrets to your repository.
+
+### Sample `.env.staging` file
+```
+REACT_APP_CLOUDFLARE_ACCOUNT_ID=eace6f3c56b5735ae4a9ef385d6ee914
+REACT_APP_CLOUDFLARE_ZONE_ID=79cbd8176057c91e2e2329ffd8b386a5
+REACT_APP_CLOUDFLARE_API_TOKEN=qCC_PYqqlXW6ufNP_SuGW8CrhPoKB9BfFZEPuOiT
+REACT_APP_CLOUDFLARE_EMAIL=support@evafi.ai
+REACT_APP_SUPPORT_PHONE=7025762013
+```
+
+### Sample `.env.production` file
+```
+REACT_APP_CLOUDFLARE_ACCOUNT_ID=eace6f3c56b5735ae4a9ef385d6ee914
+REACT_APP_CLOUDFLARE_ZONE_ID=913680b4428f2f4d1c078dd841cd8cdb
+REACT_APP_CLOUDFLARE_API_TOKEN=qCC_PYqqlXW6ufNP_SuGW8CrhPoKB9BfFZEPuOiT
+REACT_APP_CLOUDFLARE_EMAIL=support@evafi.ai
+REACT_APP_SUPPORT_PHONE=7025762013
+```
+
+### Security Reminder
+- Rotate your API tokens regularly.
+- Do NOT commit secrets to version control.
+- Change the API token and zone ID as appropriate before releasing to production.
+

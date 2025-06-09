@@ -11,6 +11,7 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({
   className = '',
 }) => {
   const { t } = useTranslation();
+  const tAny = t as any;
 
   // Calculate password strength
   const passwordStrength = useMemo(() => {
@@ -38,11 +39,11 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({
 
   // Define strength labels and colors
   const strengthLabels = [
-    t('password.veryWeak', 'Very Weak'),
-    t('password.weak', 'Weak'),
-    t('password.fair', 'Fair'),
-    t('password.good', 'Good'),
-    t('password.strong', 'Strong'),
+    tAny('password.veryWeak', { defaultValue: 'Very Weak' }),
+    tAny('password.weak', { defaultValue: 'Weak' }),
+    tAny('password.fair', { defaultValue: 'Fair' }),
+    tAny('password.good', { defaultValue: 'Good' }),
+    tAny('password.strong', { defaultValue: 'Strong' }),
   ];
 
   const strengthClasses = [
@@ -63,27 +64,27 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({
   const passwordCriteria = useMemo(() => {
     return [
       {
-        label: t('password.criteria.length', 'At least 8 characters'),
+        label: tAny('password.criteria.length', { defaultValue: 'At least 8 characters' }),
         met: password.length >= 8,
       },
       {
-        label: t('password.criteria.uppercase', 'Contains uppercase letter'),
+        label: tAny('password.criteria.uppercase', { defaultValue: 'Contains uppercase letter' }),
         met: /[A-Z]/.test(password),
       },
       {
-        label: t('password.criteria.lowercase', 'Contains lowercase letter'),
+        label: tAny('password.criteria.lowercase', { defaultValue: 'Contains lowercase letter' }),
         met: /[a-z]/.test(password),
       },
       {
-        label: t('password.criteria.number', 'Contains number'),
+        label: tAny('password.criteria.number', { defaultValue: 'Contains number' }),
         met: /[0-9]/.test(password),
       },
       {
-        label: t('password.criteria.special', 'Contains special character'),
+        label: tAny('password.criteria.special', { defaultValue: 'Contains special character' }),
         met: /[^A-Za-z0-9]/.test(password),
       },
     ];
-  }, [password, t]);
+  }, [password, tAny]);
 
   return (
     <div className={`password-strength-meter ${className}`}>
@@ -104,17 +105,20 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({
 
       {/* Strength label */}
       <p className={`text-sm font-medium mb-3`} aria-live="polite">
-        {t('password.strength', 'Password strength')}:
+        <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {tAny('password.strength', { defaultValue: 'Password strength' })}:
+        </h4>
         <span
-          className={`ml-1 ${
-            passwordStrength <= 1
+          className={
+            `ml-1 ` +
+            (passwordStrength <= 1
               ? 'text-red-600 dark:text-red-400'
               : passwordStrength === 2
                 ? 'text-yellow-600 dark:text-yellow-400'
                 : passwordStrength >= 3
                   ? 'text-green-600 dark:text-green-400'
-                  : ''
-          }`}
+                  : '')
+          }
         >
           {currentStrength.label}
         </span>

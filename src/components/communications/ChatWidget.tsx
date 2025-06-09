@@ -19,6 +19,7 @@ import {
   ShareIcon,
   UserGroupIcon,
   ChartBarIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline';
 import AgentSelector from './AgentSelector';
 import AgentManagementDialog from './AgentManagementDialog';
@@ -26,6 +27,7 @@ import { AgentModel } from './CustomAgentManager';
 import AddParticipantDialog from './AddParticipantDialog';
 import { DEFAULT_AGENTS } from './AgentSelector';
 import AgentIcon from './AgentIcon';
+import { getChatResponse } from '../../api/creditAnalysisApi';
 
 interface ChatWidgetProps {
   mode?: 'eva' | 'risk' | 'communications';
@@ -121,7 +123,9 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   zIndexBase = 50,
 }) => {
   // Internal visibility state, used if isOpenProp is not provided
-  const [internalIsVisible, setInternalIsVisible] = useState(isOpenProp !== undefined ? isOpenProp : false);
+  const [internalIsVisible, setInternalIsVisible] = useState(
+    isOpenProp !== undefined ? isOpenProp : false
+  );
   const { setIsEvaChatOpen } = useContext(UserContext); // Consume from context for default close
 
   // Determine effective visibility: prop takes precedence
@@ -459,7 +463,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   // Input handling functions
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(e.target.value);
-    
+
     // Auto-resize textarea
     if (e.target) {
       e.target.style.height = 'auto';
@@ -567,7 +571,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   };
 
   // Modified handleSendMessage to update the active conversation
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     if (!inputText.trim() && uploadedFiles.length === 0) return;
@@ -619,20 +623,25 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     // Perform sentiment analysis
     analyzeSentiment(inputText);
 
-    // Simulate AI response
-    setTimeout(() => {
-      let responseText = `I've analyzed your message. `;
-
-      if (uploadedFiles.length > 0) {
-        responseText += `I've also received your files and can help you with processing them. `;
-      }
-
-      responseText += `Is there anything specific you'd like me to focus on?`;
+    try {
+      // Get AI response from Cloudflare
+      const response = await getChatResponse({
+        requestType: 'chat',
+        userId: 'user', // Replace with actual user ID if available
+        message: inputText,
+        messageHistory: messages.map(msg => ({
+          id: msg.id,
+          text: msg.text,
+          sender: msg.sender,
+          timestamp: msg.timestamp,
+        })),
+        modelId: '@cf/meta/llama-2-7b-chat-int8', // Default model
+      });
 
       const aiMessage: Message = {
-        id: `ai-${Date.now()}`,
+        id: response.messageId || `ai-${Date.now()}`,
         sender: 'ai',
-        text: responseText,
+        text: response.text,
         timestamp: new Date(),
       };
 
@@ -652,9 +661,19 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
           )
         );
       }
-
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      // Add error message
+      const errorMessage: Message = {
+        id: `error-${Date.now()}`,
+        sender: 'ai',
+        text: 'Sorry, I encountered an error while processing your request. Please try again.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   // Simple sentiment analysis function
@@ -913,9 +932,9 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     } else {
       // Fallback for internally managed state, or if it's the EVA chat that should use context
       if (mode === 'eva' && setIsEvaChatOpen) {
-         setIsEvaChatOpen(false);
+        setIsEvaChatOpen(false);
       } else {
-         setInternalIsVisible(false);
+        setInternalIsVisible(false);
       }
     }
   };
@@ -934,9 +953,9 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         <button
           onClick={() => {
             if (isOpenProp === undefined) {
-                setInternalIsVisible(true);
+              setInternalIsVisible(true);
             } else if (mode === 'eva' && setIsEvaChatOpen) {
-                setIsEvaChatOpen(true);
+              setIsEvaChatOpen(true);
             }
           }}
           className="rounded-full p-3 text-white shadow-lg bg-blue-600 hover:bg-blue-700"
@@ -1066,10 +1085,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                   customAgents={customAgents}
                 />
 
-                <button
-                  className="p-2 text-gray-500 hover:text-gray-700"
-                  onClick={handleClose}
-                >
+                <button className="p-2 text-gray-500 hover:text-gray-700" onClick={handleClose}>
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
@@ -1112,7 +1128,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                       <div className="flex items-start justify-end mb-1">
                         <p className="text-base font-medium text-gray-900 mr-2">You</p>
                         <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                          {message.sender === 'user' ? 'U' : selectedAgent?.name?.charAt(0) || 'E'}
+                          <UserIcon className="h-6 w-6 text-white" />
                         </div>
                       </div>
                       <div className="bg-blue-600 text-white rounded-lg p-4 shadow-sm text-base">
@@ -1244,7 +1260,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                 <input
                   type="file"
                   ref={fileInputRef}
-                  onChange={(e) => {
+                  onChange={e => {
                     if (e.target.files) {
                       const newFiles = Array.from(e.target.files);
                       setUploadedFiles(prev => [...prev, ...newFiles]);
@@ -1259,7 +1275,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                   <textarea
                     ref={inputRef}
                     value={inputText}
-                    onChange={(e) => {
+                    onChange={e => {
                       setInputText(e.target.value);
                     }}
                     placeholder="Type a message..."
@@ -1268,7 +1284,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                       minHeight: '60px',
                       maxHeight: '120px',
                     }}
-                    onKeyDown={(e) => {
+                    onKeyDown={e => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         handleSendMessage();
@@ -1286,7 +1302,12 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                         >
                           <DocumentTextIcon className="h-5 w-5 mr-1" />
                           <span className="text-sm truncate max-w-[150px]">{file.name}</span>
-                          <button onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))} className="ml-1 text-gray-500">
+                          <button
+                            onClick={() =>
+                              setUploadedFiles(prev => prev.filter((_, i) => i !== index))
+                            }
+                            className="ml-1 text-gray-500"
+                          >
                             <XMarkIcon className="h-4 w-4" />
                           </button>
                         </div>
@@ -1298,17 +1319,17 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
 
               {/* Send button and other controls */}
               <div className="flex justify-end mt-3">
-                <button 
+                <button
                   onClick={toggleListening}
                   className={`p-3 mr-3 rounded-full ${
-                    isListening 
-                      ? 'bg-red-100 text-red-600' 
+                    isListening
+                      ? 'bg-red-100 text-red-600'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <MicrophoneIcon className="h-6 w-6" />
                 </button>
-                
+
                 <button
                   onClick={handleSendMessage}
                   disabled={(!inputText.trim() && uploadedFiles.length === 0) || isTyping}
@@ -1335,7 +1356,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                   </svg>
                 </button>
               </div>
-              
+
               {/* Listening indicator */}
               {isListening && (
                 <div className="mt-2 px-3 py-2 bg-red-50 text-red-600 text-sm rounded-md flex items-center">

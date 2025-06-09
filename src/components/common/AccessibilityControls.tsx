@@ -11,6 +11,7 @@ interface AccessibilityControlsProps {
  */
 const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ className = '' }) => {
   const { t } = useTranslation();
+  const tAny = t as any;
   const userContext = useContext(UserContext);
 
   // Font size control
@@ -68,7 +69,7 @@ const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ className
       {/* Theme toggle (dark mode) */}
       <div className="mb-6">
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          {t('accessibility.theme')}
+          {tAny('accessibility.theme')}
         </h3>
 
         <div className="flex items-center">
@@ -82,7 +83,7 @@ const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ className
               backgroundColor: userContext?.theme === 'dark' ? '#4F46E5' : '#E5E7EB',
             }}
           >
-            <span className="sr-only">{t('accessibility.toggleDarkMode')}</span>
+            <span className="sr-only">{tAny('accessibility.toggleDarkMode')}</span>
             <span
               aria-hidden="true"
               className={`translate-x-0 pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
@@ -92,8 +93,8 @@ const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ className
           </button>
           <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
             {userContext?.theme === 'dark'
-              ? t('accessibility.darkMode')
-              : t('accessibility.lightMode')}
+              ? tAny('accessibility.darkMode')
+              : tAny('accessibility.lightMode')}
           </span>
         </div>
       </div>
@@ -101,7 +102,7 @@ const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ className
       {/* Font size controls */}
       <div>
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          {t('accessibility.fontSize')}
+          {tAny('accessibility.fontSize')}
         </h3>
 
         <div className="flex items-center space-x-3">
@@ -109,7 +110,7 @@ const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ className
             type="button"
             onClick={decreaseFontSize}
             disabled={fontSize <= 0.8}
-            aria-label={t('accessibility.decreaseFontSize')}
+            aria-label={tAny('accessibility.decreaseFontSize')}
             className="inline-flex items-center justify-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50"
           >
             <svg
@@ -132,14 +133,14 @@ const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ className
             disabled={fontSize === 1}
             className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50"
           >
-            {t('accessibility.resetFontSize')}
+            {tAny('accessibility.resetFontSize')}
           </button>
 
           <button
             type="button"
             onClick={increaseFontSize}
             disabled={fontSize >= 1.5}
-            aria-label={t('accessibility.increaseFontSize')}
+            aria-label={tAny('accessibility.increaseFontSize')}
             className="inline-flex items-center justify-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50"
           >
             <svg
@@ -162,7 +163,7 @@ const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ className
         </div>
 
         <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          {t('accessibility.fontSizeDescription')}
+          {tAny('accessibility.fontSizeDescription')}
         </p>
       </div>
     </div>

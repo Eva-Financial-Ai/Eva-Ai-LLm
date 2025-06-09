@@ -9,14 +9,14 @@ import frTranslation from './locales/fr.json';
 
 const resources = {
   en: {
-    translation: enTranslation
+    translation: enTranslation,
   },
   es: {
-    translation: esTranslation
+    translation: esTranslation,
   },
   fr: {
-    translation: frTranslation
-  }
+    translation: frTranslation,
+  },
 };
 
 i18n
@@ -33,19 +33,15 @@ i18n
       escapeValue: false, // not needed for react as it escapes by default
     },
     react: {
-      useSuspense: true
+      useSuspense: true,
     },
-    // Ensure compatibility with different versions
-    compatibilityJSON: 'v3',
     // Use an empty string for missing translations
     returnEmptyString: false,
-    // Use fallback language for missing keys
-    fallbackLng: 'en',
     // Allow nesting of translations
     nsSeparator: ':',
     keySeparator: '.',
     // Return key if value is empty
-    returnNull: false
+    returnNull: false,
   });
 
-export default i18n; 
+export default i18n;

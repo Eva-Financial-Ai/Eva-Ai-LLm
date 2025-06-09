@@ -9,6 +9,7 @@ interface ThemePreferencesProps {
 const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) => {
   const { colorScheme, setColorScheme, highContrast, setHighContrast } = useContext(UserContext);
   const { t } = useTranslation();
+  const tAny = t as any;
 
   const handleColorSchemeChange = (scheme: ColorScheme) => {
     setColorScheme(scheme);
@@ -22,7 +23,7 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
     <div className={`space-y-6 ${className}`}>
       <div>
         <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-3">
-          {t('theme.colorScheme')}
+          {tAny('theme.colorScheme')}
         </h3>
         <div className="flex flex-col gap-3">
           <div className="flex items-center">
@@ -38,10 +39,10 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
               htmlFor="light-mode"
               className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('theme.light')}
+              {tAny('theme.light')}
             </label>
           </div>
-          
+
           <div className="flex items-center">
             <input
               id="dark-mode"
@@ -55,10 +56,10 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
               htmlFor="dark-mode"
               className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('theme.dark')}
+              {tAny('theme.dark')}
             </label>
           </div>
-          
+
           <div className="flex items-center">
             <input
               id="system-mode"
@@ -72,20 +73,20 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
               htmlFor="system-mode"
               className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('theme.system')}
+              {tAny('theme.system')}
             </label>
             <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-              {t('theme.systemHint')}
+              {tAny('theme.systemHint')}
             </span>
           </div>
         </div>
       </div>
-      
+
       <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
         <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-3">
-          {t('theme.accessibility')}
+          {tAny('theme.accessibility')}
         </h3>
-        
+
         <div className="flex items-center">
           <div className="flex items-center h-5">
             <input
@@ -98,49 +99,35 @@ const ThemePreferences: React.FC<ThemePreferencesProps> = ({ className = '' }) =
             />
           </div>
           <div className="ml-3 flex items-center justify-between w-full">
-            <label htmlFor="high-contrast" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {t('theme.highContrast')}
+            <label
+              htmlFor="high-contrast"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              {tAny('theme.highContrast')}
             </label>
             <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-              {t('theme.highContrastHint')}
+              {tAny('theme.highContrastHint')}
             </span>
           </div>
         </div>
 
         <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          {t('theme.accessibilityNote')}
+          {tAny('theme.accessibilityNote')}
         </p>
       </div>
-      
+
       <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
         <div className="flex items-center space-x-4">
-          <div 
-            className="w-6 h-6 rounded-full bg-gray-900 dark:bg-white"
-            aria-hidden="true"
-          />
-          <div
-            className="w-6 h-6 rounded-full bg-primary-600"
-            aria-hidden="true"
-          />
-          <div
-            className="w-6 h-6 rounded-full bg-green-500"
-            aria-hidden="true"
-          />
-          <div
-            className="w-6 h-6 rounded-full bg-red-500"
-            aria-hidden="true"
-          />
-          <div
-            className="w-6 h-6 rounded-full bg-yellow-500"
-            aria-hidden="true"
-          />
+          <div className="w-6 h-6 rounded-full bg-gray-900 dark:bg-white" aria-hidden="true" />
+          <div className="w-6 h-6 rounded-full bg-primary-600" aria-hidden="true" />
+          <div className="w-6 h-6 rounded-full bg-green-500" aria-hidden="true" />
+          <div className="w-6 h-6 rounded-full bg-red-500" aria-hidden="true" />
+          <div className="w-6 h-6 rounded-full bg-yellow-500" aria-hidden="true" />
         </div>
-        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          {t('theme.previewNote')}
-        </p>
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{tAny('theme.previewNote')}</p>
       </div>
     </div>
   );
 };
 
-export default ThemePreferences; 
+export default ThemePreferences;

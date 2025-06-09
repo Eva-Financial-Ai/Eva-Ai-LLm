@@ -24,6 +24,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({
 }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const tAny = t as any;
   const [showTransaction, setShowTransaction] = useState(showTransactionSelector);
 
   const handleBack = () => {
@@ -57,17 +58,17 @@ const TopNavigation: React.FC<TopNavigationProps> = ({
           {showBackButton && renderBackButton()}
           <h1 className="text-xl font-bold text-gray-900">{title}</h1>
         </div>
-        
+
         <div className="flex items-center space-x-4 w-full sm:w-auto">
           {showTransaction && (
             <div className="w-full sm:w-auto">
-              <TransactionSelector 
+              <TransactionSelector
                 onClose={() => setShowTransaction(false)}
                 currentTransactionId={currentTransactionId}
               />
             </div>
           )}
-          
+
           <button className="text-gray-600 hover:text-gray-900 focus:outline-none ml-auto">
             <svg
               className="w-6 h-6"

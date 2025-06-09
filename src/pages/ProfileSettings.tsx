@@ -101,6 +101,7 @@ const classNames = (...classes: string[]) => {
 
 const ProfileSettings: React.FC = () => {
   const { t } = useTranslation();
+  const tAny = t as any;
   const navigate = useNavigate();
   const user = authService.getCurrentUser();
   const { showToast } = useToast();
@@ -239,7 +240,7 @@ const ProfileSettings: React.FC = () => {
     userService
       .changePassword(passwordForm.currentPassword, passwordForm.newPassword)
       .then(() => {
-        showToast(t('profile.passwordUpdated'));
+        showToast(tAny('profile.passwordUpdated'), 'success');
 
         // Reset form
         setPasswordForm({
@@ -274,9 +275,7 @@ const ProfileSettings: React.FC = () => {
       .then(() => {
         setTwoFactorEnabled(!twoFactorEnabled);
         showToast(
-          twoFactorEnabled
-            ? t('profile.twoFactorDisabled')
-            : t('profile.twoFactorEnabled'),
+          twoFactorEnabled ? tAny('profile.twoFactorDisabled') : tAny('profile.twoFactorEnabled'),
           'success'
         );
       })
@@ -314,7 +313,7 @@ const ProfileSettings: React.FC = () => {
     // Mock API call
     setTimeout(() => {
       setIsSavingNotifications(false);
-      showToast(t('profile.notificationsSaved'), 'success');
+      showToast(tAny('profile.notificationsSaved'), 'success');
     }, 1000);
   };
 
@@ -360,23 +359,19 @@ const ProfileSettings: React.FC = () => {
       setShowTeamMemberModal(false);
       showToast(
         teamMemberMode === 'create'
-          ? t('profile.teamMemberAdded')
-          : t('profile.teamMemberUpdated'),
+          ? tAny('profile.teamMemberAdded')
+          : tAny('profile.teamMemberUpdated'),
         'success'
       );
     }
   };
 
   const handleRemoveTeamMember = async (id: string) => {
-    if (
-      window.confirm(
-        t('profile.confirmRemoveMember')
-      )
-    ) {
+    if (window.confirm(tAny('profile.confirmRemoveMember'))) {
       const success = await removeTeamMember(id);
 
       if (success) {
-        showToast(t('profile.teamMemberRemoved'), 'success');
+        showToast(tAny('profile.teamMemberRemoved'), 'success');
       }
     }
   };
@@ -572,7 +567,7 @@ const ProfileSettings: React.FC = () => {
     return (
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-6">
-          {t('profile.personalInfo')}
+          {tAny('profile.personalInfo')}
         </h2>
 
         {profileErrors.general && (
@@ -592,7 +587,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.name')}
+                {tAny('profile.name')}
               </label>
               <input
                 type="text"
@@ -620,7 +615,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.email')}
+                {tAny('profile.email')}
               </label>
               <input
                 type="email"
@@ -648,7 +643,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="phone"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.phone')}
+                {tAny('profile.phone')}
               </label>
               <input
                 type="tel"
@@ -676,7 +671,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="preferredLanguage"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.language')}
+                {tAny('profile.language')}
               </label>
               <select
                 id="preferredLanguage"
@@ -685,10 +680,10 @@ const ProfileSettings: React.FC = () => {
                 onChange={handleProfileChange}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               >
-                <option value="en">{t('languages.english')}</option>
-                <option value="es">{t('languages.spanish')}</option>
-                <option value="fr">{t('languages.french')}</option>
-                <option value="de">{t('languages.german')}</option>
+                <option value="en">{tAny('languages.english')}</option>
+                <option value="es">{tAny('languages.spanish')}</option>
+                <option value="fr">{tAny('languages.french')}</option>
+                <option value="de">{tAny('languages.german')}</option>
               </select>
             </div>
 
@@ -699,7 +694,7 @@ const ProfileSettings: React.FC = () => {
                 disabled={!isProfileDirty || isSavingProfile}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50"
               >
-                {t('common.cancel')}
+                {tAny('common.cancel')}
               </button>
               <button
                 type="submit"
@@ -728,7 +723,7 @@ const ProfileSettings: React.FC = () => {
                     ></path>
                   </svg>
                 )}
-                {t('common.save')}
+                {tAny('common.save')}
               </button>
             </div>
           </form>
@@ -742,40 +737,40 @@ const ProfileSettings: React.FC = () => {
     return (
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-6">
-          {t('profile.accountSettings')}
+          {tAny('profile.accountSettings')}
         </h2>
 
         <div className="space-y-6">
           <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
             <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-3">
-              {t('profile.accountType')}
+              {tAny('profile.accountType')}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t('profile.currentPlan')}
+              {tAny('profile.currentPlan')}
             </p>
           </div>
 
           <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
             <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-3">
-              {t('profile.dataExport')}
+              {tAny('profile.dataExport')}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              {t('profile.dataExportDesc')}
+              {tAny('profile.dataExportDesc')}
             </p>
             <button
               type="button"
               className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
-              {t('profile.exportData')}
+              {tAny('profile.exportData')}
             </button>
           </div>
 
           <div>
             <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-3">
-              {t('profile.dangerZone')}
+              {tAny('profile.dangerZone')}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              {t(
+              {tAny(
                 'profile.dangerZoneDesc',
                 'Once you delete your account, there is no going back. Please be certain.'
               )}
@@ -784,7 +779,7 @@ const ProfileSettings: React.FC = () => {
               type="button"
               className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
-              {t('profile.deleteAccount')}
+              {tAny('profile.deleteAccount')}
             </button>
           </div>
         </div>
@@ -797,13 +792,13 @@ const ProfileSettings: React.FC = () => {
     return (
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-6">
-          {t('profile.security')}
+          {tAny('profile.security')}
         </h2>
 
         {/* Password Change Section */}
         <div className="mb-8">
           <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
-            {t('profile.changePassword')}
+            {tAny('profile.changePassword')}
           </h3>
 
           {passwordErrors.general && (
@@ -818,7 +813,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="currentPassword"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.currentPassword')}
+                {tAny('profile.currentPassword')}
               </label>
               <input
                 type="password"
@@ -851,7 +846,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="newPassword"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.newPassword')}
+                {tAny('profile.newPassword')}
               </label>
               <input
                 type="password"
@@ -884,7 +879,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.confirmPassword')}
+                {tAny('profile.confirmPassword')}
               </label>
               <input
                 type="password"
@@ -940,7 +935,7 @@ const ProfileSettings: React.FC = () => {
                     ></path>
                   </svg>
                 )}
-                {t('profile.updatePassword')}
+                {tAny('profile.updatePassword')}
               </button>
             </div>
           </form>
@@ -949,11 +944,11 @@ const ProfileSettings: React.FC = () => {
         {/* Two-Factor Authentication Section */}
         <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
-            {t('profile.twoFactorAuth')}
+            {tAny('profile.twoFactorAuth')}
           </h3>
 
           <p className="mb-4 text-gray-600 dark:text-gray-400">
-            {t(
+            {tAny(
               'profile.twoFactorDescription',
               'Two-factor authentication adds an extra layer of security to your account by requiring more than just a password to sign in.'
             )}
@@ -963,8 +958,8 @@ const ProfileSettings: React.FC = () => {
             <div>
               <p className="font-medium">
                 {twoFactorEnabled
-                  ? t('profile.twoFactorEnabled')
-                  : t('profile.twoFactorDisabled')}
+                  ? tAny('profile.twoFactorEnabled')
+                  : tAny('profile.twoFactorDisabled')}
               </p>
             </div>
 
@@ -1000,7 +995,7 @@ const ProfileSettings: React.FC = () => {
                   ></path>
                 </svg>
               )}
-              {twoFactorEnabled ? t('profile.disable') : t('profile.enable')}
+              {twoFactorEnabled ? tAny('profile.disable') : tAny('profile.enable')}
             </button>
           </div>
         </div>
@@ -1013,14 +1008,14 @@ const ProfileSettings: React.FC = () => {
     return (
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-6">
-          {t('profile.notifications')}
+          {tAny('profile.notifications')}
         </h2>
 
         <div className="space-y-6">
           {/* Channel Preferences */}
           <div>
             <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
-              {t('profile.notificationChannels')}
+              {tAny('profile.notificationChannels')}
             </h3>
 
             <div className="space-y-3">
@@ -1037,7 +1032,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="emailNotifications"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.emailNotifications')}
+                  {tAny('profile.emailNotifications')}
                 </label>
               </div>
 
@@ -1054,7 +1049,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="smsNotifications"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.smsNotifications')}
+                  {tAny('profile.smsNotifications')}
                 </label>
               </div>
 
@@ -1071,7 +1066,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="inAppNotifications"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.inAppNotifications')}
+                  {tAny('profile.inAppNotifications')}
                 </label>
               </div>
             </div>
@@ -1080,7 +1075,7 @@ const ProfileSettings: React.FC = () => {
           {/* Notification Types */}
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
-              {t('profile.notificationTypes')}
+              {tAny('profile.notificationTypes')}
             </h3>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -1097,7 +1092,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="transactions"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.transactions')}
+                  {tAny('profile.transactions')}
                 </label>
               </div>
 
@@ -1114,7 +1109,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="documents"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.documents')}
+                  {tAny('profile.documents')}
                 </label>
               </div>
 
@@ -1131,7 +1126,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="messages"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.messages')}
+                  {tAny('profile.messages')}
                 </label>
               </div>
 
@@ -1148,7 +1143,7 @@ const ProfileSettings: React.FC = () => {
                   htmlFor="reminders"
                   className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  {t('profile.reminders')}
+                  {tAny('profile.reminders')}
                 </label>
               </div>
             </div>
@@ -1184,7 +1179,7 @@ const ProfileSettings: React.FC = () => {
                   ></path>
                 </svg>
               )}
-              {t('common.save')}
+              {tAny('common.save')}
             </button>
           </div>
         </div>
@@ -1197,11 +1192,11 @@ const ProfileSettings: React.FC = () => {
     return (
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-6">
-          {t('profile.accessibility')}
+          {tAny('profile.accessibility')}
         </h2>
 
         <p className="mb-6 text-gray-600 dark:text-gray-300">
-          {t(
+          {tAny(
             'profile.accessibilityDescription',
             'Adjust these settings to make the application more accessible based on your needs.'
           )}
@@ -1210,7 +1205,7 @@ const ProfileSettings: React.FC = () => {
         <AccessibilityControls className="mb-6" />
 
         <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mt-8 mb-3">
-          {t('profile.additionalAccessibility')}
+          {tAny('profile.additionalAccessibility')}
         </h3>
 
         {/* Additional accessibility options can be added here */}
@@ -1226,7 +1221,7 @@ const ProfileSettings: React.FC = () => {
               htmlFor="highContrast"
               className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('profile.highContrast')}
+              {tAny('profile.highContrast')}
             </label>
           </div>
 
@@ -1241,7 +1236,7 @@ const ProfileSettings: React.FC = () => {
               htmlFor="reducedMotion"
               className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('profile.reducedMotion')}
+              {tAny('profile.reducedMotion')}
             </label>
           </div>
 
@@ -1256,7 +1251,7 @@ const ProfileSettings: React.FC = () => {
               htmlFor="largerText"
               className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t('profile.largerText')}
+              {tAny('profile.largerText')}
             </label>
           </div>
         </div>
@@ -1270,7 +1265,7 @@ const ProfileSettings: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-medium text-gray-900 dark:text-white">
-            {t('profile.teamManagement')}
+            {tAny('profile.teamManagement')}
           </h2>
 
           <button
@@ -1286,7 +1281,7 @@ const ProfileSettings: React.FC = () => {
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            {t('profile.addTeamMember')}
+            {tAny('profile.addTeamMember')}
           </button>
         </div>
 
@@ -1316,7 +1311,7 @@ const ProfileSettings: React.FC = () => {
               />
             </svg>
             <p className="mt-2">
-              {t(
+              {tAny(
                 'profile.noTeamMembers',
                 'No team members found. Add your first team member to get started.'
               )}
@@ -1331,37 +1326,37 @@ const ProfileSettings: React.FC = () => {
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.name')}
+                    {tAny('profile.name')}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.email')}
+                    {tAny('profile.email')}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.role')}
+                    {tAny('profile.role')}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.status')}
+                    {tAny('profile.status')}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.lastActive')}
+                    {tAny('profile.lastActive')}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    {t('profile.actions')}
+                    {tAny('profile.actions')}
                   </th>
                 </tr>
               </thead>
@@ -1393,20 +1388,20 @@ const ProfileSettings: React.FC = () => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       {member.lastActive
                         ? new Date(member.lastActive).toLocaleDateString()
-                        : t('profile.never')}
+                        : tAny('profile.never')}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => openTeamMemberModal(member)}
                         className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300 mr-4"
                       >
-                        {t('common.edit')}
+                        {tAny('common.edit')}
                       </button>
                       <button
                         onClick={() => handleRemoveTeamMember(member.id)}
                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                       >
-                        {t('common.remove')}
+                        {tAny('common.remove')}
                       </button>
                     </td>
                   </tr>
@@ -1427,15 +1422,15 @@ const ProfileSettings: React.FC = () => {
           <div className="flex justify-between items-center mb-5">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
               {teamMemberMode === 'create'
-                ? t('profile.addTeamMember')
-                : t('profile.editTeamMember')}
+                ? tAny('profile.addTeamMember')
+                : tAny('profile.editTeamMember')}
             </h3>
             <button
               type="button"
               onClick={() => setShowTeamMemberModal(false)}
               className="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200"
             >
-              <span className="sr-only">{t('common.close')}</span>
+              <span className="sr-only">{tAny('common.close')}</span>
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -1459,7 +1454,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.name')} *
+                {tAny('profile.name')} *
               </label>
               <input
                 type="text"
@@ -1487,7 +1482,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.email')} *
+                {tAny('profile.email')} *
               </label>
               <input
                 type="email"
@@ -1515,7 +1510,7 @@ const ProfileSettings: React.FC = () => {
                 htmlFor="role"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                {t('profile.role')} *
+                {tAny('profile.role')} *
               </label>
               <select
                 id="role"
@@ -1529,10 +1524,10 @@ const ProfileSettings: React.FC = () => {
                 }
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               >
-                <option value="admin">{t('profile.roles.admin')}</option>
-                <option value="manager">{t('profile.roles.manager')}</option>
-                <option value="user">{t('profile.roles.user')}</option>
-                <option value="viewer">{t('profile.roles.viewer')}</option>
+                <option value="admin">{tAny('profile.roles.admin')}</option>
+                <option value="manager">{tAny('profile.roles.manager')}</option>
+                <option value="user">{tAny('profile.roles.user')}</option>
+                <option value="viewer">{tAny('profile.roles.viewer')}</option>
               </select>
               {teamErrors.role && (
                 <p id="role-error" className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -1543,7 +1538,7 @@ const ProfileSettings: React.FC = () => {
 
             <div>
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('profile.permissions')}
+                {tAny('profile.permissions')}
               </h4>
 
               <div className="space-y-2">
@@ -1560,7 +1555,7 @@ const ProfileSettings: React.FC = () => {
                     htmlFor="canManageUsers"
                     className="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {t('profile.permissions.manageUsers')}
+                    {tAny('profile.permissions.manageUsers')}
                   </label>
                 </div>
 
@@ -1577,7 +1572,7 @@ const ProfileSettings: React.FC = () => {
                     htmlFor="canViewDocuments"
                     className="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {t('profile.permissions.viewDocuments')}
+                    {tAny('profile.permissions.viewDocuments')}
                   </label>
                 </div>
 
@@ -1594,7 +1589,7 @@ const ProfileSettings: React.FC = () => {
                     htmlFor="canEditDocuments"
                     className="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {t('profile.permissions.editDocuments')}
+                    {tAny('profile.permissions.editDocuments')}
                   </label>
                 </div>
 
@@ -1611,7 +1606,7 @@ const ProfileSettings: React.FC = () => {
                     htmlFor="canApproveDeals"
                     className="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {t('profile.permissions.approveDeals')}
+                    {tAny('profile.permissions.approveDeals')}
                   </label>
                 </div>
 
@@ -1628,7 +1623,7 @@ const ProfileSettings: React.FC = () => {
                     htmlFor="canManageSettings"
                     className="ml-3 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {t('profile.permissions.manageSettings')}
+                    {tAny('profile.permissions.manageSettings')}
                   </label>
                 </div>
               </div>
@@ -1640,7 +1635,7 @@ const ProfileSettings: React.FC = () => {
                 onClick={() => setShowTeamMemberModal(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50"
               >
-                {t('common.cancel')}
+                {tAny('common.cancel')}
               </button>
               <button
                 type="button"
@@ -1670,7 +1665,7 @@ const ProfileSettings: React.FC = () => {
                     ></path>
                   </svg>
                 )}
-                {t('common.save')}
+                {tAny('common.save')}
               </button>
             </div>
           </form>
@@ -1698,7 +1693,7 @@ const ProfileSettings: React.FC = () => {
   return (
     <div className="container py-8 mx-auto max-w-7xl">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
-        {t('profile.settings')}
+        {tAny('profile.settings')}
       </h1>
 
       <div className="flex flex-col md:flex-row gap-6">
@@ -1709,7 +1704,7 @@ const ProfileSettings: React.FC = () => {
               <div className="border-b border-gray-200 dark:border-gray-700">
                 <div className="p-4">
                   <h2 className="text-base font-medium text-gray-800 dark:text-white">
-                    {t('profile.settingsMenu')}
+                    {tAny('profile.settingsMenu')}
                   </h2>
                 </div>
               </div>
@@ -1723,7 +1718,7 @@ const ProfileSettings: React.FC = () => {
                         : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700'
                     }`}
                   >
-                    {t('profile.personalInfo')}
+                    {tAny('profile.personalInfo')}
                   </button>
                 </li>
                 <li>
@@ -1735,7 +1730,7 @@ const ProfileSettings: React.FC = () => {
                         : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700'
                     }`}
                   >
-                    {t('profile.security')}
+                    {tAny('profile.security')}
                   </button>
                 </li>
                 <li>
@@ -1747,7 +1742,7 @@ const ProfileSettings: React.FC = () => {
                         : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700'
                     }`}
                   >
-                    {t('profile.notifications')}
+                    {tAny('profile.notifications')}
                   </button>
                 </li>
                 <li>
@@ -1759,7 +1754,7 @@ const ProfileSettings: React.FC = () => {
                         : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700'
                     }`}
                   >
-                    {t('profile.accessibility')}
+                    {tAny('profile.accessibility')}
                   </button>
                 </li>
                 <li>
@@ -1771,7 +1766,7 @@ const ProfileSettings: React.FC = () => {
                         : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700'
                     }`}
                   >
-                    {t('profile.teamManagement')}
+                    {tAny('profile.teamManagement')}
                   </button>
                 </li>
               </ul>
