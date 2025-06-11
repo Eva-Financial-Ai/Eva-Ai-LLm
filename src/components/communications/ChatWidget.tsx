@@ -112,6 +112,24 @@ interface Manager {
   role: string;
 }
 
+// Spinner for Suspense fallback (export if not already present)
+export const Spinner = () => (
+  <div className="flex items-center justify-center h-full w-full p-8">
+    <svg className="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+        fill="none"
+      />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+    </svg>
+  </div>
+);
+
 const ChatWidget: React.FC<ChatWidgetProps> = ({
   mode = 'eva',
   initialPosition = {
@@ -201,6 +219,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   const [computeEfficiencyScore, setComputeEfficiencyScore] = useState(0);
 
   const hasInitialized = React.useRef(false);
+  const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
     if (hasInitialized.current) return;
@@ -624,27 +643,25 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     analyzeSentiment(inputText);
 
     try {
-      // Get AI response from Cloudflare
-      const response = await getChatResponse({
-        requestType: 'chat',
-        userId: 'user', // Replace with actual user ID if available
-        message: inputText,
-        messageHistory: messages.map(msg => ({
-          id: msg.id,
-          text: msg.text,
-          sender: msg.sender,
-          timestamp: msg.timestamp,
-        })),
-        modelId: '@cf/meta/llama-2-7b-chat-int8', // Default model
-      });
+      // TODO: Replace this with your actual pipeline selection logic
+      const selectedPipeline = 'lender'; // e.g., 'lender', 'equipment', 'realestate', 'sba', 'lenderlist'
 
+      // Call the new /api/rag-query endpoint
+      const response = await fetch('/api/rag-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: inputText,
+          pipeline: selectedPipeline,
+        }),
+      });
+      const data = await response.json();
       const aiMessage: Message = {
-        id: response.messageId || `ai-${Date.now()}`,
+        id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: response.text,
+        text: data?.data?.answer || 'No answer returned.',
         timestamp: new Date(),
       };
-
       setMessages(prev => [...prev, aiMessage]);
 
       // Update active conversation with AI response
@@ -937,6 +954,16 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         setInternalIsVisible(false);
       }
     }
+  };
+
+  // Only fetch when user interacts
+  const handleOpenChat = () => {
+    if (!hasFetched) {
+      // fetchChatHistory();
+      // fetchModelInfo();
+      setHasFetched(true);
+    }
+    setInternalIsVisible(true);
   };
 
   // CHAT BUTTON COMPONENT
