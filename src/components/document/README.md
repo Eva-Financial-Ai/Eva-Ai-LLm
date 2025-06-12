@@ -1,5 +1,7 @@
 # Document Management Components
 
+> **NOTE: PDF uploads are now indexed into AutoRAG pipelines via the `/api/upload-pdf` endpoint, handled by the Cloudflare Worker.**
+
 This directory contains the components necessary for intelligent document management, processing, and verification within the Eva AI financial services platform. These components enable secure document handling, automated information extraction, and streamlined document workflows throughout the credit origination process.
 
 ## Overview
@@ -14,6 +16,7 @@ The Document Management system implements several advanced document-handling cap
 6. **Shield Network Integration**: Blockchain verification for immutable document records
 
 These components provide a complete document management infrastructure for:
+
 - Secure document upload and storage
 - Automated information extraction
 - Document verification and validation
@@ -32,11 +35,11 @@ The core document management interface providing secure access to documents with
 import FilelockDriveApp from '../components/document/FilelockDriveApp';
 
 // Example usage
-<FilelockDriveApp 
+<FilelockDriveApp
   userId={currentUser.id}
   transactionId={transactionId}
   enableBlockchainVerification={true}
-/>
+/>;
 ```
 
 ### 2. DocumentViewer
@@ -47,11 +50,7 @@ Advanced document viewing component with support for multiple document formats:
 import DocumentViewer from '../components/document/DocumentViewer';
 
 // Example usage
-<DocumentViewer 
-  documentId={documentId}
-  showAnnotationTools={true}
-  enablePrinting={false}
-/>
+<DocumentViewer documentId={documentId} showAnnotationTools={true} enablePrinting={false} />;
 ```
 
 ### 3. PDFEditor
@@ -67,7 +66,7 @@ import PDFEditor from '../components/document/PDFEditor';
   onDocumentSave={handleDocumentSave}
   readOnly={false}
   permittedOperations={['annotate', 'fillForms', 'sign']}
-/>
+/>;
 ```
 
 ### 4. SignatureWorkflow
@@ -83,7 +82,7 @@ import SignatureWorkflow from '../components/document/SignatureWorkflow';
   signatories={signatoryList}
   onWorkflowComplete={handleSigningComplete}
   reminderFrequency="daily"
-/>
+/>;
 ```
 
 ### 5. DocumentRequestTracker
@@ -94,11 +93,11 @@ Tracks and manages document collection status and outstanding requests:
 import DocumentRequestTracker from '../components/document/DocumentRequestTracker';
 
 // Example usage
-<DocumentRequestTracker 
+<DocumentRequestTracker
   transactionId={transactionId}
   onRequestStatusChange={handleStatusChange}
   showCompletionStatus={true}
-/>
+/>;
 ```
 
 ### 6. FileExplorer
@@ -109,12 +108,12 @@ File management interface with drag-and-drop capabilities, folder organization, 
 import FileExplorer from '../components/document/FileExplorer';
 
 // Example usage
-<FileExplorer 
+<FileExplorer
   rootFolder={transactionFolder}
   allowUpload={true}
   onFileSelect={handleFileSelect}
   viewMode="grid"
-/>
+/>;
 ```
 
 ### 7. ShieldNetworkLocker
@@ -130,7 +129,7 @@ import ShieldNetworkLocker from '../components/document/ShieldNetworkLocker';
   onLockComplete={handleDocumentLocked}
   verifyMetadata={['timestamp', 'source', 'hash']}
   showVerificationHistory={true}
-/>
+/>;
 ```
 
 ## Implementation Details
@@ -177,6 +176,7 @@ The Document components integrate with several other Eva AI services:
 ## Performance Considerations
 
 For optimal performance when using document components:
+
 - Use the `React.memo` HOC for document display components
 - Implement lazy loading for large document lists
 - Enable compression for document uploads
@@ -204,23 +204,20 @@ import ShieldNetworkLocker from '../components/document/ShieldNetworkLocker';
 
 const DocumentVerificationPage = ({ documentId }) => {
   const [verificationStatus, setVerificationStatus] = useState(null);
-  
-  const handleVerificationComplete = (result) => {
+
+  const handleVerificationComplete = result => {
     setVerificationStatus(result);
   };
-  
+
   return (
     <div className="container mx-auto px-4">
       <h1 className="text-2xl font-bold mb-4">Document Verification</h1>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
-          <DocumentViewer 
-            documentId={documentId} 
-            showAnnotationTools={false}
-          />
+          <DocumentViewer documentId={documentId} showAnnotationTools={false} />
         </div>
-        
+
         <div>
           <ShieldNetworkLocker
             documentId={documentId}
@@ -228,15 +225,17 @@ const DocumentVerificationPage = ({ documentId }) => {
             verifyMetadata={['timestamp', 'source', 'hash']}
             showVerificationHistory={true}
           />
-          
+
           {verificationStatus && (
-            <div className={`mt-4 p-4 rounded-md ${
-              verificationStatus.verified 
-                ? 'bg-green-50 text-green-800' 
-                : 'bg-red-50 text-red-800'
-            }`}>
-              {verificationStatus.verified 
-                ? 'Document successfully verified on Shield Network.' 
+            <div
+              className={`mt-4 p-4 rounded-md ${
+                verificationStatus.verified
+                  ? 'bg-green-50 text-green-800'
+                  : 'bg-red-50 text-red-800'
+              }`}
+            >
+              {verificationStatus.verified
+                ? 'Document successfully verified on Shield Network.'
                 : 'Document verification failed. Possible tampering detected.'}
             </div>
           )}
@@ -259,34 +258,31 @@ import FileExplorer from '../components/document/FileExplorer';
 const DocumentCollectionPage = ({ transactionId }) => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState('root');
-  
+
   const handleRequestComplete = () => {
     setShowRequestModal(false);
     // Refresh document tracker
   };
-  
+
   return (
     <div className="container mx-auto px-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Document Collection</h1>
-        <button 
+        <button
           className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700"
           onClick={() => setShowRequestModal(true)}
         >
           Request Documents
         </button>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <DocumentRequestTracker 
-            transactionId={transactionId}
-            showCompletionStatus={true}
-          />
+          <DocumentRequestTracker transactionId={transactionId} showCompletionStatus={true} />
         </div>
-        
+
         <div className="lg:col-span-2">
-          <FileExplorer 
+          <FileExplorer
             rootFolder={`transactions/${transactionId}/documents`}
             allowUpload={true}
             onFolderSelect={setSelectedFolder}
@@ -294,7 +290,7 @@ const DocumentCollectionPage = ({ transactionId }) => {
           />
         </div>
       </div>
-      
+
       {showRequestModal && (
         <DocumentRequestModal
           transactionId={transactionId}
@@ -304,4 +300,12 @@ const DocumentCollectionPage = ({ transactionId }) => {
       )}
     </div>
   );
-}; 
+};
+```
+
+## PDF Upload and RAG Indexing
+
+- Use the DocumentUpload component to upload PDFs.
+- The file and selected pipeline are sent to `/api/upload-pdf` (POST, multipart/form-data).
+- The Worker extracts text and indexes it into the correct AutoRAG pipeline.
+- After upload, the document is available for RAG chat via `/api/rag-query`.

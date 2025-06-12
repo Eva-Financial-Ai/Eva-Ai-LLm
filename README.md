@@ -1,5 +1,7 @@
 # EVA Platform Frontend
 
+> **NOTE: This project is now RAG-only. All chat and document queries are routed through the `/api/rag-query` and `/api/upload-pdf` endpoints, handled by a Cloudflare Worker. All LLM and legacy chat code has been removed.**
+
 An advanced AI-powered credit origination platform frontend providing a comprehensive interface for borrowers, lenders, brokers, and vendors to manage the entire loan origination lifecycle.
 
 ![EVA Platform](public/icons/eva-avatar.svg)
@@ -73,7 +75,7 @@ AI-enhanced document generation:
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v16.14.0 or higher)
+- Node.js (v18.18.0 or higher)
 - npm (v8.3.0 or higher)
 
 ### Installation
@@ -85,27 +87,41 @@ cd evafi-ai-fe-demo
 # Install dependencies
 npm install
 
-# Fix dependencies (if needed)
-./fix-dependencies.sh
-
 # Start development server
 npm run dev
 ```
 
 ### Environment Configuration
-Create a `.env.local` file with the following minimum configuration:
+Create a `.env.local` or `.env.production` file with the following minimum configuration:
 ```
-REACT_APP_API_URL=http://localhost:8080/api
-REACT_APP_AUTH_URL=http://localhost:8080/auth
-REACT_APP_ENABLE_MOCKS=true
+REACT_APP_API_URL=/api
+REACT_APP_RAG_API_URL=/api/rag-query
+REACT_APP_AUTH_DOMAIN=your-auth0-domain
+REACT_APP_AUTH_CLIENT_ID=your-auth0-client-id
+REACT_APP_ENVIRONMENT=production
 ```
 
-For production deployment, use:
-```
-REACT_APP_API_URL=https://api.evafi.com/api
-REACT_APP_AUTH_URL=https://api.evafi.com/auth
-REACT_APP_ENABLE_MOCKS=false
-```
+- All API calls must use root-relative paths (e.g., `/api/rag-query`).
+- For production, deploy your frontend via Cloudflare Pages and your API via a Cloudflare Worker. Set up a route so `/api/*` is handled by the Worker.
+
+## 🛠️ Deployment
+
+### Frontend (Cloudflare Pages)
+- Push to the `main` branch to trigger automatic deploys.
+- Or use Direct Upload for manual deploys.
+
+### Backend (Cloudflare Worker)
+- Deploy with `npx wrangler deploy` from the `cloudflare-worker` directory.
+- Set the following secrets in the Worker:
+  - `CF_API_TOKEN_LENDER_RAG`
+  - `CF_API_TOKEN_EQUIPMENT_RAG`
+  - `CF_API_TOKEN_REALESTATE_RAG`
+  - `CF_API_TOKEN_SBA_RAG`
+  - `CF_API_TOKEN_LENDERLIST_RAG`
+
+### Endpoints
+- Chat: `/api/rag-query` (POST)
+- PDF Upload: `/api/upload-pdf` (POST)
 
 ## 📖 Development Resources
 

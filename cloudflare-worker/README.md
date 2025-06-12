@@ -1,20 +1,14 @@
-# Cloudflare LLM Proxy Worker
+# Cloudflare RAG Proxy Worker
 
-This Worker acts as a secure proxy for forwarding LLM requests from your frontend to the Cloudflare AI API, keeping your API token safe and resolving CORS issues.
+This Worker acts as a secure proxy for forwarding RAG chat and PDF upload requests from your frontend to the correct AutoRAG pipeline, keeping your API tokens safe and resolving CORS issues.
 
-## Cloudflare Configuration (Account: eace6f3c56b5735ae4a9ef385d6ee914)
+## Required Secrets
 
-- **CLOUDFLARE_ACCOUNT_ID:** `eace6f3c56b5735ae4a9ef385d6ee914`
-- **Staging Domain CLOUDFLARE_ZONE_ID:** `79cbd8176057c91e2e2329ffd8b386a5`
-- **Production Domain CLOUDFLARE_ZONE_ID:** `913680b4428f2f4d1c078dd841cd8cdb`
-- **CLOUDFLARE_API_TOKEN:** `qCC_PYqqlXW6ufNP_SuGW8CrhPoKB9BfFZEPuOiT`  
-  _This token works for both staging and production._
-- **CLOUDFLARE_EMAIL:** `support@evafi.ai`
-- **Support Phone Number (Twilio):** `7025762013`
-
-> **IMPORTANT:**
-> - **Before releasing to production, update all keys and secrets as needed.**
-> - Never commit sensitive keys or tokens to public repositories.
+- `CF_API_TOKEN_LENDER_RAG`
+- `CF_API_TOKEN_EQUIPMENT_RAG`
+- `CF_API_TOKEN_REALESTATE_RAG`
+- `CF_API_TOKEN_SBA_RAG`
+- `CF_API_TOKEN_LENDERLIST_RAG`
 
 ## Setup
 
@@ -26,29 +20,35 @@ This Worker acts as a secure proxy for forwarding LLM requests from your fronten
    ```sh
    wrangler login
    ```
-3. **Add your Cloudflare API token as a secret:**
+3. **Add your API tokens as secrets:**
    ```sh
-   wrangler secret put CLOUDFLARE_API_TOKEN
+   wrangler secret put CF_API_TOKEN_LENDER_RAG
+   wrangler secret put CF_API_TOKEN_EQUIPMENT_RAG
+   wrangler secret put CF_API_TOKEN_REALESTATE_RAG
+   wrangler secret put CF_API_TOKEN_SBA_RAG
+   wrangler secret put CF_API_TOKEN_LENDERLIST_RAG
    ```
 
 ## Deploy
 
 From the `cloudflare-worker` directory:
 ```sh
-wrangler deploy
+npx wrangler deploy
 ```
 
 ## Usage
 
-- The Worker will be deployed to a URL like:
-  `https://cloudflare-llm-proxy.<your-account>.workers.dev`
-- Update your frontend to POST to this URL instead of the Cloudflare API directly.
+- The Worker is routed at `/api/*` on your production domain (e.g., `https://evafi.ai/api/rag-query`).
+- The frontend should always use root-relative API paths (e.g., `/api/rag-query`).
 
-## CORS
+## Debugging
 
-- The Worker handles CORS preflight and adds the necessary headers for browser compatibility.
+To view live logs:
+```sh
+npx wrangler tail
+```
 
 ## Security
 
-- The API token is never exposed to the frontend or client devices.
+- The API tokens are never exposed to the frontend or client devices.
 - All requests are securely proxied through the Worker. 

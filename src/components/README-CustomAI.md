@@ -1,5 +1,7 @@
 # EVA Custom AI Agent Documentation
 
+> **NOTE: All custom agent chat now uses the RAG pipeline via the Cloudflare Worker (`/api/rag-query`). Direct LLM calls are no longer supported.**
+
 This document provides an overview of the custom AI agent creation feature in the EVA platform.
 
 ## Components
@@ -7,7 +9,7 @@ This document provides an overview of the custom AI agent creation feature in th
 The custom AI agent feature consists of three primary components:
 
 1. `EVAAssistantWithCustomAgents` - The parent component that integrates the chat interface with custom agent management
-2. `CreateCustomAIAgent` - The modal component for creating and configuring custom agents 
+2. `CreateCustomAIAgent` - The modal component for creating and configuring custom agents
 3. `AIAgentCustomizationOptions` - A reusable component for agent customization settings
 
 ## Usage
@@ -51,6 +53,7 @@ src/components/
 ### Assets
 
 The brain icon is stored at:
+
 ```
 public/brain-icon.svg
 ```
@@ -84,4 +87,4 @@ interface CustomAgentConfig {
 
 ### Integration
 
-The custom agents integrate with the EVA platform's existing AI capabilities, allowing for specialized agents that focus on specific tasks or knowledge domains while maintaining the core EVA experience. 
+The custom agents integrate with the EVA platform's existing AI capabilities, allowing for specialized agents that focus on specific tasks or knowledge domains while maintaining the core EVA experience.
