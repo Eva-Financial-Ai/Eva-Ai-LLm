@@ -2,8 +2,6 @@ import { ModelContextProtocol, ChatResponse } from './creditAnalysisApi';
 
 // RAG-only API service
 
-const RAG_API_URL = process.env.REACT_APP_RAG_API_URL || '/api/rag-query';
-
 export interface RAGRequest {
   query: string;
   pipeline: string;
@@ -20,7 +18,7 @@ export interface RAGResponse {
  * Sends a request to the RAG API endpoint
  */
 export const sendToRAG = async (request: RAGRequest): Promise<RAGResponse['result']> => {
-  const response = await fetch(RAG_API_URL, {
+  const response = await fetch('/api/rag-query', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

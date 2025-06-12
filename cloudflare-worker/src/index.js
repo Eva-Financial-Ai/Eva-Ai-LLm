@@ -19,7 +19,10 @@ export default {
     }
 
     // Unified RAG endpoint for all pipelines
-    if (request.method === 'POST' && url.pathname === '/api/rag-query') {
+    if (
+      request.method === 'POST' &&
+      (url.pathname === '/api/rag-query' || url.pathname === '/api/rag-query/')
+    ) {
       try {
         const { query, pipeline } = await request.json();
         if (!query || !pipeline) {

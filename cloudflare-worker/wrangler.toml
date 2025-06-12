@@ -2,5 +2,10 @@ name = "llm-worker-unique-987654"
 main = "src/index.js"
 compatibility_date = "2024-06-09"
 
+routes = [
+  { pattern = "evafi.ai/api/*", zone_name = "evafi.ai" },
+  "*.evafi-rag.pages.dev/*"
+]
+
 [vars]
 # No need to put the secret here, it's stored securely 
