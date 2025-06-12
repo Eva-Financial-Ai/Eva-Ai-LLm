@@ -3,4 +3,8 @@ main = "src/index.js"
 compatibility_date = "2024-06-09"
 
 [vars]
-# No need to put the secret here, it's stored securely 
+CF_API_TOKEN_LENDER_RAG="WvHIABgH1q07ASjRb4sHNua7zQZMbGtCCXnZEEWU"
+CF_API_TOKEN_EQUIPMENT_RAG="IDDDdOh2KBIA-q_Mf7saEpPy3kG5C6FvzaTiieG"
+CF_API_TOKEN_REALESTATE_RAG="_b6IwqC17Ci-RjiCIsKpduc1tjGjB0TmYrQezqQa"
+CF_API_TOKEN_SBA_RAG="k-hY2cUMiVwAyUcBLA7yWy0TFlcVMHu8_NemOAb"
+CF_API_TOKEN_LENDERLIST_RAG="8j-ufbKvt5LIhjMjeDnGUP16KFXGSb6ku5deGfpu"

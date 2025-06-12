@@ -27,7 +27,7 @@ import { AgentModel } from './CustomAgentManager';
 import AddParticipantDialog from './AddParticipantDialog';
 import { DEFAULT_AGENTS } from './AgentSelector';
 import AgentIcon from './AgentIcon';
-import { getChatResponse } from '../../api/creditAnalysisApi';
+import { sendToRAG } from '../../api/cloudflareAIService';
 
 interface ChatWidgetProps {
   mode?: 'eva' | 'risk' | 'communications';
@@ -35,6 +35,7 @@ interface ChatWidgetProps {
   isOpen?: boolean;
   onClose?: () => void;
   zIndexBase?: number;
+  initialPrompt?: string;
 }
 
 interface Message {
@@ -130,6 +131,8 @@ export const Spinner = () => (
   </div>
 );
 
+type Pipeline = 'lender' | 'equipment' | 'realestate' | 'sba' | 'lenderlist';
+
 const ChatWidget: React.FC<ChatWidgetProps> = ({
   mode = 'eva',
   initialPosition = {
@@ -139,6 +142,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   isOpen: isOpenProp,
   onClose: onCloseProp,
   zIndexBase = 50,
+  initialPrompt = '',
 }) => {
   // Internal visibility state, used if isOpenProp is not provided
   const [internalIsVisible, setInternalIsVisible] = useState(
@@ -157,7 +161,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   }, [isOpenProp]);
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState(initialPrompt);
   const [isTyping, setIsTyping] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -217,6 +221,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   const [showSentimentAnalysis, setShowSentimentAnalysis] = useState(false);
   const [sentimentScore, setSentimentScore] = useState(0);
   const [computeEfficiencyScore, setComputeEfficiencyScore] = useState(0);
+  const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>('lender');
 
   const hasInitialized = React.useRef(false);
   const [hasFetched, setHasFetched] = useState(false);
@@ -590,76 +595,28 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   };
 
   // Modified handleSendMessage to update the active conversation
-  const handleSendMessage = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-
-    if (!inputText.trim() && uploadedFiles.length === 0) return;
+  const handleSendMessage = async () => {
+    if (!inputText.trim()) return;
 
     // Add user message
     const userMessage: Message = {
       id: `user-${Date.now()}`,
-      sender: 'user',
       text: inputText,
+      sender: 'user',
       timestamp: new Date(),
-      attachment:
-        uploadedFiles.length > 0
-          ? {
-              type: uploadedFiles[0].type.includes('image')
-                ? 'image'
-                : uploadedFiles[0].type.includes('pdf')
-                  ? 'pdf'
-                  : 'document',
-              name:
-                uploadedFiles.length === 1
-                  ? uploadedFiles[0].name
-                  : `${uploadedFiles.length} files uploaded`,
-              url: uploadedFiles.length === 1 ? URL.createObjectURL(uploadedFiles[0]) : '',
-            }
-          : undefined,
     };
 
     setMessages(prev => [...prev, userMessage]);
-
-    // Update active conversation with new message
-    if (activeConversationId) {
-      setConversations(prev =>
-        prev.map(conv =>
-          conv.id === activeConversationId
-            ? {
-                ...conv,
-                messages: [...conv.messages, userMessage],
-                updatedAt: new Date(),
-              }
-            : conv
-        )
-      );
-    }
-
     setInputText('');
-    setUploadedFiles([]);
     setIsTyping(true);
 
-    // Perform sentiment analysis
-    analyzeSentiment(inputText);
-
     try {
-      // TODO: Replace this with your actual pipeline selection logic
-      const selectedPipeline = 'lender'; // e.g., 'lender', 'equipment', 'realestate', 'sba', 'lenderlist'
-
-      // Call the new /api/rag-query endpoint
-      const response = await fetch('/api/rag-query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: inputText,
-          pipeline: selectedPipeline,
-        }),
-      });
-      const data = await response.json();
+      // Use the sendToRAG function from cloudflareAIService
+      const response = await sendToRAG({ query: inputText, pipeline: selectedPipeline });
       const aiMessage: Message = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: data?.data?.answer || 'No answer returned.',
+        text: response.answer || response,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, aiMessage]);
@@ -1075,47 +1032,41 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
           {/* Main Chat Area */}
           <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
-              <div className="flex items-center">
-                <button className="mr-2 text-gray-500 hover:text-gray-700" onClick={toggleSidebar}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h7"
-                    />
-                  </svg>
-                </button>
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center">
+                  <span className="text-white text-sm font-semibold">EVA</span>
+                </div>
                 <div>
-                  <h2 className="text-2xl font-semibold">{getTitle()}</h2>
-                  <div className="flex items-center">
-                    <p className="text-base text-gray-500">{getSubtitle()}</p>
-                  </div>
+                  <h3 className="text-sm font-semibold">EVA Assistant</h3>
+                  <p className="text-xs text-gray-500">Ask me anything</p>
                 </div>
               </div>
+              <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
 
-              {/* Header Right Side */}
-              <div className="flex items-center space-x-2">
-                {renderAnalyticsButton()}
-                {renderShareButton()}
-                <AgentSelector
-                  selectedAgent={selectedAgent}
-                  onSelectAgent={handleSelectAgent}
-                  onManageAgents={() => setIsAgentManagementOpen(true)}
-                  customAgents={customAgents}
-                />
-
-                <button className="p-2 text-gray-500 hover:text-gray-700" onClick={handleClose}>
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
+            {/* Pipeline Selector */}
+            <div className="px-4 py-2 border-b border-gray-200">
+              <select
+                value={selectedPipeline}
+                onChange={e => setSelectedPipeline(e.target.value as Pipeline)}
+                className="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="lender">Lender RAG</option>
+                <option value="equipment">Equipment RAG</option>
+                <option value="realestate">Real Estate RAG</option>
+                <option value="sba">SBA RAG</option>
+                <option value="lenderlist">Lender List RAG</option>
+              </select>
             </div>
 
             {/* Quick Agent Bar */}

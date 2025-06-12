@@ -1,7 +1,7 @@
 import debounce from 'lodash.debounce';
 import apiService from './apiService';
 import { mockInsights } from './mockData';
-import { processChatWithCloudflareAI } from './cloudflareAIService';
+import { sendToRAG } from './cloudflareAIService';
 import { config } from '../config/environment';
 // Remove the imports that don't exist and create them below
 // import { mockRatios, mockInsights, mockChatResponses, mockReferences } from './mockData';
@@ -255,7 +255,7 @@ export const getChatResponseDebounced = debounce(
         timestamp: new Date().toISOString(),
         aiModel: '',
         confidence: 0,
-        error: 'Failed to communicate with EVA AI. Please try again.',
+        error: 'Failed to communicate with RAG system. Please try again.',
       });
     }
   },
@@ -267,17 +267,29 @@ export const getChatResponseDebounced = debounce(
  */
 export const getChatResponse = async (context: ModelContextProtocol): Promise<ChatResponse> => {
   try {
-    // Use Cloudflare AI for chat responses
-    return await processChatWithCloudflareAI(context);
+    // Use RAG for chat responses
+    const ragResult = await sendToRAG({
+      query: context.message || '',
+      pipeline: context.modelId || 'lender',
+      // Optionally add more fields from context if needed
+    });
+    return {
+      messageId: `msg-${Date.now()}`,
+      text: ragResult.answer || ragResult,
+      timestamp: new Date().toISOString(),
+      aiModel: context.modelId || 'lender',
+      confidence: 0.95,
+      references: ragResult.sources || [],
+    };
   } catch (error) {
     console.error('Error getting AI response:', error);
     return {
       messageId: '',
       text: 'Sorry, I encountered an error while processing your request. Please try again.',
       timestamp: new Date().toISOString(),
-      aiModel: '',
+      aiModel: context.modelId || 'lender',
       confidence: 0,
-      error: 'Failed to communicate with EVA AI. Please try again.',
+      error: 'Failed to communicate with RAG system. Please try again.',
     };
   }
 };
