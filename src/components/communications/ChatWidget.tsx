@@ -29,6 +29,8 @@ import { DEFAULT_AGENTS } from './AgentSelector';
 import AgentIcon from './AgentIcon';
 import { sendToRAG } from '../../api/cloudflareAIService';
 
+// All API calls in this file must use root-relative paths (e.g., '/api/rag-query') for production deployment on evafi.ai
+
 interface ChatWidgetProps {
   mode?: 'eva' | 'risk' | 'communications';
   initialPosition?: { x: number; y: number };

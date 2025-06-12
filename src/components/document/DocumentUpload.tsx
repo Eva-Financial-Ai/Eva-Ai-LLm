@@ -19,6 +19,15 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   const [documentType, setDocumentType] = useState('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [pipeline, setPipeline] = useState('lender');
+  const pipelineOptions = [
+    { value: 'lender', label: 'Lender RAG' },
+    { value: 'equipment', label: 'Equipment RAG' },
+    { value: 'realestate', label: 'Real Estate RAG' },
+    { value: 'sba', label: 'SBA RAG' },
+    { value: 'lenderlist', label: 'Lender List RAG' },
+  ];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -28,7 +37,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!selectedFile) {
       setError('Please select a file to upload');
       return;
@@ -40,16 +49,37 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     }
 
     setUploading(true);
+    setError('');
+    setSuccess('');
 
-    // In a real app, this would be an API call to upload the file
-    setTimeout(() => {
-      const fakeDocumentId = `doc-${Date.now()}`;
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('documentType', documentType);
+      formData.append('pipeline', pipeline);
+
+      const response = await fetch('/api/upload-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+      const result = await response.json();
       setUploading(false);
-
-      if (onUploadComplete) {
-        onUploadComplete(fakeDocumentId);
+      if (result.success) {
+        setSuccess('PDF uploaded and indexed in RAG!');
+        if (onUploadComplete) {
+          onUploadComplete(`doc-${Date.now()}`);
+        }
+      } else {
+        if (response.status === 400 && result.error && result.error.includes('File too large')) {
+          setError('File too large. Please upload a PDF smaller than 5MB.');
+        } else {
+          setError(result.error || 'Upload failed');
+        }
       }
-    }, 1500);
+    } catch (err) {
+      setUploading(false);
+      setError('Upload failed: ' + (err instanceof Error ? err.message : String(err)));
+    }
   };
 
   return (
@@ -67,6 +97,21 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
           {documentTypes.map(type => (
             <option key={type} value={type}>
               {type}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">RAG Pipeline</label>
+        <select
+          value={pipeline}
+          onChange={e => setPipeline(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        >
+          {pipelineOptions.map(opt => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
             </option>
           ))}
         </select>
@@ -118,6 +163,9 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       </div>
 
       {error && <div className="mb-4 p-2 bg-red-50 text-red-700 text-sm rounded-md">{error}</div>}
+      {success && (
+        <div className="mb-4 p-2 bg-green-50 text-green-700 text-sm rounded-md">{success}</div>
+      )}
 
       <div className="flex justify-end space-x-2">
         {onCancel && (

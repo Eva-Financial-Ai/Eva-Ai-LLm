@@ -2,9 +2,7 @@ import { ModelContextProtocol, ChatResponse } from './creditAnalysisApi';
 
 // RAG-only API service
 
-const RAG_API_URL =
-  process.env.REACT_APP_RAG_API_URL ||
-  'https://llm-worker-unique-987654.evafiai.workers.dev/api/rag-query';
+const RAG_API_URL = process.env.REACT_APP_RAG_API_URL || '/api/rag-query';
 
 export interface RAGRequest {
   query: string;
